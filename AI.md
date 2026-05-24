@@ -173,7 +173,7 @@ Example:
 ## Business logic
 
 (Full business spec — the WHAT, not the HOW. Features, data models, user flows,
-permission rules, business invariants. The HOW lives in AI.md PARTS 0-33; PART 33 is reference-only.)
+permission rules, business invariants. The HOW lives in AI.md PARTS 0-36; PART 37 is reference-only.)
 ```
 
 **Why three sections, in this order:**
@@ -292,7 +292,7 @@ permission rules, business invariants. The HOW lives in AI.md PARTS 0-33; PART 3
 **Rules for Updating:**
 
 1. **IDEA.md**: Update business logic, data models, features
-   - AI.md PARTS 0-33 define implementation patterns; PART 33 is reference-only (do NOT modify)
+   - AI.md PARTS 0-36 define implementation patterns; PART 37 is reference-only (do NOT modify)
    - IDEA.md defines YOUR project's features (update as needed)
 2. **README.md**: Keep feature list and usage examples current
 3. **docs/**: Update when routes, config options, admin UX, security behavior, auth/integration behavior, or public protocol surfaces change
@@ -450,7 +450,7 @@ make local               # Build with version info
 make build              # All 8 platforms
 ```
 
-**See PART 25: MAKEFILE and PART 28: TESTING & DEVELOPMENT for complete details.**
+**See PART 26: MAKEFILE and PART 29: TESTING & DEVELOPMENT for complete details.**
 
 ## Runtime Detection Rules
 
@@ -583,7 +583,7 @@ if cacheSize > 1024*1024*1024 {
 | **ENTRYPOINT** | `["tini", "-p", "SIGTERM", "--", "/usr/local/bin/entrypoint.sh"]` |
 | **NEVER modify ENTRYPOINT/CMD** | All customization via entrypoint.sh |
 | **Required packages** | `git`, `curl`, `bash`, `tini`, `tor` |
-| **Tor** | Binary installed but **server binary controls startup** (see PART 31) |
+| **Tor** | Binary installed but **server binary controls startup** (see PART 32) |
 
 ### Container Port Behavior
 
@@ -789,7 +789,8 @@ The `release` job already has `contents: write` to push assets — this covers t
 
 | Rule | Description |
 |------|-------------|
-| **SQLite default** | `{db_dir}/server.db` (see PART 4 for platform-specific paths) |
+| **SQLite default** | `{db_dir}/server.db` and `{db_dir}/users.db` (see PART 4 for platform-specific paths) |
+| **Password hashing** | Argon2id - NEVER bcrypt |
 | **Valkey/Redis** | Every app supports it for caching/clustering |
 
 ## CLI Rules
@@ -836,8 +837,8 @@ releases/                   # Release artifacts (gitignored)
 ```
 
 **Notes:**
-- `src/client/` is REQUIRED for all projects (client binary is mandatory). See PART 32 for client details.
-- `src/agent/` is OPTIONAL (only for monitoring/management projects). See PART 32 for agent details.
+- `src/client/` is REQUIRED for all projects (client binary is mandatory). See PART 33 for client details.
+- `src/agent/` is OPTIONAL (only for monitoring/management projects). See PART 33 for agent details.
 - `docker/rootfs/` is the BUILD-TIME container overlay (copied into image).
 - Runtime volumes use `./volumes/config` and `./volumes/data` relative to where `docker run` or `docker compose` is executed; they are NEVER committed to the repo.
 
@@ -858,11 +859,11 @@ releases/                   # Release artifacts (gitignored)
 | Pattern | When to Use | Example |
 |---------|-------------|---------|
 | `{package}.go` | Main package file | `config/config.go`, `server/server.go` |
-| `{feature}.go` | Feature-specific logic | `items.go`, `backup.go`, `scheduler.go` |
-| `{feature}_handler.go` | HTTP handlers for feature | `items_handler.go`, `backup_handler.go` |
-| `{feature}_service.go` | Business logic for feature | `items_service.go`, `email_service.go` |
-| `{feature}_model.go` | Data models for feature | `items_model.go`, `backup_model.go` |
-| `{feature}_test.go` | Tests for feature | `items_test.go`, `backup_handler_test.go` |
+| `{feature}.go` | Feature-specific logic | `auth.go`, `session.go`, `token.go` |
+| `{feature}_handler.go` | HTTP handlers for feature | `user_handler.go`, `admin_handler.go` |
+| `{feature}_service.go` | Business logic for feature | `user_service.go`, `email_service.go` |
+| `{feature}_model.go` | Data models for feature | `user_model.go`, `session_model.go` |
+| `{feature}_test.go` | Tests for feature | `auth_test.go`, `user_handler_test.go` |
 | `middleware.go` | HTTP middleware | `middleware.go` (not `mw.go`) |
 | `helpers.go` | Shared utilities within package | `helpers.go` (not `utils.go`, `common.go`) |
 | `errors.go` | Package-specific errors | `errors.go` |
@@ -1039,7 +1040,7 @@ Quick reference: Accept `yes/no`, `true/false`, `1/0`, `on/off`, `enable/disable
 | Use CGO | CGO_ENABLED=0 always |
 | Use `strconv.ParseBool()` | Use `config.ParseBool()` for all boolean parsing |
 | Hardcode dev machine values | Detect at runtime (hostname, IP, cores, memory) |
-| Use external cron for scheduling | Use internal scheduler (PART 18) |
+| Use external cron for scheduling | Use internal scheduler (PART 19) |
 | Add comments to JSON files | JSON has no comment syntax |
 | Use `-musl` suffix in binary names | Alpine builds are not musl-specific |
 | Store tokens/passwords in plaintext | Passwords: Argon2id; Tokens: SHA-256 hash |
@@ -1111,7 +1112,7 @@ Quick reference: Accept `yes/no`, `true/false`, `1/0`, `on/off`, `enable/disable
 | `TODO.md` | Optional | Task list — human edits/owns. AI reads, interprets, executes, and marks items done in place. Never delete, empty, or restructure |
 | `TODO.AI.md` | Optional | Task list — AI creates/updates (3+ tasks only) |
 
-**Why two variants of PLAN/TODO exist:** humans and AI write tasks at different levels of detail. A human might write `[ ] fix bugs`; AI would write a structured task with reproduction steps, acceptance criteria, and file paths. The split lets each party use their natural style. **AI's job with human files:** read terse items, figure out what they mean (investigate, propose, ask if genuinely unclear — don't refuse for being short), do the work, then check the box. AI must NOT "improve" the wording into AI-style verbose form. The completion ritual (`TODO.AI.md` ✅ items removed individually when done) applies only to the AI-owned variant.
+**Why two variants of PLAN/TODO exist:** humans and AI write tasks at different levels of detail. A human might write `[ ] fix bugs`; AI would write a structured task with reproduction steps, acceptance criteria, and file paths. The split lets each party use their natural style. **AI's job with human files:** read terse items, figure out what they mean (investigate, propose, ask if genuinely unclear — don't refuse for being short), do the work, then check the box. AI must NOT "improve" the wording into AI-style verbose form. The completion rituals (`TODO.AI.md` ✅ empty, `PLAN.AI.md` "Fully Implemented" rewrite) apply only to the AI-owned variants.
 | `README.md` | ✓ | Public documentation |
 | `LICENSE.md` | ✓ | License file |
 | `Makefile` | ✓ | Build targets |
@@ -1150,15 +1151,16 @@ Claude Code creates `.claude/rules/` on first session (see PART 0: Session Initi
 | `binary-rules.md` | 7, 8, 33 | Binary Requirements, Server Binary CLI, Client & Agent |
 | `backend-rules.md` | 9, 10, 11, 32 | Error Handling & Caching, Database & Cluster, Security & Logging, Tor Hidden Service |
 | `api-rules.md` | 13, 14, 15 | Health & Versioning, API Structure, SSL/TLS & Let's Encrypt |
-| `frontend-rules.md` | 16 | Web Frontend |
-| `features-rules.md` | 17-22 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
-| `service-rules.md` | 23, 24 | Privilege Escalation & Service, Service Support |
-| `makefile-rules.md` | 25 | Makefile (local dev only, NOT CI/CD) |
-| `docker-rules.md` | 26 | Docker |
-| `cicd-rules.md` | 27 | CI/CD Workflows |
-| `testing-rules.md` | 28, 29, 30 | Testing & Development, ReadTheDocs Documentation, I18N & A11Y |
+| `frontend-rules.md` | 16, 17 | Web Frontend, Admin Panel |
+| `features-rules.md` | 18-23 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
+| `service-rules.md` | 24, 25 | Privilege Escalation & Service, Service Support |
+| `makefile-rules.md` | 26 | Makefile (local dev only, NOT CI/CD) |
+| `docker-rules.md` | 27 | Docker |
+| `cicd-rules.md` | 28 | CI/CD Workflows |
+| `testing-rules.md` | 29, 30, 31 | Testing & Development, ReadTheDocs Documentation, I18N & A11Y |
+| `optional-rules.md` | 34-36 | Multi-User, Organizations, Custom Domains (all OPTIONAL) |
 
-**Note:** PART 33 (IDEA.md Reference) and FINAL (Compliance Checklist) are reference-only, not rule files. PART 30 (Tor Hidden Service) is REQUIRED - auto-enabled when Tor binary is found.
+**Note:** PART 37 (IDEA.md Reference) and FINAL (Compliance Checklist) are reference-only, not rule files. Only PARTs 34-36 are truly optional (marked "OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED" in spec). PART 32 (Tor Hidden Service) is REQUIRED - auto-enabled when Tor binary is found.
 
 **Rules File Features:**
 - All `.md` files in `rules/` are automatically discovered recursively
@@ -1223,10 +1225,10 @@ paths:
 | Question | Answer | Reference |
 |----------|--------|-----------|
 | What password hash? | Argon2id (NEVER bcrypt) | PART 11 |
-| Where is Dockerfile? | `docker/Dockerfile` (NEVER root) | PART 26 |
+| Where is Dockerfile? | `docker/Dockerfile` (NEVER root) | PART 27 |
 | CGO enabled? | NEVER (CGO_ENABLED=0 always) | PART 7 |
 | Premium features? | NEVER (all features free) | PART 1 |
-| External cron? | NEVER (built-in scheduler) | PART 18 |
+| External cron? | NEVER (built-in scheduler) | PART 19 |
 | Client-side rendering? | NEVER (server-side Go templates) | PART 16 |
 
 ## TERMINOLOGY
@@ -1236,7 +1238,7 @@ paths:
 | client | CLI binary `{project_name}-cli` - REQUIRED |
 | agent | Optional binary `{project_name}-agent` |
 | Server Admin | App administrator (NOT OS root) |
-| Regular User | End-user (optional feature, not in this spec) |
+| Regular User | End-user (PART 34, optional feature) |
 
 ## COMPLIANCE CHECK
 Before completing ANY task:
@@ -1275,7 +1277,7 @@ For complete details, see AI.md PART 0, 1
 - ✅ Progressive enhancement (works without JS)
 - ✅ Mobile-first responsive CSS
 - ✅ CSS `word-break: break-all` for long strings (IPv6, .onion, tokens)
-- ✅ All settings configurable via API and config file
+- ✅ Full admin panel with ALL settings
 - ✅ WCAG 2.1 AA accessibility
 - ✅ Touch targets minimum 44x44px
 - ✅ /server/about content from IDEA.md (name, tagline, description, features)
@@ -1337,13 +1339,14 @@ Cursor uses `.mdc` files. Create the same logical groupings:
 | `binary-rules.mdc` | 7, 8, 33 | Binary Requirements, Server Binary CLI, Client & Agent |
 | `backend-rules.mdc` | 9, 10, 11, 32 | Error Handling & Caching, Database & Cluster, Security & Logging, Tor Hidden Service |
 | `api-rules.mdc` | 13, 14, 15 | Health & Versioning, API Structure, SSL/TLS & Let's Encrypt |
-| `frontend-rules.mdc` | 16 | Web Frontend |
-| `features-rules.mdc` | 17-22 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
-| `service-rules.mdc` | 23, 24 | Privilege Escalation & Service, Service Support |
-| `makefile-rules.mdc` | 25 | Makefile (local dev only, NOT CI/CD) |
-| `docker-rules.mdc` | 26 | Docker |
-| `cicd-rules.mdc` | 27 | CI/CD Workflows |
-| `testing-rules.mdc` | 28, 29, 30 | Testing & Development, ReadTheDocs Documentation, I18N & A11Y |
+| `frontend-rules.mdc` | 16, 17 | Web Frontend, Admin Panel |
+| `features-rules.mdc` | 18-23 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
+| `service-rules.mdc` | 24, 25 | Privilege Escalation & Service, Service Support |
+| `makefile-rules.mdc` | 26 | Makefile (local dev only, NOT CI/CD) |
+| `docker-rules.mdc` | 27 | Docker |
+| `cicd-rules.mdc` | 28 | CI/CD Workflows |
+| `testing-rules.mdc` | 29, 30, 31 | Testing & Development, ReadTheDocs Documentation, I18N & A11Y |
+| `optional-rules.mdc` | 34-36 | Multi-User, Organizations, Custom Domains (all OPTIONAL) |
 
 **Aider Rules (.aider/):**
 
@@ -1421,6 +1424,12 @@ Purpose:
 - `AI.md` is the full source of truth
 - For complete details, read the referenced PARTs in `AI.md`
 
+## FIRST TURN - MANDATORY
+
+On EVERY new conversation or after "context compacted" message:
+1. **READ** the relevant `.claude/rules/*.md` for your current task
+2. **NEVER** assume or guess - verify against AI.md before implementing
+
 ## Asking Questions
 
 - **Default to continuing work** - do not stop just to ask whether you should continue; if the next step is implied by the spec, the current task, or the current findings, continue
@@ -1459,10 +1468,12 @@ Purpose:
 ## Key Placeholders
 - `{project_name}` = [actual project name]
 - `{project_org}` = [organization name]
+- `{admin_path}` = [admin URL path, default: admin]
+
 ## Account Types (CRITICAL)
 - **Server Admin** = manages the app (NOT a privileged OS user)
 - **Primary Admin** = first admin, cannot be deleted
-- **Regular User** = end-user (optional feature, not in this spec)
+- **Regular User** = end-user (PART 34, optional feature)
 - Server Admins ≠ Regular Users (separate DB tables)
 
 ## Cluster vs Managed Nodes (CRITICAL)
@@ -1475,7 +1486,7 @@ Purpose:
 2. Put Dockerfile in root → `docker/Dockerfile`
 3. Use CGO → CGO_ENABLED=0 always
 4. Hardcode dev values → Detect at runtime
-5. Use external cron → Internal scheduler (PART 18)
+5. Use external cron → Internal scheduler (PART 19)
 6. Store passwords plaintext → Argon2id (tokens use SHA-256)
 7. Create premium tiers → All features free, no paywalls
 8. Use Makefile in CI/CD → Explicit commands only
@@ -1486,7 +1497,7 @@ Purpose:
 13. Let long strings break mobile → Use word-break CSS
 14. Skip validation → Server validates EVERYTHING
 15. Implement without reading spec → Read relevant PART first
-16. Modify TEMPLATE.md or AI.md content → READ-ONLY SPEC. Project changes go in IDEA.md.
+16. Modify TEMPLATE.md or AI.md content → READ-ONLY. Project changes go in IDEA.md. To activate optional PARTS 34-36 for this project, declare them in SPEC.md (see "SPEC.md — Optional Part Activation" below)
 17. Edit `## Project variables` in IDEA.md without confirming with the user → Variables drive placeholder resolution used by AI.md; wrong values silently corrupt every reference
 18. Read an image larger than 1000×1000 directly into context → Resize to ≤1000×1000 first via the fallback chain (`magick` → `convert` → `gm convert` → `vipsthumbnail` → `sips` → `ffmpeg`). If none are available, do NOT read the image — tell the user which tool to install. See "Large Image Handling" below.
 19. Use a non-conforming IDEA.md without migration → If IDEA.md exists but lacks the three required sections (`## Project description`, `## Project variables`, `## Business logic`), STOP and migrate it before doing anything else. See "IDEA.md Migration" below.
@@ -1498,9 +1509,9 @@ Purpose:
 4. All features work without JavaScript
 5. Tor hidden service support (auto-enabled if Tor found)
 6. Built-in scheduler, GeoIP, metrics, email, backup, update
-7. All settings configurable via API and config file
+7. Full admin panel with ALL settings
 8. Client binary for ALL projects
-9. Commit often via `gitcommit <command>` — small, focused commits, each with a fresh accurate `.git/COMMIT_MESS`. See "gitcommit Script" → "Commit Cadence". Do NOT hoard unrelated changes into one big commit. **Subagents do not commit** — complete edits and report back to the parent instance; the parent reviews the diff and owns the commit.
+9. Commit often — small, focused commits. Do NOT hoard unrelated changes into one big commit. **Subagents do not commit** — complete edits and report back to the parent instance; the parent reviews the diff and owns the commit.
 
 ## File Locations
 - Config: `{config_dir}/server.yml`
@@ -1512,7 +1523,7 @@ Purpose:
 ## Where to Find Details
 - AI behavior: `.claude/rules/ai-rules.md` (PART 0, 1)
 - Project structure: `.claude/rules/project-rules.md` (PART 2, 3, 4)
-- Frontend/WebUI: `.claude/rules/frontend-rules.md` (PART 16)
+- Frontend/WebUI: `.claude/rules/frontend-rules.md` (PART 16, 17)
 - Full spec: `AI.md` (~55k lines) ← **SOURCE OF TRUTH**
 
 ## Current Project State
@@ -1533,7 +1544,17 @@ Purpose:
 
 CLAUDE.md and rules files are loaded at every conversation start, but AI may still drift from spec during long conversations or after context compaction. These mechanisms ensure compliance:
 
-**1. Rules File Content Template:**
+**1. First Turn Behavior (add to CLAUDE.md):**
+
+```markdown
+## FIRST TURN - READ THIS
+
+On EVERY new conversation or after context compaction:
+1. Read the relevant `.claude/rules/*.md` files for current task
+2. NEVER assume - always verify against spec before implementing
+```
+
+**2. Rules File Content Template:**
 
 Each `.claude/rules/*.md` file should contain:
 
@@ -1915,7 +1936,6 @@ Instructions for how this agent should behave...
   - `.github/PULL_REQUEST_TEMPLATE.md`
   - `.github/workflows/ci.yml`
   - `.github/workflows/release.yml`
-  - `.github/workflows/build-toolchain.yml`
 - These files are templates/project policy files: define them once in the template, then update them to match the actual project
 - `FUNDING.yml` remains optional
 
@@ -2003,6 +2023,7 @@ Instructions for how this agent should behave...
 | `{official_site}` | Official project website | `https://jokes.example.com` |
 | `{fqdn}` | Fully qualified domain name | `api.example.com` |
 | `{baseurl}` | URL path prefix (auto-detected from reverse proxy) | `/`, `/myproject` |
+| `{admin_path}` | Admin panel URL path (configurable, default: `admin`) | `admin`, `manage`, `control` |
 | `{api_version}` | API version prefix (default: `v1`) | `v1`, `v2` |
 
 **Directory placeholders (with platform-specific defaults):**
@@ -2078,6 +2099,8 @@ This distinction exists for clarity. When referring to OS-level resources that b
 |------|------------|
 | **Managed Node** | An EXTERNAL resource the app controls/monitors (NOT an app instance) - e.g., Docker hosts, monitored servers |
 | **HA (High Availability)** | Automatic failover for critical apps - specialized, not standard |
+| **API Token** | Authentication credential for API access - prefixed by owner type (`adm_`, `usr_`, `org_`) |
+| **Agent Token** | Scoped API token for agents - includes owner prefix (`adm_agt_`, `usr_agt_`, `org_agt_`) |
 | **Rate Limiting** | Server protection against abuse/DDoS - NOT usage limits for monetization (we never do that) |
 | **Background Job** | Server-side scheduled or queued task (backup, sync, cleanup) - managed by internal scheduler, NOT cron |
 | **Primary Election** | Process where cluster nodes elect a Primary Node for cluster-wide tasks |
@@ -2094,7 +2117,7 @@ This distinction exists for clarity. When referring to OS-level resources that b
 
 **Key difference:** Cluster nodes run your code. Managed nodes are things your code talks to.
 
-**Most apps only have cluster nodes. Managed nodes are app-specific and require PART 32 agent functionality.**
+**Most apps only have cluster nodes. Managed nodes are app-specific and require PART 33 agent functionality.**
 
 ## Examples
 
@@ -2120,16 +2143,30 @@ This distinction exists for clarity. When referring to OS-level resources that b
 
 | Term | Definition |
 |------|------------|
-| **Server** | The running application instance — serves all public API and web routes |
-| **Operator** | Person who deploys and manages the server via CLI and `server.yml` config file |
+| **Server Admin** | Administrative account for managing the application (NOT a privileged user) |
+| **Primary Admin** | A Server Admin - specifically the first one created during setup wizard (cannot be deleted, prevents lockout) |
+| **Additional Admin** | A Server Admin - added later by Primary Admin or other admins (can be deleted) |
+| **OIDC/LDAP Admin** | A Server Admin - authenticated via external identity provider instead of local password |
+| **Regular User** | End-user account that uses the application's features (PART 34, optional) |
+
+**CRITICAL:** Server Admins and Regular Users are completely separate account types stored in different database tables. A Server Admin is NOT a "privileged user."
 
 ## Setup & First-Run Terms
 
 | Term | Definition |
 |------|------------|
+| **Server Web Setup** | Web-based setup flow at `/server/{admin_path}/config/setup` (HTML pages served by server, accessed in browser) - creates Primary Admin, customizes branding |
 | **CLI Setup Wizard** | Built-in TUI/GUI wizard in CLI binary - prompts for server URL, tests connection, saves config (CLI is the ONLY binary with a built-in wizard) |
+| **Setup Token** | One-time 32-char hex token generated on server first-run, displayed in console, required to access server's web-based setup |
 
-**Key distinction:** Server is configured by editing `server.yml` directly. CLI has a built-in interactive wizard (TUI/GUI). Agent has no wizard (uses connection string).
+**Setup Token Storage (file-based):**
+- File: `{config_dir}/setup_token.txt` (contains SHA-256 hash of token)
+- Generated on first-run if no admins exist in database
+- Plaintext token shown ONCE in console output, then only hash stored
+- Token invalidated (file deleted) after successful setup completion
+- File-based because database may not exist yet on first run
+
+**Key distinction:** Server serves web pages for setup (browser-based). CLI has a built-in interactive wizard (TUI/GUI). Agent has no wizard (uses connection string).
 
 ## Other Terms
 
@@ -2138,7 +2175,7 @@ This distinction exists for clarity. When referring to OS-level resources that b
 | **TUI** | Terminal User Interface - interactive terminal app with menus/panels (client supports TUI mode) |
 | **Text Browsers** | INTERACTIVE browsers (lynx, w3m, links, elinks) that receive **no-JS HTML** and render it in text mode; NO JavaScript support - forms via POST, server-rendered only |
 | **HTTP Tools** | NON-INTERACTIVE tools (curl, wget, httpie) that receive pre-formatted text via HTML2TextConverter; they just dump output |
-| **Admin API** | Server administration is file-only — configuration is managed via config file, not web routes |
+| **Admin Panel** | WebUI at `/server/{admin_path}` for server administration (path is configurable, default: `admin`) |
 | **WebUI** | Web User Interface - browser-based interface served by the server |
 | **SCM** | Windows Service Control Manager - manages Windows services (replaces PID files on Windows) |
 | **Hostname** | Short hostname (e.g., `web01`) - equivalent to `hostname -s` |
@@ -2182,11 +2219,11 @@ server:
 
 **Key differences:**
 
-| Aspect | Public Status (PART 13) | Prometheus Metrics (PART 20) |
+| Aspect | Public Status (PART 13) | Prometheus Metrics (PART 21) |
 |--------|-------------------------|------------------------------|
 | **Endpoints** | `/server/healthz`, optional `/healthz`, `/api/{api_version}/server/healthz` | `/metrics` |
 | **Visibility** | Public internet | Internal network only |
-| **Authentication** | None | None (restrict by IP/network) |
+| **Authentication** | None | Optional bearer token |
 | **Data** | Public-safe status/info only | Everything (all telemetry) |
 | **Format** | HTML, JSON, text | Prometheus text exposition |
 | **Use case** | "Is the server running? What version?" | "How is it performing? Alert on this." |
@@ -2235,8 +2272,8 @@ server:
 
 | PART | Line | Topic | When to Read |
 |------|------|-------|--------------|
-| 0 | ~1957 | AI Assistant Rules | **ALWAYS READ FIRST**, **AI Behavior Rules**, **Host System Safety Rule**, **Translation Rule** |
-| 1 | ~3895 | Critical Rules | **ALWAYS READ FIRST** |
+| 0 | ~1957 | AI Assistant Rules | **AI Behavior Rules**, **Translation Rule** |
+| 1 | ~3895 | Critical Rules | Read before implementing features |
 | 2 | ~5146 | License & Attribution | License requirements |
 | 3 | ~5480 | Project Structure | Setting up new project, **CI/CD badge detection** |
 | 4 | ~6441 | OS-Specific Paths | Path handling |
@@ -2252,32 +2289,37 @@ server:
 | 14 | ~17822 | API Structure | REST/GraphQL/Route Compliance, **Non-Interactive Text Output** |
 | 15 | ~19455 | SSL/TLS & Let's Encrypt | SSL certificates |
 | 16 | ~20426 | Web Frontend | Frontend/UI, **Sitemap**, **Site Verification**, **Branding/SEO** |
-| 17 | ~28563 | Email & Notifications | Email/SMTP, **SMTP Auto-Detection** |
-| 18 | ~29886 | Scheduler | Background tasks, **NO external schedulers**, **Backup tasks** |
-| 19 | ~30333 | GeoIP | GeoIP features, **Country blocking (deny/allow)** |
-| 20 | ~30818 | Metrics | Prometheus metrics, **INTERNAL only** |
-| 21 | ~30915 | Backup & Restore | Backup features, **Compliance encryption**, **Cluster backups** |
-| 22 | ~32360 | Update Command | Update feature |
-| 23 | ~33089 | Privilege Escalation & Service | Service/privilege work |
-| 24 | ~33568 | Service Support | Systemd/runit/rc.d/launchd templates |
-| 25 | ~34477 | Makefile | Local dev/tests/debug only, **NOT used in CI/CD** |
-| 26 | ~34661 | Docker | Docker/containers, **NEVER copy/symlink binaries** |
-| 27 | ~35438 | CI/CD Workflows | GitHub/GitLab/Gitea Actions |
-| 28 | ~36946 | Testing & Development | Testing/dev workflow, **Host Safety in tests**, **AI Docker Compose Rules**, **Content Negotiation Testing** |
-| 29 | ~39880 | ReadTheDocs Documentation | Documentation |
-| 30 | ~41719 | I18N & A11Y | Internationalization, **Translation parity (all binaries)**, **--lang flag** |
-| 31 | ~42451 | Tor Hidden Service | Tor support, **binary controls Tor** |
-| 32 | ~44413 | Client & Agent | Client **REQUIRED**, Agent optional - CLI/TUI/GUI, **Scoped Agent Tokens**, **Smart Context**, **First-Run Wizard** |
-| 33 | ~46165 | IDEA.md Reference | **Examples only** - NEVER modify |
-| FINAL | — | Compliance Checklist | Final verification, **AI Quick Reference Rules**, **Console/Banner Checklist**, **I18N Checklist**, **Host Safety Checklist** |
+| 17 | ~26599 | Admin Panel | Admin UI, **Server Admin**, **Scoped Agents API**, **Blocklists**, **Allowlist**, **GeoIP** |
+| 18 | ~29010 | Email & Notifications | Email/SMTP, **SMTP Auto-Detection** |
+| 19 | ~30333 | Scheduler | Background tasks, **NO external schedulers**, **Backup tasks** |
+| 20 | ~30818 | GeoIP | GeoIP features, **Country blocking (deny/allow)** |
+| 21 | ~30915 | Metrics | Prometheus metrics, **INTERNAL only** |
+| 22 | ~32360 | Backup & Restore | Backup features, **Compliance encryption**, **Cluster backups** |
+| 23 | ~33089 | Update Command | Update feature |
+| 24 | ~33568 | Privilege Escalation & Service | Service/privilege work |
+| 25 | ~34477 | Service Support | Systemd/runit/rc.d/launchd templates |
+| 26 | ~34661 | Makefile | Local dev/tests/debug only, **NOT used in CI/CD** |
+| 27 | ~35438 | Docker | Docker/containers, **NEVER copy/symlink binaries** |
+| 28 | ~36946 | CI/CD Workflows | GitHub/GitLab/Gitea Actions |
+| 29 | ~39880 | Testing & Development | Testing/dev workflow, **Host Safety in tests**, **AI Docker Compose Rules**, **Content Negotiation Testing** |
+| 30 | ~41719 | ReadTheDocs Documentation | Documentation |
+| 31 | ~42451 | I18N & A11Y | Internationalization, **Translation parity (all binaries)**, **--lang flag** |
+| 32 | ~44413 | Tor Hidden Service | Tor support, **binary controls Tor** |
+| 33 | ~46165 | Client & Agent | Client **REQUIRED**, Agent optional - CLI/TUI/GUI, **Scoped Agent Tokens**, **Smart Context**, **First-Run Wizard** |
+| 34 | ~50588 | Multi-User | **OPTIONAL** - Regular User accounts/registration, vanity URLs |
+| 35 | ~54240 | Organizations | **OPTIONAL** - multi-user orgs, vanity URLs |
+| 36 | ~54881 | Custom Domains | **OPTIONAL** - user/org branded domains |
+| 37 | ~55904 | IDEA.md Reference | **Examples only** - NEVER modify |
+| FINAL | ~56158 | Compliance Checklist | Final verification, **AI Quick Reference Rules**, **Console/Banner Checklist**, **I18N Checklist**, **Host Safety Checklist** |
+
+**When Implementing OPTIONAL PARTs (34-36, Agent from 33):**
+1. Change PART title from `OPTIONAL` → `NON-NEGOTIABLE` in AI.md
+2. Update IDEA.md to document the feature as implemented
+3. Follow ALL rules in that PART exactly (no longer optional)
 
 ### How to Read This File
 
-**Step 1: Always read these first (MANDATORY)**
-- PART 0: AI ASSISTANT RULES
-- PART 1: CRITICAL RULES
-
-**Step 2: Read sections relevant to your task**
+**Step 1: Read sections relevant to your task**
 
 Use `grep` to find the PART you need:
 ```bash
@@ -2343,9 +2385,8 @@ grep -n "^|" AI.md | head -50
 |---------|-------------|------------------|
 | Reading sequentially from start | Context window exhausted | Use index, read specific PARTs |
 | Reading only part of a PART | Missing critical details | Read complete PART sections |
-| Not reading relevant spec before implementing | Drift from spec | Read the PART(s) relevant to the current task |
+| Not reading the relevant PART before implementing | Drift from spec | Read the PART(s) relevant to the current task |
 | Guessing instead of searching | Wrong implementation | Use grep to find answers |
-| Skipping PART 0 and 1 | Missing critical rules | ALWAYS read these first |
 | Adding content without searching first | Duplicate rules/content | Search for existing content before adding |
 | Reading entire file at once | Context overflow, missed details | Read PART by PART, implement fully before next |
 
@@ -2369,7 +2410,7 @@ grep -n "^|" AI.md | head -50
 
 | Section | Purpose | Modify? |
 |---------|---------|---------|
-| **AI.md (PARTS 0-33 + PART 33 reference)** | Implementation patterns, standards, rules, and reference material | **NEVER** |
+| **AI.md (PARTS 0-36 + PART 37 reference)** | Implementation patterns, standards, rules, and reference material | **NEVER** |
 | **IDEA.md** | Your project's business logic, features | **YES** - update as project evolves |
 
 **Rules:**
@@ -2533,18 +2574,19 @@ Before I proceed, can you confirm [specific question]?
 | Rule | Description |
 |------|-------------|
 | **AI.md is source of truth** | ALWAYS read relevant PART before implementing. NEVER guess. |
-| **Read relevant spec before each task** | Spec drift is #1 cause of violations. Read only the PARTs relevant to the current task — do not pre-load speculatively. |
+| **Read relevant parts before each task** | Spec drift is #1 cause of violations. Read only the PART(s) directly needed for the current task. |
 | **IDEA.md = WHAT** | Business logic, data models, features |
-| **AI.md (PARTS 0-33 = HOW; PART 33 = reference)** | Implementation patterns, standards |
+| **AI.md (PARTS 0-36 = HOW; PART 37 = reference)** | Implementation patterns, standards |
 | **No report files** | Fix issues directly. No AUDIT.md, COMPLIANCE.md, SUMMARY.md, etc. Temporary `AUDIT.AI.md` is allowed only for explicit audits and must be deleted when resolved |
 
 ### Mandatory Workflow
 
 ```
-1. Before each task: identify relevant PARTs and read those PARTs completely (not snippets)
-2. Implement exactly as specified
-3. When you see "See PART X": jump, read, return to original location
-4. Every 3-5 changes: verify against spec (are you drifting?)
+1. Before each task: identify relevant PARTs
+2. Read those PARTs completely (not snippets)
+3. Implement exactly as specified
+4. When you see "See PART X": jump, read, return to original location
+5. Every 3-5 changes: verify against spec (are you drifting?)
 ```
 
 ### Session Initialization (First Read)
@@ -2573,13 +2615,14 @@ Before I proceed, can you confirm [specific question]?
 | `.claude/rules/binary-rules.md` | 7, 8, 33 | Binary Requirements, Server Binary CLI, Client & Agent |
 | `.claude/rules/backend-rules.md` | 9, 10, 11, 32 | Error Handling & Caching, Database & Cluster, Security & Logging, Tor Hidden Service |
 | `.claude/rules/api-rules.md` | 13, 14, 15 | Health & Versioning, API Structure, SSL/TLS & Let's Encrypt |
-| `.claude/rules/frontend-rules.md` | 16 | Web Frontend |
-| `.claude/rules/features-rules.md` | 17-22 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
-| `.claude/rules/service-rules.md` | 23, 24 | Privilege Escalation & Service, Service Support |
+| `.claude/rules/frontend-rules.md` | 16, 17 | Web Frontend, Admin Panel |
+| `.claude/rules/features-rules.md` | 18-23 | Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command |
+| `.claude/rules/service-rules.md` | 24, 25 | Privilege Escalation & Service, Service Support |
 | `.claude/rules/makefile-rules.md` | 26 | Makefile (local dev only, NOT CI/CD) |
 | `.claude/rules/docker-rules.md` | 27 | Docker |
 | `.claude/rules/cicd-rules.md` | 28 | CI/CD Workflows |
 | `.claude/rules/testing-rules.md` | 29, 30, 31 | Testing & Development, ReadTheDocs Documentation, I18N & A11Y |
+| `.claude/rules/optional-rules.md` | 34-36 | Multi-User, Organizations, Custom Domains (all OPTIONAL) |
 
 **Each rule file MUST contain:**
 1. Header with PART numbers: `# {Topic} Rules (PART X, Y, Z)`
@@ -2600,14 +2643,15 @@ Before I proceed, can you confirm [specific question]?
 
 | Task | Business Logic | Implementation |
 |------|----------------|----------------|
-| Admin auth | — | PART 11 |
+| Admin auth | — | PART 17 |
+| Multi-user | IDEA.md | PART 34 |
 | Frontend/UI | IDEA.md | PART 16 |
 | API endpoints | IDEA.md | PART 14 |
-| Tests | IDEA.md | PART 28 |
-| Docker | — | PART 26 |
+| Tests | IDEA.md | PART 29 |
+| Docker | — | PART 27 |
 | Config | IDEA.md | PART 5 |
 | CLI | — | PART 8 |
-| Translation/i18n | — | PART 30 |
+| Translation/i18n | — | PART 31 |
 
 ### Prohibited Actions
 
@@ -2615,9 +2659,9 @@ Before I proceed, can you confirm [specific question]?
 - "Improve" or "optimize" the spec
 - Create patterns not in spec
 - Create report/analysis files (fix directly instead)
-- Rely on memory — read the spec sections relevant to the current task instead of guessing
+- Rely on memory — read the relevant PART when you need it; do not load speculatively
 - Add unrequested features
-- Edit TEMPLATE.md or AI.md content (READ-ONLY). Project changes belong in IDEA.md.
+- Edit TEMPLATE.md or AI.md content (READ-ONLY). Project changes belong in IDEA.md. To activate optional PARTS 34-36 for this project, declare them in SPEC.md instead.
 - Read an image larger than 1000×1000 directly. Always check dimensions and resize to ≤1000×1000 first (see "Large Image Handling").
 - Treat a non-conforming IDEA.md as authoritative without migration (see "IDEA.md Migration").
 
@@ -2757,8 +2801,7 @@ fi
 - Migration is a one-time operation per project. Once IDEA.md is in the three-section format, do NOT re-run migration on subsequent reads (the detection step above is the gate).
 - If old content does not fit cleanly into one of the three sections, ASK the user — do not invent a fourth section, do not silently drop content.
 - If the old IDEA.md already had `internal_name` set to a value different from `project_name`, KEEP that value. The freeze rule applies — the existing internal_name is the frozen identity, even if it differs from project_name (the project may have already been renamed once).
-- After successful migration, verify the new `## Project variables` section is complete and accurate.
-
+- After successful migration, mention to the user that any optional PART activations (PARTS 34-36) should be declared in SPEC.md if not already present.
 
 ### Translation Rule (ALL Code Changes)
 
@@ -2779,7 +2822,7 @@ fi
 | Modifying `<html>` tag | Use `lang="{{.Lang}}" dir="{{.Dir}}"` — never hardcoded `lang="en"` |
 
 **After adding translation keys, AI MUST:**
-1. Add the key to the Spanish (`es.json`) example in PART 30 with proper translation
+1. Add the key to the Spanish (`es.json`) example in PART 31 with proper translation
 2. Note that ALL other language files (`fr`, `de`, `zh`, `ar`, `ja`) need the same key added
 3. Ensure the key exists in the English base file (`en.json`)
 
@@ -2866,12 +2909,32 @@ Purpose: {inferred from code/config}
 
 **See: "Project Audit" section for the full audit process.**
 
+## PLAN.AI.md Completion
+
+**When a PLAN.AI.md has been fully implemented and verified working:**
+
+Replace the entire contents with:
+
+```markdown
+# Fully Implemented
+
+See IDEA.md for the full project breakdown.
+```
+
+**Rules:**
+- Keep the PLAN.AI.md file (don't delete it)
+- Replace all planning content with the completion message above
+- This signals the plan is done and IDEA.md contains the project vision
+- If new planning is needed later, replace the completion message with the new plan
+
+**This completion ritual applies ONLY to PLAN.AI.md.** The human-owned `PLAN.md` is never rewritten or emptied by AI — AI may only mark individual items done in place.
+
 ## Project Files
 
 | File | Purpose | Update When |
 |------|---------|-------------|
 | **AI.md** | Implementation spec (HOW) - SOURCE OF TRUTH, readonly template copy | No — use SPEC.md for project-specific rule overrides |
-| **SPEC.md** | Project-specific rule overrides (optional, may be empty) | When a project rule must contradict the template or global |
+| **SPEC.md** | Project-specific rule overrides (optional, may be empty) | When a project rule must contradict the template or global; also used to activate optional PARTS 34-36 |
 | **IDEA.md** | Project plan (WHAT) - must follow AI.md | Features change |
 | **TODO.AI.md** | Task tracking (AI-owned) | Tasks added/completed |
 | **TODO.md** | Task tracking (human-owned) | AI may mark items done; never delete/empty |
@@ -2889,38 +2952,37 @@ Purpose: {inferred from code/config}
 
 | When | Action | Purpose |
 |------|--------|---------|
-| **Session start** | Read the PART(s) relevant to the first task | Understand the context you need |
-| **Before EACH task** | Read the relevant PART(s) for that task | Prevent drift; do not pre-load speculatively |
+| **Session start** | Read the PART(s) relevant to the current task | Load what is needed now, not the whole spec |
+| **Before EACH task** | Read the PART(s) directly relevant to that task | Prevent drift without speculative loading |
 | **Every 3-5 changes** | Stop, verify against what you already read | Catch drift early |
-| **Before task completion** | Full compliance check | Ensure correctness |
-| **When uncertain** | Read the relevant spec section or ASK | Never guess |
+| **Before task completion** | Full compliance check against the sections you read | Ensure correctness |
+| **When uncertain** | Read the specific section that covers the question, or ASK | Never guess |
 
-**Read the spec sections relevant to the current task before implementing. Do NOT rely on memory; do NOT pre-load the whole spec speculatively.**
+**Read the parts of the spec directly relevant to the current task. Do NOT load the spec speculatively or pre-load sections you may not need.**
 
 ## Before Starting Work
 
-1. **Read the AI.md PART(s) relevant to the first task** - do not load the entire file speculatively
+1. **Read the PART(s) of AI.md relevant to the current task** - not the whole file speculatively
 2. **Check TODO.AI.md and TODO.md** - read both if present; see pending tasks and their priority
 3. **Verify understanding** - if ANYTHING is unclear, ASK first
 4. **Never assume** - when in doubt, ask the user
 
 ## During Work
 
-1. **Read the relevant spec PART(s) before each implementation** - read what the task requires, not the whole spec
+1. **Read the relevant spec section before each implementation** - the specific PART covering what you are about to write
 2. **Follow spec EXACTLY** - no "improvements" without explicit permission
 3. **Check yourself every 3-5 changes** - am I drifting?
-4. **Update TODO.AI.md and TODO.md** as tasks are completed — remove items from TODO.AI.md when fully resolved and committed; mark items done in TODO.md in place (never delete from TODO.md)
+4. **Remove completed items from TODO.AI.md** as each one is fully resolved and committed; also mark matching items done in TODO.md if present
 5. **Test your changes** - don't commit untested code
 6. **Keep changes focused** - one feature/fix per task
-7. **If uncertain** - STOP, re-read spec, or ASK
+7. **If uncertain** - STOP, read the relevant spec section, or ASK
 
 ## After Work
 
 1. **Update IDEA.md** if features changed
-2. **Do NOT modify AI.md** — it is read-only spec
+2. **Update SPEC.md** if activating optional PARTS 34-36 or adding project-specific rule overrides
 3. **Update TODO.AI.md** with any new tasks discovered
 4. **Verify compliance** - check against the FINAL CHECKPOINT
-5. **Update COMMIT_MESS** - only if files were changed (skip if no changes)
 
 ## Self-Validation Loop
 
@@ -2960,61 +3022,15 @@ Getting code correct on the first try is much harder than iterating with feedbac
 
 **Reference:** based on published guidance about AI coding agent self-validation (Eivind Kjosbakken, Towards Data Science, 2026) — when an AI agent is given verification tools (output diffing, browser MCP, test runners) and allowed to iterate, one-shot success rate, run length, and task complexity all improve substantially.
 
-
 ## TODO.AI.md Completion
 
 **When ALL items in TODO.AI.md are completed:**
 
-**Subagents:** do not write COMMIT_MESS or call gitcommit — complete your edits and report back to the parent instance to handle the commit.
+- Remove completed items from TODO.AI.md as each one is fully resolved and committed — delete each item individually; never truncate the whole file at once
+- File stays empty until new tasks are added
+- **Subagents:** do not write COMMIT_MESS or call gitcommit — complete your edits and report back to the parent instance to handle the commit.
 
-1. **Remove all completed items from TODO.AI.md** - delete each item only after it is fully resolved and committed; never truncate the whole file at once
-2. **Write COMMIT_MESS** with the following format:
-
-**Title Format:**
-```
-✅ all todo items have been completed ✅
-```
-
-**Body Format:**
-```
-All tasks from TODO.AI.md have been completed.
-
-{summary of completed tasks}
-
-- Task 1 completed
-- Task 2 completed
-- etc.
-```
-
-**Example:**
-```
-✅ all todo items have been completed ✅
-
-All tasks from TODO.AI.md have been completed.
-
-Implemented core server functionality and API.
-
-- Added mode package with production/development modes
-- Implemented SSL certificate handling
-- Created scheduler for background tasks
-- Built admin API with authentication
-```
-
-**TODO Completion Rules:**
-- The ✅ emoji MUST be used for todo completion commits
-- Title is EXACTLY: `✅ all todo items have been completed ✅`
-- Body MUST summarize what was accomplished
-- Remove completed items from TODO.AI.md as each one is fully resolved and committed — do not empty the file before writing COMMIT_MESS
-- The file should be empty only after every item has been individually removed
-
-**Format Rules:**
-- Title line: max 64 characters (including emojis)
-- Blank line after title
-- Detailed description follows
-- Use bullet points for multiple changes
-- Be specific about what changed and why
-
-**This completion ritual applies ONLY to TODO.AI.md.** The human-owned `TODO.md` is never emptied or truncated by AI — AI may only mark individual items done in place. The ✅ commit format is also reserved for TODO.AI.md completion.
+**This rule applies ONLY to TODO.AI.md.** The human-owned `TODO.md` is never emptied or truncated by AI — AI may only mark individual items done in place.
 
 ## Project Audit
 
@@ -3051,9 +3067,10 @@ Implemented core server functionality and API.
 | Business logic | IDEA.md | Features implemented match what IDEA.md defines |
 | Threat model / abuse model | IDEA.md → `## Business logic` | Trust boundaries, data sensitivity, abuse cases, and security exceptions are documented and code matches them |
 | Well-known namespace | PART 11 / web routes | `/.well-known/**` only serves documented allowlisted entries, unsupported entries 404, and optional entries exist only when the corresponding feature is defined |
-| Rate limiting | PART 11 | Read, write, health, and global burst limits configured; defaults applied when not set in `server.yml` |
+| External identity auth | PART 34 | OIDC and LDAP both exist, support multiple providers, expose the documented `/server/auth/*` and `/api/{api_version}/server/auth/*` routes, and are manageable from `/server/{admin_path}/config/security/auth/*` |
+| External username onboarding | PART 34 | New OIDC/LDAP-backed users/admins go through the documented first-login username confirmation flow, including prefill normalization and collision-safe numeric suggestions |
 | CLI interface | PART 8 | Flags, commands, help output match spec |
-| Client/agent scope | PART 32 | `src/client/` exists for all projects; `src/agent/` only when project needs it |
+| Client/agent scope | PART 33 | `src/client/` exists for all projects; `src/agent/` only when project needs it |
 | Untrusted content handling | PART 11, PART 16 | User-controlled files/markdown/HTML render as escaped text or sanitized markdown; dangerous types are not served executable on the app origin |
 
 ### Step 2: File Sync Verification
@@ -3074,19 +3091,19 @@ Implemented core server functionality and API.
 
 | File | Check Against | Verify |
 |------|---------------|--------|
-| **docker/Dockerfile** | PART 26, actual code | Build stages, packages, paths correct |
-| **docker/docker-compose.yml** | PART 26, actual config | Ports, volumes, env vars match |
-| **docker/docker-compose.dev.yml** | PART 26 | Dev workflow correct |
+| **docker/Dockerfile** | PART 27, actual code | Build stages, packages, paths correct |
+| **docker/docker-compose.yml** | PART 27, actual config | Ports, volumes, env vars match |
+| **docker/docker-compose.dev.yml** | PART 27 | Dev workflow correct |
 | **docker/rootfs/** | Actual container overlay needs | Entrypoint and overlay files match what the image expects |
 | **.github/CODEOWNERS** | Actual repo layout | Catch-all owner exists and sensitive paths are covered |
 | **.github/SECURITY.md** | security.txt/contact/reporting flow | Reporting instructions and support window are accurate |
 | **.github/ISSUE_TEMPLATE/*** | Actual support/reporting model | Bug, feature, support, and vulnerability routing are correct |
-| **.github/workflows/*.yml** | PART 27, actual build | CI/CD builds what exists, tests what exists |
-| **.gitea/workflows/*.yml** | PART 27, actual build | Same as GitHub workflows |
-| **Jenkinsfile** | PART 27, actual build | Pipeline matches project |
-| **Makefile** | PART 25, actual targets | Targets work, paths correct |
-| **mkdocs.yml** | PART 29, docs/ structure | Nav matches actual doc files |
-| **.readthedocs.yaml** | PART 29 | Config correct for project |
+| **.github/workflows/*.yml** | PART 28, actual build | CI/CD builds what exists, tests what exists |
+| **.gitea/workflows/*.yml** | PART 28, actual build | Same as GitHub workflows |
+| **Jenkinsfile** | PART 28, actual build | Pipeline matches project |
+| **Makefile** | PART 26, actual targets | Targets work, paths correct |
+| **mkdocs.yml** | PART 30, docs/ structure | Nav matches actual doc files |
+| **.readthedocs.yaml** | PART 30 | Config correct for project |
 | **Release artifacts** | release workflow + updater/client behavior | Checksums, SBOM, release notes, and attestation/provenance rules are satisfied |
 
 **Workflow hardening checks for `.github/workflows/*.yml`:**
@@ -3094,14 +3111,14 @@ Implemented core server functionality and API.
 - no unsafe `pull_request_target` build/test/publish path
 - third-party actions pinned to full SHA
 - no secrets/write tokens exposed to fork PRs
-- security workflow exists and blocks on secret/dependency/workflow-policy failures
+- ci.yml security jobs (secret-scan, vuln-scan, workflow-policy) exist and block on failures
 
 ### Step 4: AI Tool Configuration (Rule Files)
 **Do AI rule files exist and follow the required format?**
 
 | Check | Requirement | Verify |
 |-------|-------------|--------|
-| **All 13 rule files exist** | `.claude/rules/*.md` | ai-rules, project-rules, config-rules, binary-rules, backend-rules, api-rules, frontend-rules, features-rules, service-rules, makefile-rules, docker-rules, cicd-rules, testing-rules |
+| **All 14 rule files exist** | `.claude/rules/*.md` | ai-rules, project-rules, config-rules, binary-rules, backend-rules, api-rules, frontend-rules, features-rules, service-rules, makefile-rules, docker-rules, cicd-rules, testing-rules, optional-rules |
 | **Correct PART assignments** | Each file covers correct PARTs | See PART 0 table for file→PART mapping |
 | **Required format** | Each file has all required sections | See format requirements below |
 | **Not outdated** | Rule files newer than AI.md | Regenerate if AI.md modified |
@@ -3124,7 +3141,7 @@ Implemented core server functionality and API.
 | **README.md** | Actual features, endpoints, usage | PART 3 | Features added/removed/changed |
 | **Swagger/OpenAPI** | Actual API routes in code | PART 14 | Routes changed, params changed |
 | **GraphQL schema** | Actual types/queries in code | PART 14 | Schema changed |
-| **docs/** (ReadTheDocs) | Actual config, API, admin, security, integrations, and public protocol behavior | PART 29 | Any user-facing, admin-facing, operator-facing, or integration-facing changes |
+| **docs/** (ReadTheDocs) | Actual config, API, admin, security, integrations, and public protocol behavior | PART 30 | Any user-facing, admin-facing, operator-facing, or integration-facing changes |
 | **IDEA.md** | Actual business logic | — | Features/data models changed |
 | **CLI --help** | Actual flags/commands | PART 8 | CLI changed |
 
@@ -3235,11 +3252,7 @@ Spec version: {line count or hash}
 | Full | All tools available |
 | **PROHIBITED** | `git commit`, `git push` (plain git) — denied by sandbox/permission rules. They bypass commit signing AND the unified commit+push wrapper |
 | Allowed | `git status`, `git diff`, `git log`, `git branch`, `git add` (read + staging) |
-| Allowed | `gitcommit <command>` — signs, commits, AND pushes in one step. See "gitcommit Script" |
-| **Required** | Write `{project_dir}/.git/COMMIT_MESS` BEFORE running `gitcommit <command>`. Re-read it after writing to confirm accuracy |
 | **PROHIBITED (subagents)** | Writing `.git/COMMIT_MESS` or calling `gitcommit` — subagents complete edits and report back; the parent (main) instance reviews the diff and owns the commit |
-
-**AI commits via the `gitcommit` wrapper script, not plain `git commit`.** The wrapper resolves the signing key, picks up the commit message from `{project_dir}/.git/COMMIT_MESS`, signs the commit, and pushes to the remote — all in one invocation. Plain `git commit` and `git push` remain prohibited because they skip the wrapper. Because gitcommit pushes automatically, the message file MUST be verified accurate before invocation — there is no local staging window to catch mistakes. **Subagents (spawned via the Agent tool) are exempt from the commit workflow entirely — they make edits and return; the parent instance handles diff review, COMMIT_MESS, and gitcommit.**
 
 ### Remote Image/Screenshot Handling
 
@@ -3264,12 +3277,9 @@ Spec version: {line count or hash}
 
 | Action | Reason |
 |--------|--------|
-| **Modifying PARTS 0-33** | **Implementation patterns are fixed - NEVER modify** |
-| Plain `git commit` (any flag form) | Bypasses signing wrapper. Use `gitcommit <command>` instead |
-| Plain `git push` | gitcommit already pushes. Plain `git push` bypasses the wrapper entirely |
-| `gitcommit <command>` without first writing AND re-reading `.git/COMMIT_MESS` | The script reads the message from the file and pushes immediately. Wrong file = wrong commit on the remote |
-| `gitcommit -m "..."` / `gitcommit --message "..."` | Defeats the point. The message belongs in `.git/COMMIT_MESS` so it can be verified before committing |
-| Running `gitcommit <command>` mid-task with files in an inconsistent state | Every commit is pushed — half-finished work goes public. Finish the unit of work first |
+| **Modifying PARTS 0-36** | **Implementation patterns are fixed - NEVER modify** |
+| Plain `git commit` (any flag form) | Bypasses signing wrapper |
+| Plain `git push` | Bypasses the commit wrapper entirely |
 | Subagent writing `.git/COMMIT_MESS` | Commit message must be written by the parent instance after reviewing the actual diff |
 | Subagent calling `gitcommit` | Only the parent (main) instance runs gitcommit — subagents complete edits and report back |
 | Deleting files without confirmation | Destructive action |
@@ -3449,7 +3459,7 @@ When the specification is unclear:
 | Assuming default values | Check spec for defined defaults |
 | Using .yaml instead of .yml | Always use `server.yml` |
 | Inline comments | Comments above code only |
-| Skipping settings API | ALL settings need API endpoints |
+| Skipping admin panel | ALL settings need admin UI |
 | Forgetting mobile-first | Start with mobile, expand to desktop |
 | Using JavaScript alerts | Use proper notification system |
 | Inline CSS | Use CSS files/classes only |
@@ -3711,13 +3721,13 @@ logging:
 □ Am I using the EXACT names/paths from SPEC?
 □ Am I using the EXACT code patterns from SPEC?
 □ Am I adding ONLY what the SPEC defines?
-□ Have I re-read the relevant SPEC section?
+□ Do I have the relevant SPEC section in context? (read it if not)
 ```
 
 **After EVERY file change, AI MUST verify:**
 
 ```
-□ Does the result match SPEC examples exactly? (compare against what you already read for this task — do not re-read the spec file after each edit)
+□ Does the result match what the SPEC says (compare against what you already read — do not re-read the spec file after each edit)?
 □ Did I accidentally add anything not in SPEC?
 □ Did I accidentally change anything the SPEC doesn't require?
 □ Would this diff surprise someone who only read the SPEC?
@@ -3923,32 +3933,67 @@ ls -la docker/
 | 14 | API Structure | ✅ Implement fully |
 | 15 | SSL/TLS & Let's Encrypt | ✅ Implement fully |
 | 16 | Web Frontend | ✅ Implement fully |
-| 17 | Email & Notifications | ✅ Implement fully |
-| 18 | Scheduler | ✅ Implement fully |
-| 19 | GeoIP | ✅ Implement fully |
-| 20 | Metrics | ✅ Implement fully |
-| 21 | Backup & Restore | ✅ Implement fully |
-| 22 | Update Command | ✅ Implement fully |
-| 23 | Privilege Escalation & Service | ✅ Implement fully |
-| 24 | Service Support | ✅ Implement fully |
-| 25 | Makefile | ✅ Implement fully |
-| 26 | Docker | ✅ Implement fully |
-| 27 | CI/CD Workflows | ✅ Implement fully |
-| 28 | Testing & Development | ✅ Implement fully |
-| 29 | ReadTheDocs Documentation | ✅ Implement fully |
-| 30 | I18N & A11Y | ✅ Implement fully |
-| 31 | Tor Hidden Service | ✅ Implement fully |
-| 32 | Client & Agent | ✅ Implement fully |
-| 33 | IDEA.md Reference | ✅ Reference only |
+| 17 | Admin Panel | ✅ Implement fully |
+| 18 | Email & Notifications | ✅ Implement fully |
+| 19 | Scheduler | ✅ Implement fully |
+| 20 | GeoIP | ✅ Implement fully |
+| 21 | Metrics | ✅ Implement fully |
+| 22 | Backup & Restore | ✅ Implement fully |
+| 23 | Update Command | ✅ Implement fully |
+| 24 | Privilege Escalation & Service | ✅ Implement fully |
+| 25 | Service Support | ✅ Implement fully |
+| 26 | Makefile | ✅ Implement fully |
+| 27 | Docker | ✅ Implement fully |
+| 28 | CI/CD Workflows | ✅ Implement fully |
+| 29 | Testing & Development | ✅ Implement fully |
+| 30 | ReadTheDocs Documentation | ✅ Implement fully |
+| 31 | I18N & A11Y | ✅ Implement fully |
+| 32 | Tor Hidden Service | ✅ Implement fully |
+| 37 | Project-Specific Sections | ✅ Customize for project |
 | FINAL | Compliance Checklist | ✅ Verify all items |
 
-### PART 32: Client & Agent (REQUIRED)
+### PART 33: Client & Agent (REQUIRED)
 
 **CLI is REQUIRED for all projects. Agent is OPTIONAL (only for monitoring/remote management projects).**
 
-### PART 32: Client (REQUIRED)
+### OPTIONAL Sections (Become NON-NEGOTIABLE When Implemented)
 
-**PART 32: Client**
+**IMPORTANT:** Optional sections are a per-project decision. However, once a project implements an optional feature, that entire PART becomes NON-NEGOTIABLE and must be followed exactly.
+
+| PART | Section | When to Include |
+|------|---------|-----------------|
+| 34 | Multi-User | If project needs Regular User accounts, registration, profiles |
+| 35 | Organizations | If project needs multi-user orgs (requires PART 34) |
+| 36 | Custom Domains | If users/orgs need branded domains |
+
+### Optional Section Decision Guide
+
+**PART 34: Multi-User**
+
+| Include | Skip | Reason |
+|---------|------|--------|
+| Apps with Regular User accounts | Admin-only APIs (jokes, quotes) | End-users need registration/login |
+| Multi-tenant platforms | Simple data APIs | User-specific data storage |
+| Social features | Read-only services | Profiles, preferences, API tokens |
+
+**Note:** Server Admin authentication (setup wizard, admin accounts, MFA) is in PART 17 and is **mandatory** for all projects. PART 34 is only for regular end-user features.
+
+**PART 35: Organizations** (requires PART 34)
+
+| Include | Skip | Reason |
+|---------|------|--------|
+| Team collaboration | Single-user apps | Multiple users share resources |
+| B2B platforms | Consumer apps | Org-level billing, admin |
+| Workspace-based apps | Personal tools | Shared workspaces needed |
+
+**PART 36: Custom Domains** (see PART 36 for full decision table)
+
+| Include | Skip | Reason |
+|---------|------|--------|
+| Linktree clone | Weather API | Users want branded URLs |
+| Blog platform | Jokes API | Content published under user's domain |
+
+**PART 33: Client**
 
 | Include | Skip | Reason |
 |---------|------|--------|
@@ -3956,14 +4001,40 @@ ls -la docker/
 | DevOps/admin tools | Consumer mobile app | Automation requires CLI |
 | Database management | Static content site | Bulk operations via CLI |
 
-**Client-Side Preferences:**
+**Once implemented, the optional PART becomes NON-NEGOTIABLE.**
 
-User preferences like theme, language, and UI settings can be stored client-side:
+### CRITICAL: Unused Optional Features Must Not Exist in Code
+
+**If a project does NOT use PART 34, 35, or 36, those features must be completely absent from the codebase.**
+
+| Rule | Description |
+|------|-------------|
+| **No references** | Zero mentions of users, orgs, or custom domains in code |
+| **No conditionals** | No `if multiUserEnabled` or `if orgsEnabled` checks |
+| **No stubs** | No placeholder functions, empty tables, or "future" comments |
+| **No config options** | No `users.enabled: false` or similar toggle settings |
+| **No UI elements** | No hidden/disabled menu items for unused features |
+
+**The code should be written as if the unused features never existed.**
+
+| If NOT using... | These must NOT appear in code |
+|-----------------|------------------------------|
+| PART 34 (Multi-User) | `users` table, user registration, user preferences table, user API tokens, `/server/auth/register`, user profiles, `allow_user_preference` config options |
+| PART 35 (Organizations) | `organizations` table, org membership, org ownership, org API tokens, `/orgs/*` routes |
+| PART 36 (Custom Domains) | `custom_domains` table, domain verification, user/org domain settings, SSL for custom domains |
+
+**Why?** Unused code is dead code. It adds complexity, security surface, and maintenance burden for features that don't exist. If a feature isn't used, it shouldn't be in the codebase at all.
+
+**Client-Side Preferences (No PART 34 Required):**
+
+User preferences like theme, language, and UI settings can be stored client-side without PART 34:
 
 | Storage | Use Case | Persistence |
 |---------|----------|-------------|
 | `localStorage` | Theme, language, UI preferences | Until cleared |
 | Cookies | Session preferences, consent flags | Configurable expiry |
+
+These work for anonymous visitors and don't require user accounts. Server-side user preferences (stored in `user_preferences` table) require PART 34.
 
 ## AI Implementation Process
 
@@ -4016,7 +4087,7 @@ User preferences like theme, language, and UI settings can be stored client-side
 | **Missing CI/CD** | "Not needed for MVP" | CI/CD is mandatory, implement now |
 | **Custom error format** | Invents error response structure | Use EXACT format from SPEC |
 | **Simplified health** | Returns just `{"status":"ok"}` | Implement FULL health response |
-| **Skipping settings API** | "Admins don't need API control" | Settings API is mandatory |
+| **Skipping admin panel** | "Users don't need admin" | Admin panel is mandatory |
 
 ## Implementation Discipline
 
@@ -4110,7 +4181,8 @@ If blocked on current feature:
 □ Error responses match SPEC format
 □ `/.well-known/**` only serves the documented allowlisted entries and unknown entries return `404`
 □ Canonical `/.well-known/security.txt` is served; `/security.txt` is not required unless explicitly defined in `IDEA.md`
-□ Rate limiting is configured and enforced
+□ If external auth is enabled, both OIDC and LDAP support multiple providers and are manageable from `/server/{admin_path}/config/security/auth/*`
+□ New OIDC/LDAP-backed users/admins follow the first-login username confirmation flow with normalized prefill and visible collision-safe numeric suggestions
 ```
 
 ### Infrastructure
@@ -4146,6 +4218,7 @@ If blocked on current feature:
 □ Debug flag (--debug/DEBUG) working
 □ SSL/TLS support implemented
 □ User authentication implemented
+□ Admin panel implemented
 □ Logging in SPEC format
 ```
 
@@ -4153,6 +4226,7 @@ If blocked on current feature:
 ```
 □ client follows SPEC (required for all projects)
 □ agent follows SPEC (if implemented)
+□ Custom domains follow SPEC (if PART 36 included)
 □ IDEA.md business logic defines scope, trust boundaries, data sensitivity, abuse cases, and security exceptions
 □ Implementation matches the declared threat/abuse model
 ```
@@ -4182,7 +4256,7 @@ Every feature MUST work via:
 1. **Web browser** - HTML pages, forms, interactive UI
 2. **PWA (Progressive Web App)** - Installable, offline-capable, native-like experience
 3. **API clients** - JSON for curl, wget, automation, scripts
-4. **clients** - Dedicated command-line tools (if PART 32 implemented)
+4. **clients** - Dedicated command-line tools (if PART 33 implemented)
 
 | Client Type | Examples | Response Format |
 |-------------|----------|-----------------|
@@ -4196,6 +4270,9 @@ Every feature MUST work via:
 |------------------|------------------|---------|
 | `/` | `/api/{api_version}/` | Homepage / API root |
 | `/server/healthz` | `/api/{api_version}/server/healthz` | Health status (both exist independently) |
+| `/server/{admin_path}` | `/api/{api_version}/server/{admin_path}` | Admin dashboard |
+| `/server/{admin_path}/config/settings` | `/api/{api_version}/server/{admin_path}/config/settings` | Server settings |
+| `/server/{admin_path}/config/users` | `/api/{api_version}/server/{admin_path}/config/users` | User management |
 | `/quotes` | `/api/{api_version}/quotes` | Project feature (example) |
 | `/quotes/random` | `/api/{api_version}/quotes/random` | Project feature (example) |
 | `/server/docs/swagger` | `/api/{api_version}/server/swagger` (also `/api/swagger` alias) | Swagger UI / OpenAPI JSON spec |
@@ -4227,7 +4304,7 @@ When working on this project, the following roles are assumed based on the task:
 
 ### The Golden Rules
 
-1. **Read only the spec sections relevant to the current task** — do not pre-load the spec speculatively; read on demand when a section directly applies
+1. **Read the relevant spec section** when starting each task or when uncertainty arises — do not load speculatively
 2. **When in doubt, check the spec** - the spec is the source of truth
 3. **Never assume or guess** - ask questions if unclear
 4. **Every NON-NEGOTIABLE section MUST be implemented exactly as specified**
@@ -4261,7 +4338,7 @@ make test                   # Run unit tests
 go build -o binary/{project_name} ./src
 ```
 
-**See PART 28: TESTING & DEVELOPMENT for full containerized build/test procedures.**
+**See PART 29: TESTING & DEVELOPMENT for full containerized build/test procedures.**
 
 ---
 
@@ -4285,10 +4362,18 @@ go build -o binary/{project_name} ./src
 
 **Security suggestions (not requirements):**
 
-*For all deployments:*
-- Review and configure rate limiting for expected traffic patterns
-- Enable IP blocklists for known malicious sources
-- Use HTTPS (auto-provisioned via Let's Encrypt when configured)
+*For Server Admins (all projects):*
+- First admin login: prompt to enable TOTP/Passkey (can skip)
+- Admin panel: show security score/recommendations widget
+- Periodic reminders for admins without MFA (dismissable)
+- Clear benefits explained: "Protect your admin account with 2FA"
+
+*For Users (projects with user registration):*
+- Post-registration: prompt to enable TOTP/Passkey (can skip)
+- First login after registration: gentle MFA setup reminder
+- User settings: security section with MFA setup and recommendations
+- Clear benefits: "Secure your account with two-factor authentication"
+- Never block access or features for users without MFA
 
 ### Secure-by-Design Rule for Internet-Facing Servers
 
@@ -4348,18 +4433,25 @@ db.Query("SELECT * FROM users WHERE email = '" + email + "'")
 
 ### Rate Limiting Defaults
 
-**These are sensible defaults - all limits are configurable via API and config file.**
+**These are sensible defaults - all limits are configurable via admin panel and config file.**
+
+**General endpoint defaults:**
+
+| Endpoint class | Default limit | Window | Notes |
+|----------------|---------------|--------|-------|
+| **Read (GET, HEAD)** | **120 req/min** | 60s | Per IP, sliding window |
+| **Write (POST, PUT, PATCH, DELETE)** | **10 req/min** | 60s | Per IP, sliding window |
+| **Health / status** | **120 req/min** | 60s | `/healthz`, `/readyz`, `/livez` |
+| **Global burst** | **240 req/min** | 60s | Absolute ceiling across all types |
+
+**Auth endpoint defaults (stricter — applied regardless of general limits above):**
 
 | Endpoint Type | Default Limit | Default Window | Response |
 |---------------|---------------|----------------|----------|
 | **Login attempts** | 5 | 15 minutes | 429 + lockout |
 | **Password reset** | 3 | 1 hour | 429 + silent (no email hint) |
-| **API (authenticated)** | Configurable | 1 minute | 429 + Retry-After header |
-| **API (unauthenticated)** | Configurable | 1 minute | 429 + Retry-After header |
 | **Registration** | 5 | 1 hour | 429 |
 | **File upload** | 10 | 1 hour | 429 |
-
-**Project-specific defaults:** Each project defines its own default rate limits based on expected usage patterns. High-traffic APIs may need higher limits; sensitive operations may need lower limits. Define project-appropriate defaults in IDEA.md.
 
 ### Error Message Rules
 
@@ -4375,12 +4467,15 @@ db.Query("SELECT * FROM users WHERE email = '" + email + "'")
 
 **Error Messages by Context:**
 
-| Error Type | User Sees | Log Contains |
-|------------|-----------|--------------|
-| **Invalid input format** | "Please enter a valid value" | `validation_error: field format invalid, input=[redacted]` |
-| **Rate limited** | "Too many requests. Try again in a moment" | `rate_limit: endpoint=/api/{api_version}/..., ip=1.2.3.4, limit=10/min` |
-| **Database error** | "An error occurred. Please try again" | `db_error: connection refused, host=db.local:5432, err=[full error]` |
-| **Internal panic** | "An unexpected error occurred" | `panic: [full stack trace], request_id=abc123` |
+| Error Type | User Sees | Admin Sees | Log Contains |
+|------------|-----------|------------|--------------|
+| **Invalid email format** | "Please enter a valid email address" | Same | `validation_error: email format invalid, input=[redacted]` |
+| **Login failed (wrong password)** | "Invalid credentials" | "Login failed for user@example.com" | `auth_failure: user_id=123, ip=1.2.3.4, reason=invalid_password` |
+| **Login failed (no such user)** | "Invalid credentials" | "Login attempt for unknown user" | `auth_failure: email=[redacted], ip=1.2.3.4, reason=user_not_found` |
+| **Rate limited** | "Too many attempts. Try again in 5 minutes" | "Rate limit hit: login, IP 1.2.3.4" | `rate_limit: endpoint=/server/auth/login, ip=1.2.3.4, limit=5/15m` |
+| **Database error** | "An error occurred. Please try again" | "Database connection failed" | `db_error: connection refused, host=db.local:5432, err=[full error]` |
+| **Permission denied** | "Access denied" | "User lacks permission: admin.settings" | `authz_failure: user_id=123, resource=admin.settings, action=write` |
+| **Internal panic** | "An unexpected error occurred" | "Internal error - check logs" | `panic: [full stack trace], request_id=abc123` |
 
 **Console Output (Development):**
 ```
@@ -4672,7 +4767,7 @@ func gUBE(e string) (*U, error) {
 
 | Rule | Description |
 |------|-------------|
-| **AI.md is SOURCE OF TRUTH** | Read-only — do not modify |
+| **AI.md is SOURCE OF TRUTH** | Read-only — use SPEC.md for project-specific overrides or optional PART activation |
 | **IDEA.md is the project PLAN** | Update when features change, must follow AI.md |
 | **Keep documentation current** | Update when project state changes |
 | **TODO.AI.md for 3+ tasks** | Required when doing 3 or more tasks |
@@ -4988,16 +5083,18 @@ For code that runs in the application, NEVER use bare `/path`. Always use `{fqdn
 
 ```go
 // ❌ WRONG - Bare path
-link := "/api/v1/items/" + itemID
+redirectURL := "/server/auth/callback"
+link := "/api/v1/users/" + userID
 
 // ✅ CORRECT - Using FQDN
-link := fmt.Sprintf("https://%s/api/v1/items/%s", cfg.FQDN, itemID)
+redirectURL := fmt.Sprintf("https://%s/server/auth/callback", cfg.FQDN)
+link := fmt.Sprintf("https://%s/api/v1/users/%s", cfg.FQDN, userID)
 
 // ✅ CORRECT - Helper function
 func BuildURL(path string) string {
     return fmt.Sprintf("https://%s%s", cfg.FQDN, path)
 }
-link := BuildURL("/api/v1/items/" + itemID)
+link := BuildURL("/api/v1/users/" + userID)
 ```
 
 **JavaScript examples:**
@@ -5139,7 +5236,7 @@ sudo mv {project_name}-cli-linux-amd64 /usr/local/bin/{project_name}-cli
 
 ## Configuration
 
-Configuration is auto-generated on first run. Edit the config file directly.
+Configuration is auto-generated on first run. Edit via admin panel at `{proto}://{fqdn}/server/{admin_path}` (admin_path defaults to "admin").
 
 Key settings:
 - `server.port` - Listen port (default: random 64xxx)
@@ -5330,20 +5427,42 @@ curl -L https://api.example.com/server/healthz
 | **Sane Defaults** | Everything has sensible default values |
 | **No AI/ML** | Smart logic only, no machine learning |
 | **Concise Responses** | Short, descriptive, and helpful |
-| **Everything Configurable** | ALL settings MUST be configurable via `server.yml` |
-| **Live Reload** | Configuration changes apply immediately without restart (file-watch hot-reload) |
-| **Built-in Scheduler** | NEVER use cron, Task Scheduler, or external schedulers (PART 18) |
+| **Everything Configurable** | ALL settings MUST be configurable via admin WebUI |
+| **Live Reload** | Configuration changes apply immediately without restart |
+| **Built-in Scheduler** | NEVER use cron, Task Scheduler, or external schedulers (PART 19) |
 
-### File-Only Configuration
+### Admin WebUI Configuration
 
-**ALL configuration is via `server.yml`. There is no admin web UI, no runtime config mutation via API.**
+**EVERY setting in the configuration file MUST be editable via the admin WebUI.**
 
 | Rule | Description |
 |------|-------------|
-| **File is the source of truth** | `server.yml` is the only place settings are changed |
-| **Hot-reload** | Server watches `server.yml` for changes and reloads immediately |
-| **No runtime API config** | No endpoints that write to or mutate server configuration |
-| **Sane defaults** | Every setting has a working default; `server.yml` is optional for basic operation |
+| **No SSH/CLI required** | Users should NEVER need to edit config files manually |
+| **Complete coverage** | 100% of `server.yml` settings available in admin panel |
+| **Extend for project** | Projects MUST extend admin UI for project-specific settings |
+| **Grouped logically** | Settings organized into intuitive sections |
+| **Tooltips/help** | Every setting has a description explaining what it does |
+| **Validation** | Real-time validation with clear error messages |
+| **Defaults shown** | Show default values and current values clearly |
+
+**Extending Admin WebUI (IF APPLICABLE):**
+
+Not every project needs admin UI extensions - it depends on the project's nature:
+
+| Project Type | Admin UI Extension | Example |
+|--------------|-------------------|---------|
+| Static data loader | Not needed | `jokes` - loads JSON, nothing to configure |
+| Configurable service | Required | `weather` - API keys, update intervals, sources |
+| Data with moderation | Required | User-generated content, approval workflows |
+| External integrations | Required | Third-party APIs, credentials, sync settings |
+
+**When extending, projects MUST:**
+1. Add admin UI pages/sections for ALL project-specific configuration
+2. Ensure project-specific settings are NOT hidden in config files only
+3. Follow the same patterns as base admin UI (validation, tooltips, live reload)
+4. Place project extensions in `src/admin/` alongside base handlers
+
+**Rule:** If a setting exists in config, it MUST be editable in admin UI. If nothing to configure, no extension needed.
 
 ### Live Reload
 
@@ -5723,7 +5842,7 @@ This badge should appear in the badges section near the top of README.md.
 
 Pass `--annotation "org.opencontainers.image.licenses=MIT"` to `docker buildx build`.
 
-See PART 26: DOCKER for complete annotation requirements.
+See PART 27: DOCKER for complete annotation requirements.
 
 ## Go Module License Field
 
@@ -5919,12 +6038,16 @@ PROJECTORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)/[^/]+(
 ./                          # Root project directory (git top-level)
 ├── .github/                # GitHub Actions (if using GitHub)
 │   └── workflows/
+│       ├── ci.yml          # Build, test, lint, coverage, security jobs
+│       ├── build-toolchain.yml  # Monthly :build toolchain image rebuild
 │       ├── release.yml     # Stable releases
 │       ├── beta.yml        # Beta releases
 │       ├── daily.yml       # Daily builds
 │       └── docker.yml      # Docker images
 ├── .gitea/                 # Gitea Actions (if using Gitea)
 │   └── workflows/
+│       ├── ci.yml          # Build, test, lint, coverage, security jobs
+│       ├── build-toolchain.yml  # Monthly :build toolchain image rebuild
 │       ├── release.yml     # Stable releases
 │       ├── beta.yml        # Beta releases
 │       ├── daily.yml       # Daily builds
@@ -5942,16 +6065,17 @@ PROJECTORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)/[^/]+(
 │       ├── ai-rules.md         # PART 0, 1: AI Assistant Rules, Critical Rules
 │       ├── project-rules.md    # PART 2, 3, 4: License & Attribution, Project Structure, OS-Specific Paths
 │       ├── config-rules.md     # PART 5, 6, 12: Configuration, Application Modes, Server Configuration
-│       ├── binary-rules.md     # PART 7, 8, 32: Binary Requirements, Server Binary CLI, Client & Agent
-│       ├── backend-rules.md    # PART 9, 10, 11, 31: Error Handling & Caching, Database & Cluster, Security & Logging, Tor Hidden Service
+│       ├── binary-rules.md     # PART 7, 8, 33: Binary Requirements, Server Binary CLI, Client & Agent
+│       ├── backend-rules.md    # PART 9, 10, 11, 32: Error Handling & Caching, Database & Cluster, Security & Logging, Tor Hidden Service
 │       ├── api-rules.md        # PART 13, 14, 15: Health & Versioning, API Structure, SSL/TLS & Let's Encrypt
-│       ├── frontend-rules.md   # PART 16: Web Frontend
-│       ├── features-rules.md   # PART 17-22: Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command
-│       ├── service-rules.md    # PART 23, 24: Privilege Escalation & Service, Service Support
-│       ├── makefile-rules.md   # PART 25: Makefile (local dev only, NOT CI/CD)
-│       ├── docker-rules.md     # PART 26: Docker
-│       ├── cicd-rules.md       # PART 27: CI/CD Workflows
-│       └── testing-rules.md    # PART 28, 29, 30: Testing & Development, ReadTheDocs Documentation, I18N & A11Y
+│       ├── frontend-rules.md   # PART 16, 17: Web Frontend, Admin Panel
+│       ├── features-rules.md   # PART 18-23: Email & Notifications, Scheduler, GeoIP, Metrics, Backup & Restore, Update Command
+│       ├── service-rules.md    # PART 24, 25: Privilege Escalation & Service, Service Support
+│       ├── makefile-rules.md   # PART 26: Makefile (local dev only, NOT CI/CD)
+│       ├── docker-rules.md     # PART 27: Docker
+│       ├── cicd-rules.md       # PART 28: CI/CD Workflows
+│       ├── testing-rules.md    # PART 29, 30, 31: Testing & Development, ReadTheDocs Documentation, I18N & A11Y
+│       └── optional-rules.md   # PART 34-36: Multi-User, Organizations, Custom Domains (all OPTIONAL)
 ├── .cursor/                # Cursor AI configuration (optional)
 │   ├── rules/              # Same groupings as .claude/rules/ but .mdc extension
 │   │   ├── ai-rules.mdc
@@ -5966,7 +6090,8 @@ PROJECTORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)/[^/]+(
 │   │   ├── makefile-rules.mdc
 │   │   ├── docker-rules.mdc
 │   │   ├── cicd-rules.mdc
-│   │   └── testing-rules.mdc
+│   │   ├── testing-rules.mdc
+│   │   └── optional-rules.mdc
 │   └── CURSOR.md           # Project memory - critical rules (REQUIRED)
 ├── .aider/                 # Aider AI configuration (optional)
 │   ├── CONVENTIONS.md      # Single file with all rule sections
@@ -6397,6 +6522,30 @@ require (
 |---------|---------|-------|
 | **YAML** | `gopkg.in/yaml.v3` | Config file parsing |
 | **UUID** | `github.com/google/uuid` | Standard UUID generation |
+| **Argon2** | `golang.org/x/crypto/argon2` | Password hashing |
+| **Bcrypt** | `golang.org/x/crypto/bcrypt` | Verify existing passwords (rehash to Argon2id) |
+
+### Authentication (REQUIRED - ALL PROJECTS)
+
+**Every project has Server Admins, even apps without users (e.g., `jokes` loading JSON).**
+**These libraries are REQUIRED to support admin authentication features.**
+
+| Purpose | Library | Notes |
+|---------|---------|-------|
+| **TOTP** | `github.com/pquerna/otp` | Time-based 2FA codes |
+| **Passkeys/WebAuthn** | `github.com/go-webauthn/webauthn` | FIDO2/WebAuthn passwordless |
+| **JWT** | `github.com/golang-jwt/jwt/v5` | API token authentication |
+| **OIDC** | `github.com/coreos/go-oidc/v3` | OpenID Connect client |
+| **OAuth2** | `golang.org/x/oauth2` | OAuth2 flows |
+| **LDAP** | `github.com/go-ldap/ldap/v3` | LDAP/Active Directory |
+| **Sessions** | `github.com/gorilla/sessions` | Cookie-based sessions |
+
+**Server Admin MFA (Recommended):**
+- TOTP and Passkeys are optional but STRONGLY recommended for Server Admins
+- Admin panel MUST support enabling/disabling TOTP and Passkeys
+- Recovery keys MUST be generated when MFA is enabled
+- All MFA features work regardless of whether app has regular users
+
 ### Network/HTTP
 
 | Purpose | Library | Notes |
@@ -6598,6 +6747,15 @@ require (
 	github.com/google/uuid v1.6.0                   // UUID generation
 	golang.org/x/crypto v0.31.0                     // Argon2, Bcrypt
 
+	// Authentication
+	github.com/pquerna/otp v1.4.0                   // TOTP 2FA
+	github.com/go-webauthn/webauthn v0.11.2         // Passkeys/WebAuthn
+	github.com/golang-jwt/jwt/v5 v5.2.1             // JWT tokens
+	github.com/coreos/go-oidc/v3 v3.11.0            // OIDC client
+	golang.org/x/oauth2 v0.24.0                     // OAuth2 flows
+	github.com/go-ldap/ldap/v3 v3.4.10              // LDAP/AD
+	github.com/gorilla/sessions v1.4.0              // Cookie sessions
+
 	// Network/HTTP
 	github.com/go-chi/chi/v5 v5.2.0                 // Router
 	github.com/cretz/bine v0.2.0                    // Tor controller
@@ -6617,6 +6775,95 @@ require (
 - Clean up unused dependencies: handled automatically by `make build/local/dev`
 - MongoDB uses native driver, not database/sql
 - **NEVER run `go` directly - always use Makefile targets (`make dev`, `make test`, etc.)**
+
+## Password Hashing
+
+**ALL passwords MUST be hashed using Argon2id. NEVER store plaintext passwords.**
+
+### Algorithm Requirements
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| **Algorithm** | Argon2id | Winner of Password Hashing Competition, memory-hard |
+| **Library** | `golang.org/x/crypto/argon2` | Pure Go, CGO_ENABLED=0 compatible |
+| **Fallback** | Bcrypt (cost 12+) | Verify existing passwords, then rehash with Argon2id |
+
+### Argon2id Parameters (OWASP 2023)
+
+```go
+import "golang.org/x/crypto/argon2"
+
+// Recommended parameters (OWASP 2023)
+const (
+	// Iterations
+	ArgonTime = 3
+	// Memory in KB (64 MB)
+	ArgonMemory = 64 * 1024
+	// Parallelism
+	ArgonThreads = 4
+	// Output length in bytes
+	ArgonKeyLen = 32
+	// Salt length in bytes
+	ArgonSaltLen = 16
+)
+
+func HashPassword(password string) (string, error) {
+    // Generate random salt
+    salt := make([]byte, ArgonSaltLen)
+    if _, err := rand.Read(salt); err != nil {
+        return "", err
+    }
+
+    // Hash password
+    hash := argon2.IDKey([]byte(password), salt, ArgonTime, ArgonMemory, ArgonThreads, ArgonKeyLen)
+
+    // Encode as string: $argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>
+    return encodeArgon2Hash(salt, hash), nil
+}
+```
+
+### Storage Format
+
+Passwords stored in PHC string format:
+```
+$argon2id$v=19$m=65536,t=3,p=4$<base64-salt>$<base64-hash>
+```
+
+### Password Rules
+
+| Rule | Description |
+|------|-------------|
+| **NEVER** | Store plaintext passwords anywhere |
+| **NEVER** | Store passwords in config files (server.yml) |
+| **NEVER** | Log passwords (even hashed) |
+| **NEVER** | Allow passwords with leading/trailing whitespace (reject, don't trim) |
+| **ALWAYS** | Use Argon2id for new passwords |
+| **ALWAYS** | Store in database only |
+| **ALWAYS** | Generate secure random salt per password |
+
+### API Token Hashing
+
+API tokens are also sensitive and MUST be hashed:
+
+| Token Type | Storage | Hashing |
+|------------|---------|---------|
+| **API Token** | Database | SHA-256 hash (fast lookup needed) |
+| **Session Token** | Database | SHA-256 hash |
+| **Password** | Database | Argon2id (slow by design) |
+
+```go
+import "crypto/sha256"
+
+func HashToken(token string) string {
+    hash := sha256.Sum256([]byte(token))
+    return hex.EncodeToString(hash[:])
+}
+```
+
+**Note:** API tokens use SHA-256 (not Argon2id) because:
+- Tokens are already high-entropy random strings
+- Need fast lookup for every API request
+- Argon2id's slowness is for weak human passwords
 
 ---
 
@@ -6651,7 +6898,7 @@ Before proceeding, confirm you understand:
 | PID File | `/var/run/{project_org}/{internal_name}.pid` |
 | SSL | `/etc/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `/var/lib/{project_org}/{internal_name}/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `/var/lib/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `/var/lib/{project_org}/{internal_name}/db/` (server.db, users.db) |
 | Service | `/etc/systemd/system/{internal_name}.service` |
 
 ### User (non-privileged)
@@ -6669,7 +6916,7 @@ Before proceeding, confirm you understand:
 | PID File | `~/.local/share/{project_org}/{internal_name}/{internal_name}.pid` |
 | SSL | `~/.config/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `~/.local/share/{project_org}/{internal_name}/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `~/.local/share/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `~/.local/share/{project_org}/{internal_name}/db/` (server.db, users.db) |
 
 ---
 
@@ -6690,7 +6937,7 @@ Before proceeding, confirm you understand:
 | PID File | `/var/run/{project_org}/{internal_name}.pid` |
 | SSL | `/Library/Application Support/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `/Library/Application Support/{project_org}/{internal_name}/data/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `/Library/Application Support/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `/Library/Application Support/{project_org}/{internal_name}/db/` (server.db, users.db) |
 | Service | `/Library/LaunchDaemons/{plist_name}.plist` |
 
 ### User (non-privileged)
@@ -6708,7 +6955,7 @@ Before proceeding, confirm you understand:
 | PID File | `~/Library/Application Support/{project_org}/{internal_name}/{internal_name}.pid` |
 | SSL | `~/Library/Application Support/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `~/Library/Application Support/{project_org}/{internal_name}/data/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `~/Library/Application Support/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `~/Library/Application Support/{project_org}/{internal_name}/db/` (server.db, users.db) |
 | Service | `~/Library/LaunchAgents/{plist_name}.plist` |
 
 ---
@@ -6730,7 +6977,7 @@ Before proceeding, confirm you understand:
 | PID File | `/var/run/{project_org}/{internal_name}.pid` |
 | SSL | `/usr/local/etc/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `/var/db/{project_org}/{internal_name}/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `/var/db/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `/var/db/{project_org}/{internal_name}/db/` (server.db, users.db) |
 | Service | `/usr/local/etc/rc.d/{internal_name}` |
 
 ### User (non-privileged)
@@ -6748,7 +6995,7 @@ Before proceeding, confirm you understand:
 | PID File | `~/.local/share/{project_org}/{internal_name}/{internal_name}.pid` |
 | SSL | `~/.config/{project_org}/{internal_name}/ssl/` (letsencrypt/, local/) |
 | Security | `~/.local/share/{project_org}/{internal_name}/security/` (geoip/, blocklists/, cve/, trivy/) |
-| SQLite DB | `~/.local/share/{project_org}/{internal_name}/db/` (server.db) |
+| SQLite DB | `~/.local/share/{project_org}/{internal_name}/db/` (server.db, users.db) |
 
 ---
 
@@ -6768,7 +7015,7 @@ Before proceeding, confirm you understand:
 | Backup | `%ProgramData%\Backups\{project_org}\{internal_name}\` |
 | SSL | `%ProgramData%\{project_org}\{internal_name}\ssl\` (letsencrypt\, local\) |
 | Security | `%ProgramData%\{project_org}\{internal_name}\data\security\` (geoip\, blocklists\, cve\, trivy\) |
-| SQLite DB | `%ProgramData%\{project_org}\{internal_name}\db\` (server.db) |
+| SQLite DB | `%ProgramData%\{project_org}\{internal_name}\db\` (server.db, users.db) |
 | Service | Windows Service Manager |
 
 ### User (non-privileged)
@@ -6785,7 +7032,7 @@ Before proceeding, confirm you understand:
 | Backup | `%LocalAppData%\Backups\{project_org}\{internal_name}\` |
 | SSL | `%AppData%\{project_org}\{internal_name}\ssl\` (letsencrypt\, local\) |
 | Security | `%LocalAppData%\{project_org}\{internal_name}\security\` (geoip\, blocklists\, cve\, trivy\) |
-| SQLite DB | `%LocalAppData%\{project_org}\{internal_name}\db\` (server.db) |
+| SQLite DB | `%LocalAppData%\{project_org}\{internal_name}\db\` (server.db, users.db) |
 
 ---
 
@@ -6803,7 +7050,7 @@ Before proceeding, confirm you understand:
 | Cache | `/data/{project_name}/cache/` |
 | Logs | `/data/log/{project_name}/` |
 | Log File | `/data/log/{project_name}/server.log` |
-| SQLite DB | `/data/db/sqlite/` (server.db) |
+| SQLite DB | `/data/db/sqlite/` (server.db, users.db) |
 | Backup | `/data/backups/{project_name}/` |
 | Internal Port | `80` |
 
@@ -6858,7 +7105,7 @@ port: 8080
 ## Path Normalization & Validation
 
 **All paths MUST be normalized and validated. This is a GLOBAL security rule for all binaries (server, agent, cli) and applies to:**
-- Configuration values (static_path, etc.)
+- Configuration values (admin_path, static_path, etc.)
 - HTTP request paths
 - File paths
 - API parameters containing paths
@@ -6976,6 +7223,16 @@ func SafePath(input string) (string, error) {
 ### Apply Everywhere
 
 **Configuration paths:**
+```go
+func (c *Config) SetAdminPath(input string) error {
+    safe, err := SafePath(input)
+    if err != nil {
+        return fmt.Errorf("invalid admin_path: %w", err)
+    }
+    c.AdminPath = safe
+    return nil
+}
+```
 
 **CLI flags:**
 ```go
@@ -7060,7 +7317,7 @@ func PathSecurityMiddleware(next http.Handler) http.Handler {
 
 | Request | Result | Status |
 |---------|--------|--------|
-| `GET /server/admin//config//settings` | `/server/admin/config/settings` | 200 |
+| `GET /server/admin//config//settings` | `/server/{admin_path}/config/settings` | 200 |
 | `GET //api///v1//users` | `/api/{api_version}/users` | 200 |
 | `GET ///` | `/` | 200 |
 | `GET /static/../server/admin` | Blocked | 400 |
@@ -7318,11 +7575,11 @@ Self-Healing Successful?                        │
             Show fix instructions in admin UI
 ```
 
-### Admin API in Maintenance Mode
+### Admin Panel in Maintenance Mode
 
-**The admin API remains accessible and provides guidance for fixing issues.**
+**The admin panel remains accessible and provides guidance for fixing issues.**
 
-#### Maintenance Status
+#### Maintenance Dashboard (`/server/{admin_path}`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -7533,9 +7790,14 @@ server:
     password: ${DB_PASSWORD}
     sslmode: require
 
-# Cached configuration (synced from file, used as backup when file unavailable)
+# Cached configuration (synced from database)
+# Used as backup when database unavailable
 _cache:
   last_sync: "2025-01-15T10:30:00Z"
+
+  admin:
+    email: admin@example.com
+    # Note: password NOT cached (security)
 
   branding:
     title: "My Application"
@@ -7599,11 +7861,28 @@ _cache:
 |-------|---------|
 | `config` / `srv_config` | Configuration key-value pairs |
 | `config_meta` / `srv_config_meta` | Config metadata (defaults, restart flags) |
+| `admin_sessions` / `srv_admin_sessions` | Admin web sessions |
 | `rate_limits` / `srv_rate_limits` | Rate limiting counters |
-| `audit_log` / `srv_audit_log` | Config changes, request log, security events |
+| `audit_log` / `srv_audit_log` | Admin actions, config changes |
 | `scheduler_tasks` / `srv_scheduler_tasks` | Scheduled task definitions |
 | `scheduler_history` / `srv_scheduler_history` | Task execution history |
 | `backups` / `srv_backups` | Backup metadata |
+
+**User Tables (usr_* prefix in remote DB, or users.db in SQLite):**
+
+| Table | Purpose |
+|-------|---------|
+| `admins` / `usr_admins` | Admin accounts |
+| `users` / `usr_users` | Regular user accounts |
+| `api_keys` / `usr_api_keys` | API keys |
+| `password_resets` / `usr_password_resets` | Password reset tokens |
+| `email_verifications` / `usr_email_verifications` | Email verification tokens |
+| `totp_secrets` / `usr_totp_secrets` | TOTP 2FA secrets |
+| `passkeys` / `usr_passkeys` | WebAuthn/FIDO2 credentials |
+| `trusted_devices` / `usr_trusted_devices` | Remembered 2FA devices |
+| `user_sessions` / `usr_user_sessions` | User web sessions |
+| `custom_domains` / `usr_custom_domains` | User/org custom domains with SSL (optional) |
+| `custom_domain_audit` / `usr_custom_domain_audit` | Custom domain audit log (optional) |
 
 ## Boolean Handling
 
@@ -8217,7 +8496,7 @@ ENTRYPOINT [ "tini", "-p", "SIGTERM", "--", "/usr/local/bin/entrypoint.sh" ]
 | `--maintenance backup` | ❌ No | Can write to backup dir? (already owned) | N/A |
 | `--maintenance restore` | 🔐 Auth | Requires admin auth OR root OR first-run | N/A |
 | `--maintenance update` | ⚠️ Check | Can write to binary path? | None (error) |
-| `--maintenance setup` | 🔐 Auth | Only first-run OR root | N/A |
+| `--maintenance setup` | 🔐 Auth | Only first-run OR valid setup token | N/A |
 | `--maintenance mode` | 🔐 Auth | Requires admin auth OR root | N/A |
 | (normal start) | ❌ No | Adapts paths to current user | N/A |
 
@@ -8229,7 +8508,7 @@ ENTRYPOINT [ "tini", "-p", "SIGTERM", "--", "/usr/local/bin/entrypoint.sh" ]
 
 | Operation | Danger | Authorization Required |
 |-----------|--------|----------------------|
-| `--maintenance setup` | Creates admin account | First-run only OR root |
+| `--maintenance setup` | Creates admin account | First-run only OR valid setup token |
 | `--maintenance restore` | Overwrites ALL data | Admin auth OR root OR empty database |
 | `--maintenance mode` | Changes server behavior | Admin auth OR root |
 
@@ -8242,11 +8521,14 @@ Binary checks:
 ├─ Is database empty (no admins exist)?
 │   └─ YES → Allow setup (first-run)
 ├─ Is user root/admin?
-│   └─ YES → Allow setup (requires confirmation)
+│   └─ YES → Allow setup (regenerates setup token, requires confirmation)
+├─ Is valid setup token provided (--token=XXX)?
+│   └─ YES → Allow setup (one-time use, token invalidated after)
 └─ NO authorization → Reject with:
    "Setup already completed. To reconfigure:
-    1. Edit server.yml directly and restart the server
-    2. Run as root: sudo {project_name} --maintenance setup"
+    1. Use existing admin credentials via WebUI
+    2. Run as root: sudo {project_name} --maintenance setup
+    3. Use setup token shown at first-run (if you saved it)"
 ```
 
 **Restore authorization flow:**
@@ -8341,7 +8623,7 @@ func canBackup() bool {
 }
 
 // Setup: check authorization (not just access)
-func canSetup() (bool, string) {
+func canSetup(token string) (bool, string) {
     // First-run: always allowed
     if isDatabaseEmpty() {
         return true, "first-run"
@@ -8349,6 +8631,10 @@ func canSetup() (bool, string) {
     // Elevated (root/admin): allowed with confirmation
     if isElevated() {
         return true, "elevated"
+    }
+    // Valid setup token: allowed (one-time)
+    if token != "" && validateSetupToken(token) {
+        return true, "token"
     }
     // No authorization
     return false, ""
@@ -8473,7 +8759,7 @@ chmod 755 /var/cache/{project_org}/{internal_name}/
 chmod 755 /var/log/{project_org}/{internal_name}/
 ```
 
-**User creation:** See PART 23 for platform-specific user creation commands (Linux `useradd`, macOS `dscl`, FreeBSD `pw`).
+**User creation:** See PART 24 for platform-specific user creation commands (Linux `useradd`, macOS `dscl`, FreeBSD `pw`).
 
 **User service vs system service:**
 
@@ -8551,9 +8837,9 @@ server:
   port: 64580
 ```
 
-### Admin API (Port Configuration)
+### Admin Panel
 
-Port can be changed via the config file, but **requires server restart**.
+Port can be changed via `/server/{admin_path}/config/settings`, but **requires server restart** (with warning shown to user).
 
 ### Example Structure
 
@@ -8571,6 +8857,8 @@ server:
   address: "[::]"
   # production or development
   mode: production
+  # Admin panel path (default: admin) - see PART 17
+  admin_path: admin
   # API version prefix (default: v1) - used in /api/{api_version}/ routes
   api_version: v1
   healthz:
@@ -8597,6 +8885,12 @@ server:
   # Daemonize on start (detach from terminal)
   # Default: false (modern service managers prefer foreground)
   daemonize: false
+
+  # Admin Panel
+  admin:
+    email: admin@{fqdn}
+    # Note: username, password, and token are stored in database (admins table)
+    # NOT in this config file for security
 
   # SSL/TLS
   ssl:
@@ -9339,13 +9633,14 @@ func FromEnv() {
 | Behavior | Description |
 |----------|-------------|
 | No arguments | Initialize (if needed) and start server |
-| First run | Auto-create `server.yml` with defaults if absent, show banner with URLs and version |
+| First run | Auto-create config with defaults, show banner with URLs and setup token |
 | First run | Auto-create required directories |
 | Double-click (Windows) | Console window opens, server runs in foreground with banner |
 | Signals | Proper handling (SIGTERM, SIGINT, SIGHUP) |
 | PID file | Enabled by default |
 
-**See PART 32 "First-Run / Double-Click Behavior" for CLI setup wizard (CLI is the only binary with a built-in setup wizard).**
+**See PART 17 "First Run & Setup Wizard" for server first-run experience.**
+**See PART 33 "First-Run / Double-Click Behavior" for CLI setup wizard (CLI is the only binary with a setup wizard).**
 
 ## Embedded Assets
 
@@ -9767,9 +10062,9 @@ func (e *DisplayEnv) detectPlatformDisplay() {
 | **CLI** | ✅ Full app | ✅ Full app (default) | ✅ Commands | ❌ Error |
 | **Agent** | Status window | Status banner | Commands | Default (service) |
 
-**Server/Agent just show status banners (not interactive). CLI is the only full TUI/GUI app with a built-in setup wizard.**
+**Server/Agent just show status banners (not interactive). CLI is the only full TUI/GUI app with setup wizard.**
 
-**See PART 32 for full CLI/TUI/GUI mode implementation details.**
+**See PART 33 for full CLI/TUI/GUI mode implementation details.**
 
 ## Common Go Modules
 
@@ -9947,6 +10242,8 @@ type BannerConfig struct {
     AppMode    string   // production/development
     Debug      bool
     URLs       []string
+    ShowSetup  bool     // Show setup token (server only, first run)
+    SetupToken string
 }
 
 func PrintStartupBanner(cfg BannerConfig) {
@@ -9977,7 +10274,7 @@ func PrintStartupBanner(cfg BannerConfig) {
 | Binary | Default Name | Purpose | Key Flags |
 |--------|--------------|---------|-----------|
 | **Server** | `{project_name}` | Runs the HTTP server | `--config`, `--data`, `--port`, `--mode` |
-| **Agent** | `{project_name}-agent` | Reports to server | `--server`, `--config` |
+| **Agent** | `{project_name}-agent` | Reports to server | `--server`, `--token`, `--config` |
 | **Client** | `{project_name}-cli` | User interface to server | `--server`, `--token`, `--output` |
 
 **Shared flags (ALL binaries):** `--help`, `--version`, `--shell`, `--debug`, `--color`, `--lang`
@@ -10019,7 +10316,7 @@ User-Agent: jokes/1.0.0             # Hardcoded project name
 Default config: /etc/apimgr/jokes/  # Hardcoded project name
 ```
 
-**For client and agent flags, see PART 32.**
+**For client and agent flags, see PART 33.**
 
 ## NO_COLOR Support (ALL Binaries)
 
@@ -10465,7 +10762,7 @@ PHASE 3: Handle maintenance commands (NO startup)
    ├─ --maintenance restore → restore data, exit
    ├─ --maintenance update  → update binary, exit
    ├─ --maintenance mode    → set mode, exit
-   └─ --maintenance setup   → reset admin credentials, exit
+   └─ --maintenance setup   → run setup wizard, exit
 
 PHASE 4: Handle update commands (NO startup)
 ────────────────────────────────────────────
@@ -10491,7 +10788,7 @@ PHASE 5: Server startup (actual server start)
 8. IF RUNNING AS ROOT - setup system resources BEFORE dropping privileges:
    a. Check/create system user:
       ├─ User {project_name} exists → use it
-      └─ User missing → create {internal_name}:{internal_name} (see PART 24)
+      └─ User missing → create {internal_name}:{internal_name} (see PART 25)
    b. Create ALL directories (while still root):
       ├─ {config_dir}/ and subdirs (ssl/, tor/)
       ├─ {data_dir}/ and subdirs (db/, security/, tor/, tor/site/)
@@ -10549,6 +10846,7 @@ PHASE 5: Server startup (actual server start)
     ├─ If MISSING (first run):
     │   ├─ Generate default server.yml
     │   ├─ Save determined port(s) to config
+    │   ├─ Generate one-time setup token (32 hex chars)
     │   ├─ Write config file
     │   └─ Set first_run = true
     ├─ If EXISTS:
@@ -10568,7 +10866,7 @@ PHASE 5: Server startup (actual server start)
     ├─ Run schema migrations if needed
     └─ Verify database integrity
 
-16. Start scheduler (see PART 18 for full task list):
+16. Start scheduler (see PART 19 for full task list):
     ├─ Initialize background task scheduler
     ├─ Load task state from database
     ├─ Register built-in tasks (key tasks):
@@ -10577,10 +10875,10 @@ PHASE 5: Server startup (actual server start)
     │   ├─ session_cleanup (every 15m)
     │   ├─ geoip_update (03:00 Sunday)
     │   ├─ public_ip_refresh (startup + every 12h, hardcoded)
-    │   └─ ... and others (see PART 18)
+    │   └─ ... and others (see PART 19)
     └─ Start scheduler goroutine
 
-17. Start Tor (if tor binary available) - see PART 31:
+17. Start Tor (if tor binary available) - see PART 32:
     ├─ tor not found in PATH → log INFO "Tor not available", skip
     ├─ tor found:
     │   ├─ Create directories: {config_dir}/tor/, {data_dir}/tor/, {data_dir}/tor/site/
@@ -10612,7 +10910,7 @@ PHASE 5: Server startup (actual server start)
     ├─ Log "Listening on {address}:{port}"
     ├─ Log "Mode: {production|development}"
     ├─ Log "Tor: {.onion address}" (if enabled)
-    └─ If first_run: log path to generated `server.yml`
+    └─ If first_run: display setup token in console
 
 21. Enter main loop (block until shutdown signal received)
 ```
@@ -11278,7 +11576,9 @@ The app automatically watches config files and hot-reloads what it can. Settings
 
 | Setting | Why |
 |---------|-----|
-**Requires Restart:**
+| `server.admin_path` | Routes must be re-registered |
+
+**Requires Restart (admin UI shows notification):**
 
 | Setting | Why |
 |---------|-----|
@@ -11292,11 +11592,14 @@ The app automatically watches config files and hot-reloads what it can. Settings
 **Implementation:**
 
 ```go
-// ConfigManager watches server.yml for changes and applies hot-reload or
-// signals restart-required. Configuration is file-only — no runtime mutation.
+// ConfigManager manages config from both file AND database (admin WebUI)
+// Changes from either source trigger hot-reload or restart notification
 type ConfigManager struct {
     configPath      string
+    db              *sql.DB
     lastFileModTime time.Time
+    // Config version in database
+    lastDBVersion   int64
     // True if restart-required settings changed
     pendingRestart  bool
     // Which settings need restart
@@ -11309,11 +11612,12 @@ func (m *ConfigManager) Start() {
         ticker := time.NewTicker(5 * time.Second)
         for range ticker.C {
             m.checkFileChanges()
+            m.checkDBChanges()
         }
     }()
 }
 
-// checkFileChanges watches server.yml for external edits and hot-reloads.
+// checkFileChanges watches config file for external edits
 func (m *ConfigManager) checkFileChanges() {
     info, err := os.Stat(m.configPath)
     if err != nil || info.ModTime() == m.lastFileModTime {
@@ -11327,11 +11631,35 @@ func (m *ConfigManager) checkFileChanges() {
         return
     }
 
-    m.applyConfigChanges(newConfig)
+    m.applyConfigChanges(newConfig, "file")
+
+    // Sync file changes to database so admin UI sees them
+    m.syncToDatabase(newConfig)
 }
 
-// applyConfigChanges categorizes changed settings and applies or flags them.
-func (m *ConfigManager) applyConfigChanges(newConfig *Config) {
+// checkDBChanges watches database for admin WebUI changes
+func (m *ConfigManager) checkDBChanges() {
+    var version int64
+    err := m.db.QueryRow("SELECT version FROM config_meta WHERE id = 1").Scan(&version)
+    if err != nil || version == m.lastDBVersion {
+        return
+    }
+    m.lastDBVersion = version
+
+    newConfig, err := loadConfigFromDB(m.db)
+    if err != nil {
+        log.Printf("Config DB load error: %v", err)
+        return
+    }
+
+    m.applyConfigChanges(newConfig, "database")
+
+    // Sync database changes to file so file reflects current state
+    m.syncToFile(newConfig)
+}
+
+// applyConfigChanges handles both file and database config changes
+func (m *ConfigManager) applyConfigChanges(newConfig *Config, source string) {
     changes := compareConfigs(currentConfig, newConfig)
     if len(changes) == 0 {
         return
@@ -11342,7 +11670,7 @@ func (m *ConfigManager) applyConfigChanges(newConfig *Config) {
     // Apply hot-reloadable settings immediately
     if len(hotReloadable) > 0 {
         applyHotReloadSettings(newConfig, hotReloadable)
-        log.Printf("Hot-reloaded from file: %v", hotReloadable)
+        log.Printf("Hot-reloaded from %s: %v", source, hotReloadable)
     }
 
     // Flag restart-required settings
@@ -11351,27 +11679,60 @@ func (m *ConfigManager) applyConfigChanges(newConfig *Config) {
         m.pendingRestart = true
         m.restartSettings = needsRestart
         m.mu.Unlock()
-        log.Printf("Restart required for: %v", needsRestart)
+        log.Printf("Restart required for: %v (changed via %s)", needsRestart, source)
     }
+}
+
+// syncToDatabase writes file config to database
+func (m *ConfigManager) syncToDatabase(cfg *Config) {
+    // Update config table, bump version
+    _, err := m.db.Exec(`
+        UPDATE config SET value = ? WHERE key = ?
+        -- ... for each setting
+    `)
+    if err == nil {
+        m.db.Exec("UPDATE config_meta SET version = version + 1 WHERE id = 1")
+    }
+}
+
+// syncToFile writes database config to file
+func (m *ConfigManager) syncToFile(cfg *Config) {
+    data, _ := yaml.Marshal(cfg)
+    os.WriteFile(m.configPath, data, 0644)
+    // Update lastFileModTime to prevent re-reading our own write
+    info, _ := os.Stat(m.configPath)
+    m.lastFileModTime = info.ModTime()
 }
 ```
 
 **Database Schema :**
 
-All projects use SQLite with a single database file:
-- `server.db` - Server state (config, rate limits, audit log, scheduler, backups)
+All projects use SQLite with two database files:
+- `server.db` - Server state (config, sessions, rate limits, audit, scheduler)
+- `users.db` - User data (admins, users, API keys) - separate for easy backup/restore
 
 | Database | Table | Purpose |
 |----------|-------|---------|
 | `server.db` | `config` | Key-value config storage |
 | `server.db` | `config_meta` | Config version tracking |
+| `server.db` | `sessions` | Admin WebUI login sessions |
 | `server.db` | `rate_limits` | Sliding window rate limit counters |
-| `server.db` | `audit_log` | Config changes, security events, request log |
+| `server.db` | `audit_log` | Admin actions, config changes, security events |
 | `server.db` | `scheduler_tasks` | Background task definitions |
 | `server.db` | `scheduler_history` | Task run history |
 | `server.db` | `backups` | Backup metadata and history |
+| `users.db` | `admins` | Server admin accounts (WebUI access) |
+| `users.db` | `users` | Regular app users (if project has users) |
+| `users.db` | `api_keys` | API authentication keys |
+| `users.db` | `password_resets` | Password reset tokens |
+| `users.db` | `email_verifications` | Email verification tokens |
+| `users.db` | `totp_secrets` | 2FA TOTP secrets and backup codes |
 
-**`server.db` can be recreated from the config file if needed.**
+**Why two databases?**
+- `users.db` can be backed up/restored independently
+- User data is more sensitive, may have different retention policies
+- Easier to migrate users between instances
+- `server.db` can be recreated from config file if needed
 
 **Database Modes:**
 
@@ -11540,7 +11901,7 @@ See **PART 10: DATABASE & CLUSTER** for full cluster configuration.
 
 | Feature | SQLite | PostgreSQL/MySQL |
 |---------|--------|------------------|
-| Files | `server.db` | Single DB, prefixed tables (`srv_*`) |
+| Files | `server.db`, `users.db` | Single DB, prefixed tables (`srv_*`, `usr_*`) |
 | Timestamps | `strftime('%s','now')` | `EXTRACT(EPOCH FROM NOW())` / `UNIX_TIMESTAMP()` |
 | Auto-increment | `AUTOINCREMENT` | `SERIAL` / `AUTO_INCREMENT` |
 | Upsert | `ON CONFLICT DO UPDATE` | `ON CONFLICT DO UPDATE` / `ON DUPLICATE KEY` |
@@ -11596,6 +11957,26 @@ END;
 CREATE INDEX IF NOT EXISTS idx_config_key_prefix ON config(key);
 
 -- ----------------------------------------------------------------------------
+-- Admin Sessions (admin WebUI login sessions)
+-- NOTE: admin_id is a logical FK to users.db admins table (cross-DB, not enforced)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    id          TEXT PRIMARY KEY,              -- Session token (secure random)
+    admin_id    INTEGER NOT NULL,              -- Logical FK to admins.id in users.db
+    ip_address  TEXT NOT NULL,
+    user_agent  TEXT,
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    expires_at  INTEGER NOT NULL,              -- Unix timestamp (default: 30 days)
+    last_active INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin ON admin_sessions(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
+
+-- Cleanup expired sessions (run via scheduler)
+-- DELETE FROM admin_sessions WHERE expires_at < strftime('%s', 'now');
+
+-- ----------------------------------------------------------------------------
 -- Rate Limiting (sliding window counters)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS rate_limits (
@@ -11611,16 +11992,18 @@ CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start);
 -- DELETE FROM rate_limits WHERE window_start < strftime('%s', 'now') - 3600;
 
 -- ----------------------------------------------------------------------------
--- Audit Log (config changes, request log, security events)
+-- Audit Log (admin actions, config changes, security events)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS audit_log (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp   INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     level       TEXT NOT NULL DEFAULT 'info',  -- info, warning, error, security
-    category    TEXT NOT NULL,                 -- config, api, system, security
-    action      TEXT NOT NULL,                 -- config_change, rate_limit_hit, etc.
-    actor_ip    TEXT,                          -- originating IP address
-    target_type TEXT,                          -- config, endpoint, etc.
+    category    TEXT NOT NULL,                 -- auth, config, admin, api, system
+    action      TEXT NOT NULL,                 -- login, logout, config_change, user_create, etc.
+    actor_type  TEXT,                          -- admin, api_key, system, anonymous
+    actor_id    TEXT,                          -- admin ID, API key ID, or null
+    actor_ip    TEXT,
+    target_type TEXT,                          -- user, config, api_key, etc.
     target_id   TEXT,
     details     TEXT,                          -- JSON with additional context
     success     INTEGER NOT NULL DEFAULT 1     -- 1=success, 0=failure
@@ -11686,6 +12069,321 @@ CREATE TABLE IF NOT EXISTS backups (
 
 CREATE INDEX IF NOT EXISTS idx_backups_created ON backups(created_at);
 
+-- ============================================================================
+-- USERS.DB - User accounts and authentication
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- Server Admins (admin WebUI access)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admins (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    username    TEXT NOT NULL UNIQUE,
+    password    TEXT NOT NULL,                 -- Argon2id hash
+    email       TEXT,
+    role        TEXT NOT NULL DEFAULT 'admin', -- superadmin, admin, readonly
+    enabled     INTEGER NOT NULL DEFAULT 1,
+    api_token_hash TEXT,                       -- SHA-256 hash of API token (prefix: adm_)
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    last_login  INTEGER,
+    failed_attempts INTEGER NOT NULL DEFAULT 0,
+    locked_until INTEGER,                      -- Account lockout timestamp
+    -- OIDC/LDAP sync fields (null for local accounts)
+    source      TEXT NOT NULL DEFAULT 'local', -- local, oidc:{provider}, ldap:{provider}
+    external_id TEXT,                          -- Provider's user ID
+    groups      TEXT,                          -- JSON array of group memberships
+    last_sync   INTEGER                        -- Last OIDC/LDAP sync timestamp
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admins_username ON admins(username);
+
+-- ----------------------------------------------------------------------------
+-- Admin Preferences (settings storage for Server Admins)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_preferences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    admin_id    INTEGER NOT NULL UNIQUE,          -- FK to admins.id (one row per admin)
+
+    -- Appearance Settings
+    theme           TEXT NOT NULL DEFAULT 'dark', -- dark (default), light, auto
+    font_size       TEXT NOT NULL DEFAULT 'medium', -- small, medium, large
+    reduce_motion   INTEGER NOT NULL DEFAULT 0,   -- Minimize animations
+
+    -- Display Settings
+    date_format     TEXT NOT NULL DEFAULT 'YYYY-MM-DD', -- YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY
+    time_format     TEXT NOT NULL DEFAULT '24h',  -- 12h, 24h
+
+    -- Notification Settings (Email)
+    email_security  INTEGER NOT NULL DEFAULT 1,   -- Security alerts (CANNOT be disabled)
+    email_server    INTEGER NOT NULL DEFAULT 1,   -- Server alerts (SSL, updates, disk space)
+    email_backups   INTEGER NOT NULL DEFAULT 1,   -- Backup notifications
+    email_users     INTEGER NOT NULL DEFAULT 1,   -- User activity (if multi-user)
+
+    -- Timestamps
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_preferences_admin ON admin_preferences(admin_id);
+
+-- Trigger to create preferences row when admin is created
+-- (Or handle in application code - create on first access)
+
+-- ----------------------------------------------------------------------------
+-- Regular Users (app users - ONLY if project has user accounts)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    username    TEXT NOT NULL UNIQUE,
+    email       TEXT UNIQUE,
+    password    TEXT NOT NULL,                 -- Argon2id hash
+    display_name TEXT,
+    bio         TEXT,                          -- Short biography (max 500 chars)
+    location    TEXT,                          -- Location (free text)
+    website     TEXT,                          -- Personal website URL
+    avatar_type TEXT NOT NULL DEFAULT 'gravatar', -- gravatar, upload, url
+    avatar_url  TEXT,                          -- URL for upload/url types, null for gravatar
+    visibility  TEXT NOT NULL DEFAULT 'public', -- public, private
+    org_visibility INTEGER NOT NULL DEFAULT 1, -- 1=show basic info in orgs, 0=username only
+    timezone    TEXT,                          -- IANA timezone (e.g., America/New_York)
+    language    TEXT NOT NULL DEFAULT 'en',    -- Preferred language
+    role        TEXT NOT NULL DEFAULT 'user',  -- user, moderator, premium, etc.
+    enabled     INTEGER NOT NULL DEFAULT 1,
+    verified    INTEGER NOT NULL DEFAULT 0,    -- Email verified
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    last_login  INTEGER,
+    failed_attempts INTEGER NOT NULL DEFAULT 0,
+    locked_until INTEGER,                      -- Account lockout timestamp
+    -- OIDC/LDAP sync fields (null for local accounts)
+    source      TEXT NOT NULL DEFAULT 'local', -- local, oidc:{provider}, ldap:{provider}
+    external_id TEXT,                          -- Provider's user ID
+    groups      TEXT,                          -- JSON array of cached group memberships
+    last_sync   INTEGER,                       -- Last successful OIDC/LDAP sync timestamp
+    metadata    TEXT                           -- JSON for app-specific data
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- ----------------------------------------------------------------------------
+-- User Preferences (settings storage for users)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_preferences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL UNIQUE,          -- FK to users.id (one row per user)
+
+    -- Privacy Settings
+    show_email      INTEGER NOT NULL DEFAULT 0,   -- Show email on public profile
+    show_activity   INTEGER NOT NULL DEFAULT 1,   -- Show activity on public profile
+    show_orgs       INTEGER NOT NULL DEFAULT 1,   -- Show org memberships on profile
+    searchable      INTEGER NOT NULL DEFAULT 1,   -- Appear in user search results
+
+    -- Notification Settings (Email)
+    email_security  INTEGER NOT NULL DEFAULT 1,   -- Security alerts (CANNOT be disabled)
+    email_mentions  INTEGER NOT NULL DEFAULT 1,   -- Email when mentioned
+    email_updates   INTEGER NOT NULL DEFAULT 1,   -- Product updates and news
+    email_digest    TEXT NOT NULL DEFAULT 'weekly', -- never, daily, weekly
+
+    -- Notification Settings (Push)
+    push_enabled    INTEGER NOT NULL DEFAULT 0,   -- Browser push notifications
+    push_mentions   INTEGER NOT NULL DEFAULT 1,   -- Push when mentioned
+
+    -- Appearance Settings
+    theme           TEXT NOT NULL DEFAULT 'dark', -- dark (default), light, auto
+    font_size       TEXT NOT NULL DEFAULT 'medium', -- small, medium, large
+    reduce_motion   INTEGER NOT NULL DEFAULT 0,   -- Minimize animations
+
+    -- Display Settings
+    date_format     TEXT NOT NULL DEFAULT 'YYYY-MM-DD', -- YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY
+    time_format     TEXT NOT NULL DEFAULT '24h',  -- 12h, 24h
+
+    -- Timestamps
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences(user_id);
+
+-- Trigger to create preferences row when user is created
+-- (Or handle in application code - create on first access)
+
+-- ----------------------------------------------------------------------------
+-- Organizations (for multi-user collaboration - ONLY if project has orgs)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS orgs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug        TEXT NOT NULL UNIQUE,             -- URL-safe identifier
+    name        TEXT NOT NULL,                    -- Display name
+    description TEXT,
+    avatar_type TEXT NOT NULL DEFAULT 'gravatar', -- gravatar, upload, url
+    avatar_url  TEXT,                             -- URL for upload/url types
+    visibility  TEXT NOT NULL DEFAULT 'public',  -- public, private
+    owner_id    INTEGER NOT NULL,                 -- FK to users.id (creator)
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    metadata    TEXT                              -- JSON for app-specific data
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
+CREATE INDEX IF NOT EXISTS idx_orgs_owner ON orgs(owner_id);
+
+-- Organization Members
+CREATE TABLE IF NOT EXISTS org_members (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    org_id      INTEGER NOT NULL,                 -- FK to orgs.id
+    user_id     INTEGER NOT NULL,                 -- FK to users.id
+    role        TEXT NOT NULL DEFAULT 'member',   -- owner, admin, member
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    UNIQUE(org_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_org_members_org ON org_members(org_id);
+CREATE INDEX IF NOT EXISTS idx_org_members_user ON org_members(user_id);
+
+-- ----------------------------------------------------------------------------
+-- Organization Preferences (settings storage for orgs)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS org_preferences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    org_id      INTEGER NOT NULL UNIQUE,          -- FK to orgs.id (one row per org)
+
+    -- Member Settings
+    default_member_role TEXT NOT NULL DEFAULT 'member', -- Role for new members
+    require_2fa     INTEGER NOT NULL DEFAULT 0,   -- Require 2FA for all members
+    allow_invites   INTEGER NOT NULL DEFAULT 1,   -- Allow admins to invite members
+
+    -- Visibility Settings
+    show_members    INTEGER NOT NULL DEFAULT 1,   -- Show member list publicly
+    show_activity   INTEGER NOT NULL DEFAULT 1,   -- Show org activity publicly
+
+    -- Notification Settings
+    notify_new_member   INTEGER NOT NULL DEFAULT 1, -- Notify admins of new members
+    notify_member_leave INTEGER NOT NULL DEFAULT 1, -- Notify admins when members leave
+
+    -- Timestamps
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_org_preferences_org ON org_preferences(org_id);
+
+-- ----------------------------------------------------------------------------
+-- NOTE: API tokens are stored in the unified `tokens` table (see PART 10)
+-- The `tokens` table handles all token types: adm_, usr_, org_, and agent tokens
+-- Each token has: name, scope (global/read-write/read), expiration options
+-- ----------------------------------------------------------------------------
+
+-- ----------------------------------------------------------------------------
+-- Password Reset Tokens
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS password_resets (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    token_hash  TEXT NOT NULL UNIQUE,          -- SHA256 of token
+    user_type   TEXT NOT NULL,                 -- admin, user
+    user_id     INTEGER NOT NULL,
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    expires_at  INTEGER NOT NULL,
+    used_at     INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
+
+-- Cleanup expired/used tokens (run periodically via scheduler)
+-- DELETE FROM password_resets WHERE expires_at < strftime('%s', 'now') OR used_at IS NOT NULL;
+
+-- ----------------------------------------------------------------------------
+-- Email Verification Tokens (for user email verification)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS email_verifications (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    token_hash  TEXT NOT NULL UNIQUE,          -- SHA256 of token
+    user_type   TEXT NOT NULL,                 -- admin, user
+    user_id     INTEGER NOT NULL,
+    email       TEXT NOT NULL,                 -- Email being verified
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    expires_at  INTEGER NOT NULL,
+    verified_at INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_verifications_expires ON email_verifications(expires_at);
+
+-- Cleanup expired/used tokens (run periodically via scheduler)
+-- DELETE FROM email_verifications WHERE expires_at < strftime('%s', 'now') OR verified_at IS NOT NULL;
+
+-- ----------------------------------------------------------------------------
+-- TOTP Secrets (for 2FA - admin only by default)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS totp_secrets (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_type   TEXT NOT NULL,                 -- admin (users can be added per-project)
+    user_id     INTEGER NOT NULL UNIQUE,       -- One TOTP per user
+    secret      TEXT NOT NULL,                 -- Encrypted TOTP secret
+    enabled     INTEGER NOT NULL DEFAULT 0,    -- 0=setup pending, 1=active
+    backup_codes TEXT,                         -- JSON array of hashed backup codes
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    last_used   INTEGER
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_totp_user ON totp_secrets(user_type, user_id);
+
+-- ----------------------------------------------------------------------------
+-- User Sessions (app user login sessions - ONLY if project has user accounts)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id          TEXT PRIMARY KEY,              -- Session token (secure random)
+    user_id     INTEGER NOT NULL,              -- FK to users.id
+    ip_address  TEXT NOT NULL,
+    user_agent  TEXT,
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    expires_at  INTEGER NOT NULL,              -- Unix timestamp (default: 7 days)
+    last_active INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+
+-- Cleanup expired sessions (run via scheduler)
+-- DELETE FROM user_sessions WHERE expires_at < strftime('%s', 'now');
+
+-- ----------------------------------------------------------------------------
+-- Passkeys (WebAuthn/FIDO2 credentials)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS passkeys (
+    id              TEXT PRIMARY KEY,              -- WebAuthn credential ID (base64url)
+    user_type       TEXT NOT NULL,                 -- admin, user
+    user_id         INTEGER NOT NULL,              -- FK to admins or users
+    name            TEXT NOT NULL,                 -- User-friendly name: "MacBook Pro Touch ID"
+    public_key      TEXT NOT NULL,                 -- WebAuthn public key (base64)
+    sign_count      INTEGER NOT NULL DEFAULT 0,    -- Signature counter (replay protection)
+    transports      TEXT,                          -- JSON array: ["usb", "nfc", "ble", "internal"]
+    aaguid          TEXT,                          -- Authenticator AAGUID
+    created_at      INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    last_used       INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_passkeys_user ON passkeys(user_type, user_id);
+
+-- ----------------------------------------------------------------------------
+-- Trusted Devices (skip 2FA for remembered devices)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS trusted_devices (
+    id          TEXT PRIMARY KEY,              -- Device token (secure random)
+    user_type   TEXT NOT NULL,                 -- admin, user
+    user_id     INTEGER NOT NULL,              -- FK to admins or users
+    device_hash TEXT NOT NULL,                 -- SHA256(user_agent + ip partial)
+    name        TEXT,                          -- "Chrome on Windows" (auto-detected)
+    created_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    expires_at  INTEGER NOT NULL,              -- 30 days from creation
+    last_used   INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_trusted_devices_user ON trusted_devices(user_type, user_id);
+CREATE INDEX IF NOT EXISTS idx_trusted_devices_expires ON trusted_devices(expires_at);
+
+-- Cleanup expired trusted devices (run via scheduler)
+-- DELETE FROM trusted_devices WHERE expires_at < strftime('%s', 'now');
 ```
 
 **Example Config Data:**
@@ -11766,11 +12464,12 @@ func flattenConfig(cfg *Config) []ConfigPair {
 ```
 1. CLI flags (highest priority)
 2. Environment variables
-3. Config file (server.yml)
-4. Defaults (lowest priority)
+3. Database (admin WebUI changes)
+4. Config file (config.yml)
+5. Defaults (lowest priority)
 ```
 
-On startup, merge all sources. ConfigManager watches server.yml for changes.
+On startup, merge all sources. Database and file stay in sync via ConfigManager.
 
 ```go
 // Settings that require restart
@@ -11808,7 +12507,7 @@ func categorizeChanges(changes []string) (hotReload, needsRestart []string) {
 **Admin UI Restart Notification:**
 
 ```go
-// GET /api/{api_version}/server/status returns pending restart info
+// GET /server/{admin_path}/api/status returns pending restart info
 func adminStatusHandler(w http.ResponseWriter, r *http.Request) {
     status := map[string]interface{}{
         "running":         true,
@@ -12227,7 +12926,7 @@ volumes:
 | WRONG | RIGHT |
 |-------|-------|
 | `GET /api/{api_version}/resource/random` | `https://api.example.com/api/{api_version}/resource/random` |
-| `POST /api/{api_version}/server/healthz` | `https://api.example.com/api/{api_version}/server/healthz` |
+| `POST /api/{api_version}/server/{admin_path}/config/settings` | `https://api.example.com/api/{api_version}/server/{admin_path}/config/settings` |
 | `http://localhost:8080/api` | `http://192.168.1.100:64580/api` |
 | `http://0.0.0.0:80/server/healthz` | `https://myserver.example.com/server/healthz` |
 
@@ -12250,6 +12949,7 @@ All templates, Swagger/OpenAPI, GraphQL, email links, etc. MUST use these resolv
 | `{smtp_address}` | SMTP server address (if configured) | `172.17.0.1` |
 | `{smtp_port}` | SMTP server port | `25` |
 | `{startup_datetime}` | Server start timestamp | `Wed Jan 15, 2025 at 09:00:00 EST` |
+| `{setup_token}` | First-run setup token (shown ONCE) | `a1b2c3d4e5f67890abcdef1234567890` |
 
 **URL Format:** `{proto}://{fqdn}/path` or `{proto}://{fqdn}:{port}/path`
 
@@ -12451,6 +13151,7 @@ func GetWildcardDomain() string
 | GraphQL | `BuildURL(r, "/api/{api_version}/server/graphql")` (or `/api/graphql` alias for the latest version) |
 | Email links | `BuildURL(r, "/verify")` |
 | CORS origins | Auto-include `GetWildcardDomain()` if detected |
+| OAuth callbacks | `BuildURL(r, "/server/auth/callback")` |
 
 ### FQDN Validation Rules
 
@@ -13180,11 +13881,19 @@ func EnsureSchema(db *sql.DB) error {
 
 // Schema updates - each statement is idempotent
 var schemaUpdates = []string{
-    // v1.1.0 - Add index for performance
-    `CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start)`,
+    // v1.1.0 - Add org_visibility column
+    `ALTER TABLE users ADD COLUMN org_visibility INTEGER NOT NULL DEFAULT 1`,
 
-    // v1.2.0 - Add new audit category index
-    `CREATE INDEX IF NOT EXISTS idx_audit_category ON audit_log(category)`,
+    // v1.2.0 - Add index for performance
+    `CREATE INDEX IF NOT EXISTS idx_users_visibility ON users(visibility)`,
+
+    // v1.3.0 - Add new table
+    `CREATE TABLE IF NOT EXISTS api_keys (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        key_hash TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
 }
 
 // isColumnExistsError checks if error is "column already exists"
@@ -13302,14 +14011,14 @@ if err != nil && !isColumnExistsError(err) {
 - All nodes share same database and cache
 - Config changes propagate automatically
 
-**Cluster join + secret distribution:** new nodes join via the cluster join flow defined in PART 10 → "Cluster". The bootstrap response from the existing node carries every `app_secrets` row (PART 11 → "Cryptographic Keys") inside the encrypted payload — `installation_secret`, `cookie_signing_key`, `csrf_token_secret` are NOT regenerated per node. The pre-existing `server.security.encryption_key` (`server.yml`) is also distributed in the same encrypted payload. All replicas share one set.
+**Cluster join + secret distribution:** new nodes join via the flow defined in **PART 34 → "Join Cluster Flow (Technical)"**. The bootstrap response from the existing node carries every `app_secrets` row (PART 11 → "Cryptographic Keys") inside the encrypted payload — `installation_secret`, `cookie_signing_key`, `csrf_token_secret` are NOT regenerated per node. The pre-existing `server.security.encryption_key` (`server.yml`) is also distributed in the same encrypted payload. All replicas share one set.
 
 **Cluster nodes vs agents (do NOT confuse):**
 
 | Term | What it is | Where it runs | Auth |
 |------|-----------|----------------|------|
 | **Cluster node** | Another instance of THIS server binary, sharing the same DB and cache, behind the same admin namespace | Anywhere reachable from the primary node | Internal — joins via the cluster join token; subsequent traffic uses the shared DB |
-| **Agent** (PART 32) | A separate, purpose-built `{project_name}-agent` binary on a remote machine reporting INTO the server | Customer / operator machines (web hosts, build runners, monitored machines) | None — server is open API; agents connect without auth tokens |
+| **Agent** (PART 33) | A separate, purpose-built `{project_name}-agent` binary on a remote machine reporting INTO the server | Customer / operator machines (web hosts, build runners, monitored machines) | Bearer token (`adm_agt_` / `usr_agt_` / `org_agt_`) — see PART 14 → Token Types |
 
 Agents are NEVER cluster nodes; they don't share the DB; they don't get `app_secrets` distributed to them. Cluster nodes are NEVER agents; they don't register via `/agents/register`.
 
@@ -13351,7 +14060,8 @@ If now - last_seen > 5 minutes:
    Mark as "offline", exclude from cluster operations
          │
          ▼
-Admin manually removes dead nodes via CLI command or config file.
+Admin manually removes dead nodes via:
+   /server/{admin_path}/config/cluster → Remove Node
 ```
 
 **Heartbeat Payload (every 30s, written to `nodes` table):**
@@ -13388,15 +14098,15 @@ Admin manually removes dead nodes via CLI command or config file.
 
 ### Removed-Node Local Cleanup
 
-**When a node is manually removed via CLI command or config file, the database record is deleted, but the node's local on-disk state may still contain valid copies of `app_secrets` (it had them while it was in the cluster). The removal flow MUST handle both sides:**
+**When a node is manually removed via `/server/{admin_path}/config/cluster → Remove Node`, the database record is deleted, but the node's local on-disk state may still contain valid copies of `app_secrets` (it had them while it was in the cluster). The removal flow MUST handle both sides:**
 
 | Side | Action |
 |------|--------|
 | **Server-side** (from the removing node) | Delete the row from `nodes` table. Mark `app_secrets` versions valid for that node as `revoked_for_node = node_id` so audit can see the removal happened mid-rotation if applicable. Emit `cluster.node_removed` audit event. |
 | **Removed-node-side** (when the removed node next attempts to heartbeat) | Heartbeat returns `403 NODE_REMOVED`. The binary on the removed node MUST: (1) wipe `{config_dir}/security/pgp.priv.asc.enc` if present (PGP keys are cluster-shared and the removed node has lost permission to participate); (2) wipe its `app_secrets` cache; (3) leave `server.yml` minus the cluster section; (4) log `cluster.removed_self_cleanup` to local `audit.log`; (5) refuse to serve requests until re-joined. The binary does NOT delete logs, data files, or user content — those stay on the removed host for forensic / audit purposes. |
-| **If the removed node is offline at removal time** | The cleanup happens whenever the removed node next attempts to communicate. Until then, it's running with stale secrets — but per the secret-version-mismatch flow above, its requests would already fail because `installation_secret` may have rotated. Operators removing a node SHOULD power down or `systemctl stop {internal_name}` first, then remove. The API surfaces this guidance via the cluster status endpoint. |
+| **If the removed node is offline at removal time** | The cleanup happens whenever the removed node next attempts to communicate. Until then, it's running with stale secrets — but per the secret-version-mismatch flow above, its requests would already fail because `installation_secret` may have rotated. Operators removing a node SHOULD power down or `systemctl stop {internal_name}` first, then remove. The admin panel surfaces this guidance. |
 
-**Caveat:** removed-node cleanup is best-effort. A truly compromised host that's been removed cannot be trusted to wipe its own secrets — assume the secrets it had ARE in attacker hands. Always rotate `installation_secret`, `cookie_signing_key`, `csrf_token_secret`, `server.security.encryption_key`, and the project PGP keypair after removing a compromised node. The API offers a "Rotate everything" endpoint on the cluster remove flow.
+**Caveat:** removed-node cleanup is best-effort. A truly compromised host that's been removed cannot be trusted to wipe its own secrets — assume the secrets it had ARE in attacker hands. Always rotate `installation_secret`, `cookie_signing_key`, `csrf_token_secret`, `server.security.encryption_key`, and the project PGP keypair after removing a compromised node. The admin panel offers a "Rotate everything" button on the Remove Node confirmation dialog.
 
 **Primary Election:**
 
@@ -13798,7 +14508,7 @@ func isSerializationError(err error) bool {
 | Cache hit/miss/eviction patterns | Cache layer | Tuning |
 | Internal IP / hostname of upstream services in error messages | Network layer | Diagnosing routing issues |
 | Goroutine dump, pprof profiles, expvar | `/api/{api_version}/debug/*` (PART 6) | Already debug-gated; reaffirmed |
-| Config file path reminder (after first install) | Startup banner | Helps the operator find and edit `server.yml` |
+| Setup token reminder (after first install, periodically until used) | Startup banner | Helps the operator who lost the email |
 
 **Debug mode response shape:**
 
@@ -13855,7 +14565,7 @@ When `DEBUG=true` is active and an error occurs, the canonical error body (PART 
 | 3. Strip internal IPs / paths | Regex-detect `10\.|172\.(1[6-9]\|2[0-9]\|3[01])\.|192\.168\.|127\.|169\.254\.` and filesystem paths in any string field; replace with `[redacted]`. |
 | 4. Truncate | Strings to 256 chars (URLs), 200 chars (messages, samples), 2KB (stacks). Long fields are a leakage and DOS risk. |
 | 5. Strip dev-only fields | In production mode, drop fields tagged `dev_only:"true"` (e.g., `_debug`, `_internal_id`). Dev mode keeps them for troubleshooting. |
-| 6. Constant-time finalize | For write endpoints and sensitive operations, pad response time to a fixed minimum (e.g., 100ms) so success/fail timing doesn't leak internal state. |
+| 6. Constant-time finalize | For auth-sensitive paths (login, password reset, token validation), pad response time to a fixed minimum (e.g., 100ms) so success/fail timing doesn't differ. |
 
 ### Untrusted File / Rich Content Handling
 
@@ -13924,7 +14634,7 @@ When `DEBUG=true` is active and an error occurs, the canonical error body (PART 
 | CORS on by default, credential-aware | "Just works" for public APIs and authenticated apps (PART 16 → CORS) |
 | Rate limit on by default | Per-IP + per-identifier on auth endpoints; configurable but non-zero by default |
 | Argon2id for passwords | No bcrypt/MD5/SHA-* options — secure algorithm not negotiable |
-| Admin credentials defined in `server.yml` | No hardcoded default credentials shipped in binary |
+| Setup token shown ONCE on first start | No default admin credentials, ever |
 | `--debug` / `DEBUG=true` requires explicit opt-in | Debug endpoints disabled in production by default (PART 6) |
 | Errors return canonical generic messages | Stack traces only in `debug.log`, never in HTTP response (PART 5) |
 | Secret-in-config detection on startup | Warning logged if config contains hardcoded `password=`, `token=`, `secret=` — operator nudged toward env vars / vault |
@@ -13945,11 +14655,11 @@ The root secret all other derived material hangs off. Without it, in-flight HMAC
 | Property | Detail |
 |----------|--------|
 | Length | 32 bytes (256 bits) of `crypto/rand` |
-| Generated | First start. Stored in `server.db` row `app_secrets.installation_secret`, base64-encoded. |
-| Scope | Cluster-wide. The first node generates it; subsequent nodes joining the cluster receive it via the secure cluster join protocol (PART 10 → "Cluster" — the join token is HMAC-derived and the `installation_secret` is delivered as part of the same handshake payload). NEVER appears in a request, response, log, or admin UI. |
+| Generated | First start, before the setup token is shown. Stored in `server.db` row `app_secrets.installation_secret`, base64-encoded. |
+| Scope | Cluster-wide. The first node generates it; subsequent nodes joining the cluster receive it via the secure cluster join protocol (PART 34 → "Join Cluster Flow (Technical)" — the join token is HMAC-derived and the `installation_secret` is delivered as part of the same handshake payload). NEVER appears in a request, response, log, or admin UI. |
 | Used by | `{security_id}` HMAC (PART 11 → "Security Reports"); PGP private-key KDF (PART 11 → "GPG Keypair Management"); future derived material (cluster-internal request signing, cookie signing salts). |
-| Rotation | Manual via CLI command or config file. Sensitive-operation flow (PART 5 → "Sensitive Operations"): re-prompt admin password, log to `audit.log` as `security.installation_secret_rotated`. Rotation re-encrypts the PGP private key and re-bases all live HMACs. The previous secret is kept for 7 days to validate any in-flight `{security_id}` URLs that referenced it. |
-| Backup | Always — see PART 21 → "Backup Contents". Required for any restore: without it, the PGP private key in the backup is undecryptable. |
+| Rotation | Manual via admin panel (`/server/{admin_path}/config/security/keypair` → "Rotate Installation Secret"). Sensitive-operation flow (PART 5 → "Sensitive Operations"): re-prompt admin password, log to `audit.log` as `security.installation_secret_rotated`. Rotation re-encrypts the PGP private key and re-bases all live HMACs. The previous secret is kept for 7 days to validate any in-flight `{security_id}` URLs that referenced it. |
+| Backup | Always — see PART 22 → "Backup Contents". Required for any restore: without it, the PGP private key in the backup is undecryptable. |
 | Loss = catastrophic | Lost = cannot decrypt PGP private key (and therefore cannot decrypt in-flight encrypted security reports); cannot validate `{security_id}` URLs on existing security.txt copies until the file regenerates. Recovery requires admin to: regenerate keypair, regenerate `installation_secret`, accept that all in-flight encrypted reports are unreadable. |
 
 ### Other Project-Level Secrets
@@ -13963,15 +14673,15 @@ The root secret all other derived material hangs off. Without it, in-flight HMAC
 
 | Key | Length | Storage | Purpose | Rotation |
 |-----|--------|---------|---------|----------|
-| `server.security.encryption_key` | 32 bytes (AES-256-GCM) | `server.yml` (auto-generated on first run) | At-rest encryption for ALL sensitive server data: 2FA secrets, security report bodies (used as the AES fallback when no PGP keypair exists or when an admin has no personal pubkey, see PART 11 → "Security Reports"), and any future at-rest encrypted data. | Manual via API (sensitive-op flow). 30-day grace for in-flight encrypted data. |
+| `server.security.encryption_key` | 32 bytes (AES-256-GCM) | `server.yml` (auto-generated on first run) | At-rest encryption for ALL sensitive server data: 2FA secrets, security report bodies (used as the AES fallback when no PGP keypair exists or when an admin has no personal pubkey, see PART 11 → "Security Reports"), and any future at-rest encrypted data. | Manual via admin panel (sensitive-op flow). 30-day grace for in-flight encrypted data. |
 
 **Note on consolidation:** `server.security.encryption_key` is the canonical at-rest AES key — every place the spec talks about "encrypt this sensitive data at rest" resolves to this one key, including security report bodies. It is NOT duplicated in `app_secrets`. The four `app_secrets` rows above are HMAC keys (not AES) and a root-secret for HMAC derivation; they are stored in the DB rather than `server.yml` because they have independent rotation lifecycles and need to be visible to cluster replicas via shared DB read.
 
 **All secrets above:**
 - Generated on first start, before any user-visible operation.
-- NEVER returned in any API response — even to admins. The API returns "configured" / "rotated 12 days ago" / fingerprint hashes only.
+- NEVER returned in any API response — even to admins. The admin panel shows "configured" / "rotated 12 days ago" / fingerprint hashes only.
 - NEVER logged. The Output Sanitization Pipeline (PART 11 → above) treats any field whose name contains `secret`, `key`, `password`, `token` as redacted at the log layer too.
-- Always included in backups (PART 21 → "Backup Contents").
+- Always included in backups (PART 22 → "Backup Contents").
 - Restored verbatim from a backup. Restoring partially (e.g., DB without these secrets) is rejected by the restore flow — the manifest verifies all secrets are present.
 
 ## Security Headers
@@ -14344,9 +15054,195 @@ The middleware substitutes `{request_nonce}` per response and adds the same nonc
 | Stolen session cookie replay | ✗ No (CSP can't help — session/CSRF problem) |
 | Server-side template injection | ✗ No (CSP runs in the browser; SSTI is server-side) |
 
-## Route Context
+## API Token Security
 
-**Context is determined from URL path. All routes are publicly accessible.**
+**ALL projects have API tokens for Server Admins. Multi-user projects also have user tokens.**
+
+### Token Format
+
+```
+{prefix}_{random_32_alphanumeric}
+
+Examples:
+  adm_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6        (admin token)
+  usr_x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4        (user token - if multi-user)
+  org_q1w2e3r4t5y6u7i8o9p0a1s2d3f4g5h6        (org token - if orgs)
+
+Agent tokens (scoped to owner):
+  adm_agt_z1x2c3v4b5n6m7l8k9j0h1g2f3d4s5a6   (admin agent - server infrastructure)
+  usr_agt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6   (user agent - user's personal agent)
+  org_agt_q1w2e3r4t5y6u7i8o9p0a1s2d3f4g5h6   (org agent - organization agent)
+```
+
+### Token Prefixes
+
+| Prefix | Type | Required | Description |
+|--------|------|----------|-------------|
+| `adm_` | Admin token | **YES - all projects** | Server admin API access |
+| `usr_` | User token | If multi-user (PART 34) | Regular user API access |
+| `org_` | Organization token | If orgs (PART 35) | Organization-level API access |
+
+### Token Properties
+
+**All tokens (adm_, usr_, org_) support these properties:**
+
+| Property | Options | Default |
+|----------|---------|---------|
+| **Name** | User-defined string | "default" |
+| **Scope** | `global`, `read-write`, `read` | `global` |
+| **Expiration** | Never, 7 days, 1 month, 6 months, 1 year, custom | Never |
+
+**Scope definitions:**
+- `global` - All permissions the owner has access to (auto-detected)
+- `read-write` - Read and write operations (no delete, no admin actions)
+- `read` - Read-only operations
+
+**Token actions:**
+- **Create** - Generate new token with name, scope, expiration
+- **Rotate** - Generate new token value, keep settings
+- **Delete** - Revoke token immediately
+
+**Users can have multiple tokens:**
+```
+adm_abc123...  "default"      global     never
+adm_def456...  "ci-cd"        read-write 6 months
+adm_ghi789...  "monitoring"   read       1 year
+```
+
+### Agent Token Prefixes (If PART 33 Agent Implemented)
+
+| Prefix | Scope | Route | Description |
+|--------|-------|-------|-------------|
+| `adm_agt_` | Admin | `/api/{api_version}/server/{admin_path}/config/agents/*` | Server infrastructure agents |
+| `usr_agt_` | User | `/api/{api_version}/users/agents/*` | User's personal agents (SaaS) |
+| `org_agt_` | Org | `/api/{api_version}/orgs/{slug}/agents/*` | Organization agents |
+
+**Same setup procedure across all scopes** - one-line config, same registration flow.
+
+### Token Storage
+
+| Rule | Description |
+|------|-------------|
+| **Never store plaintext** | Store SHA-256 hash only (tokens are already random) |
+| **Show once** | Display full token only on creation |
+| **Store prefix** | Keep first 8 chars for display: `adm_a1b2...` |
+| **Secure generation** | Use cryptographically secure random (32 alphanumeric chars) |
+
+### Token Database Schema
+
+**Tokens table (supports multiple tokens per owner):**
+```sql
+CREATE TABLE tokens (
+    id            INTEGER PRIMARY KEY,
+    owner_type    TEXT NOT NULL,       -- 'admin', 'user', 'org'
+    owner_id      INTEGER NOT NULL,    -- admin.id, user.id, or org.id
+
+    -- Token identification
+    name          TEXT NOT NULL,       -- User-provided label: "default", "ci-cd"
+    token_hash    TEXT NOT NULL,       -- SHA-256 hash of full token
+    token_prefix  TEXT NOT NULL,       -- First 8 chars: "adm_a1b2"
+
+    -- Token properties
+    scope         TEXT NOT NULL DEFAULT 'global',  -- 'global', 'read-write', 'read'
+    expires_at    TIMESTAMP,           -- NULL = never expires
+
+    -- Tracking
+    last_used_at  TIMESTAMP,
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(owner_type, owner_id, name)  -- One token per name per owner
+);
+
+CREATE INDEX idx_tokens_hash ON tokens(token_hash);
+CREATE INDEX idx_tokens_owner ON tokens(owner_type, owner_id);
+```
+
+**Expiration options:**
+```go
+var ExpirationOptions = map[string]time.Duration{
+    "never":    0,              // NULL in database
+    "7days":    7 * 24 * time.Hour,
+    "1month":   30 * 24 * time.Hour,
+    "6months":  180 * 24 * time.Hour,
+    "1year":    365 * 24 * time.Hour,
+    // "custom" - user picks date from calendar
+}
+```
+
+### Token Validation
+
+```go
+func ValidateToken(token string) (*TokenInfo, error) {
+    // Check for compound agent prefixes first (adm_agt_, usr_agt_, org_agt_)
+    if strings.HasPrefix(token, "adm_agt_") {
+        return validateAgentToken(token, ScopeAdmin)
+    }
+    if strings.HasPrefix(token, "usr_agt_") {
+        return validateAgentToken(token, ScopeUser)
+    }
+    if strings.HasPrefix(token, "org_agt_") {
+        return validateAgentToken(token, ScopeOrg)
+    }
+
+    // Standard single-prefix tokens: {prefix}_{32_chars}
+    parts := strings.SplitN(token, "_", 2)
+    if len(parts) != 2 || len(parts[1]) != 32 {
+        return nil, ErrInvalidTokenFormat
+    }
+
+    prefix := parts[0] + "_"
+
+    switch prefix {
+    case "adm_":
+        return validateAdminToken(token)
+    case "usr_":
+        return validateUserToken(token)  // Only if multi-user
+    case "org_":
+        return validateOrgToken(token)   // Only if orgs
+    default:
+        return nil, ErrUnknownTokenType
+    }
+}
+
+// Agent token validation with scope
+func validateAgentToken(token string, scope TokenScope) (*TokenInfo, error) {
+    // Extract the random part after compound prefix
+    var prefix string
+    switch scope {
+    case ScopeAdmin:
+        prefix = "adm_agt_"
+    case ScopeUser:
+        prefix = "usr_agt_"
+    case ScopeOrg:
+        prefix = "org_agt_"
+    }
+
+    random := strings.TrimPrefix(token, prefix)
+    if len(random) != 32 {
+        return nil, ErrInvalidTokenFormat
+    }
+
+    // Validate against appropriate agents table based on scope
+    return lookupAgentByScope(token, scope)
+}
+```
+
+### Server-Side Context from URL
+
+**Context is determined from URL path, NOT headers. Routes are always URL-scoped.**
+
+**Token scope determines allowed access:**
+
+| Token Type | Allowed Routes | Description |
+|------------|----------------|-------------|
+| `adm_` | `/api/{api_version}/server/{admin_path}/*` | Server admin panel |
+| `adm_` | `/api/{api_version}/server/{admin_path}/config/*` | Server settings (within admin) |
+| `usr_` | `/api/{api_version}/users/*`, `/api/{api_version}/orgs/{allowed}/*` | User + orgs they belong to |
+| `org_` | `/api/{api_version}/orgs/{specific}/*` | Single org only |
+| `adm_agt_` | `/api/{api_version}/server/{admin_path}/config/agents/*` | Admin infrastructure agent |
+| `usr_agt_` | `/api/{api_version}/users/agents/*` | User's personal agent |
+| `org_agt_` | `/api/{api_version}/orgs/{slug}/agents/*` | Organization agent |
+| (no token) | `/api/{api_version}/`, `/api/{api_version}/server/*`, `/api/{api_version}/{resource}/*` | Public routes (no auth) |
 
 **Context Types:**
 
@@ -14357,17 +15253,56 @@ const (
     TargetUnknown       TargetType = iota // Unknown/invalid target
     TargetPublic                          // Public routes (/, /api/{api_version}/, project-specific like /jokes, /weather, /ip)
     TargetServerPages                     // Server pages - about, help, contact, privacy (/server/*, /api/{api_version}/server/*)
-    TargetAdmin                           // Server administration routes (/api/{api_version}/server/*)
+    TargetAuth                            // Auth flows (/server/auth/*, /api/{api_version}/server/auth/*)
+    TargetCurrentUser                     // Current user from token (/users/*, /api/{api_version}/users/*)
+    TargetUser                            // Specific user (/users/{username}/*, /api/{api_version}/users/{username}/*)
+    TargetOrg                             // Organization (/orgs/{slug}/*, /api/{api_version}/orgs/{slug}/*)
+    TargetAdmin                           // Server admin panel (/server/{admin_path}/*, /api/{api_version}/server/{admin_path}/*)
+    TargetAdminServer                     // Server settings within admin (/server/{admin_path}/config/*, /api/{api_version}/server/{admin_path}/config/*)
 )
 ```
 
-**Context detection from URL:**
+**Server request handling:**
 
 ```go
+// ContextMiddleware extracts context from URL path and validates token access
+func ContextMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        token := getTokenFromRequest(r)
+        if token == nil {
+            // No token - anonymous access (if route allows)
+            next.ServeHTTP(w, r)
+            return
+        }
+
+        // Extract context from URL path
+        ctx, err := extractContextFromPath(r.URL.Path)
+        if err != nil {
+            http.Error(w, t(r, "errors.invalid_format"), http.StatusBadRequest)
+            return
+        }
+
+        // Validate token has access to this context
+        if err := validateTokenAccess(token, ctx); err != nil {
+            http.Error(w, t(r, "errors.forbidden"), http.StatusForbidden)
+            return
+        }
+
+        // Add to request context
+        r = r.WithContext(context.WithValue(r.Context(), "target_context", ctx))
+        next.ServeHTTP(w, r)
+    })
+}
+
 // extractContextFromPath determines context from URL path
 func extractContextFromPath(path string) (*Context, error) {
     // /api/{api_version}/ → Public (project root)
-    // /api/{api_version}/server/* → Server pages or admin endpoints
+    // /api/{api_version}/server/* → Server Pages (about, help, contact, privacy)
+    // /api/{api_version}/server/auth/* → Auth flows
+    // /api/{api_version}/users/* → User context (current user or {username})
+    // /api/{api_version}/orgs/{slug}/* → Org context
+    // /api/{api_version}/server/{admin_path}/* → Server Admin
+    // /api/{api_version}/server/{admin_path}/config/* → Server Settings (within admin)
     // /api/{api_version}/{resource}/* → Public routes (project-specific: jokes, weather, ip, etc.)
 
     apiBase := APIBasePath() + "/" // e.g., "/api/{api_version}/"
@@ -14380,8 +15315,32 @@ func extractContextFromPath(path string) (*Context, error) {
     case "": // Root /api/{api_version}/
         return &Context{Type: TargetPublic}, nil
     case "server":
-        // /api/{api_version}/server/* - server info and admin endpoints
+        // /api/{api_version}/server/* - public server pages (about, help, contact, privacy)
         return &Context{Type: TargetServerPages}, nil
+    case "auth":
+        // /api/{api_version}/server/auth/* - authentication flows (public)
+        return &Context{Type: TargetAuth}, nil
+    case "users":
+        if len(parts) > 1 && parts[1] != "" {
+            // /api/{api_version}/users/{username}/* - specific user
+            return &Context{Name: parts[1], Type: TargetUser}, nil
+        }
+        // /api/{api_version}/users/* - current user (from token)
+        return &Context{Type: TargetCurrentUser}, nil
+    case "orgs":
+        if len(parts) < 2 || parts[1] == "" {
+            return nil, ErrMissingOrgSlug
+        }
+        // /api/{api_version}/orgs/{slug}/*
+        return &Context{Name: parts[1], Type: TargetOrg}, nil
+    case cfg.AdminPath: // Configurable admin path
+        // Check for server settings within admin
+        if len(parts) > 1 && parts[1] == "server" {
+            // /api/{api_version}/server/{admin_path}/config/* - server settings
+            return &Context{Type: TargetAdminServer}, nil
+        }
+        // /api/{api_version}/server/{admin_path}/* - admin panel
+        return &Context{Type: TargetAdmin}, nil
     default:
         // Project-specific public routes (e.g., /api/{api_version}/jokes, /weather, /ip)
         return &Context{Type: TargetPublic}, nil
@@ -14394,8 +15353,103 @@ func extractContextFromPath(path string) (*Context, error) {
 | Scenario | HTTP Status | Error |
 |----------|-------------|-------|
 | Invalid path format | 400 | `{"error": "invalid API path"}` |
-| Resource not found | 404 | `{"error": "resource not found"}` |
-| Rate limit exceeded | 429 | `{"error": "rate limit exceeded", "retry_after": 60}` |
+| Missing org slug | 400 | `{"error": "org slug required in path"}` |
+| Resource not found | 404 | `{"error": "user or org not found: xyz"}` |
+| No access to resource | 403 | `{"error": "no access to requested resource"}` |
+
+**API response includes context:**
+
+```json
+{
+  "data": [...],
+  "meta": {
+    "context": {
+      "name": "acme-corp",
+      "type": "org"
+    }
+  }
+}
+```
+
+### Auth Routes
+
+**ALL projects require auth routes. The same routes handle both Server Admins and regular users (if multi-user enabled).**
+
+**Required Routes (all projects):**
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/server/auth/login` | GET | Login form (handles both admin and user) |
+| `/server/auth/login` | POST | Process login, redirect based on account type |
+| `/server/auth/logout` | GET/POST | End session |
+| `/server/auth/password/reset` | GET/POST | Password reset (if SMTP) |
+| `/server/auth/invite/server/{code}` | GET | Admin invite acceptance |
+| `/server/auth/oidc/{provider}` | GET | Start OIDC login for user/admin auth |
+| `/server/auth/oidc/{provider}/callback` | GET | Complete OIDC browser login and apply user/admin mapping rules |
+| `/server/auth/ldap` | GET | LDAP provider chooser when one or more LDAP providers are enabled |
+| `/server/auth/ldap/{provider}` | GET/POST | LDAP login flow for the selected LDAP provider |
+| `/server/auth/external/username` | GET/POST | First-login username confirmation/selection step after successful OIDC/LDAP auth for new user/admin accounts |
+
+**Additional routes if multi-user (PART 34):**
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/server/auth/register` | GET/POST | User registration |
+| `/server/auth/verify/{code}` | GET | Email verification |
+| `/server/auth/invite/user/{code}` | GET | User invite acceptance |
+
+**Routing rule:** external identity login for both regular users and Server Admins lives under `/server/auth/*` in the browser and `/api/{api_version}/server/auth/*` in the API. Do NOT add parallel auth routes outside those scopes.
+
+### Scoped Login Redirect
+
+**Single login form, scoped redirect based on account type.**
+
+| Account Type | Stored In | After Login Redirect |
+|--------------|-----------|---------------------|
+| **Server Admin** | `admins` table | `/server/{admin_path}` (default: `/server/admin`) |
+| **Regular User** | `users` table | `/users` or `?redirect=` param |
+
+**Login Flow:**
+
+```
+User submits /server/auth/login form
+         ↓
+Check credentials against `admins` table
+         ↓
+    ┌─── Match found? ───┐
+    │                    │
+   YES                   NO
+    │                    │
+    ↓                    ↓
+Set admin_session    Check `users` table (if multi-user)
+    │                    │
+    ↓               ┌─── Match found? ───┐
+Redirect to         │                    │
+/server/{admin_path}      YES                   NO
+                    │                    │
+                    ↓                    ↓
+               Set user_session    Return error:
+                    │              "Invalid credentials"
+                    ↓
+               Redirect to
+               /users (or ?redirect=)
+```
+
+**Login Form Behavior:**
+
+| Feature | Description |
+|---------|-------------|
+| **Single form** | Same form for admin and user login |
+| **Username or email** | Accept either (detect format) |
+| **No account type selector** | Server determines account type from credentials |
+| **Redirect param** | `?redirect=/path` honored for users, ignored for admins |
+| **Remember me** | Extends session (both admin and user) |
+
+**Security Notes:**
+- Admin login NEVER redirects to user routes
+- User login NEVER redirects to admin routes
+- Failed login does NOT reveal if username exists
+- Rate limiting applies to all login attempts
 
 ## Well-Known Files
 
@@ -14413,7 +15467,7 @@ func extractContextFromPath(path string) (*Context, error) {
 | Path | Purpose |
 |------|---------|
 | `/.well-known/acme-challenge/` | Let's Encrypt HTTP-01 challenge |
-| `/.well-known/acme-challenge/` | Let's Encrypt HTTP-01 challenge |
+| `/.well-known/change-password` | Password change URL (redirects to `/users/security/password` if logged in, `/server/auth/password/forgot` if not) |
 
 ### Well-Known Namespace Contract
 
@@ -14437,6 +15491,7 @@ func extractContextFromPath(path string) (*Context, error) {
 | `/.well-known/security.txt` | Enabled | All projects | Generated from config (or operator override for the same path) | `text/plain; charset=utf-8` | RFC 9116 security contact file |
 | `/.well-known/pgp-key.asc` | Feature-gated | Project security-report PGP keypair exists | Generated from stored public key | `application/pgp-keys` or `text/plain; charset=utf-8` | Public key download for secure report submission |
 | `/.well-known/acme-challenge/{token}` | Feature-gated | Let's Encrypt `http-01` is active | Dynamic handler only | `text/plain; charset=utf-8` | ACME challenge response; no auth, no HTML |
+| `/.well-known/change-password` | Enabled | Auth routes exist | Dynamic handler | Redirect response with no-store headers | If logged in, send user to `/users/security/password`; otherwise send to `/server/auth/password/forgot` |
 | `/.well-known/webfinger` | Disabled | Project publishes `acct:`-style identities or federation in `IDEA.md` | Dynamic handler | `application/jrd+json` | Resolve account/resource discovery; otherwise 404 |
 | `/.well-known/openid-configuration` | Disabled | Project itself is an OIDC provider in `IDEA.md` | Dynamic handler | `application/json` | Provider metadata; MUST stay disabled for OIDC client-only apps |
 | `/.well-known/assetlinks.json` | Disabled | Android App Links / native credential association is enabled | Config or file-backed | `application/json` | Android digital asset links |
@@ -14470,6 +15525,7 @@ Files can be served from:
 User-agent: *
 Allow: /
 Allow: /api
+Disallow: /server/{admin_path}
 Sitemap: {app_url}/sitemap.xml
 ```
 
@@ -14480,7 +15536,8 @@ web:
     allow:
       - /
       - /api
-    deny: []
+    deny:
+      - /server/{admin_path}
 ```
 
 ### security.txt (RFC 9116)
@@ -14520,9 +15577,23 @@ web:
 | `Contact` | YES | Email for reporting vulnerabilities (mailto: prefix added automatically) |
 | `Expires` | YES | Expiration date (auto-renewed yearly by default) |
 
-### Web Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/web)
 
-**robots.txt and security.txt are configured via config file (see `web.robots` and `web.security` sections above).**
+**robots.txt Settings:**
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Allow paths | Tag input / List | Paths to allow crawling (e.g., `/`, `/api`) |
+| Deny paths | Tag input / List | Paths to deny crawling (e.g., `/server/{admin_path}`) |
+| Preview | Read-only textarea | Shows generated robots.txt content |
+
+**security.txt Settings:**
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Security contact | Text input | Email for vulnerability reports |
+| Expires | Date picker | Expiration date (default: 1 year from now, auto-renews) |
+| Preview | Read-only textarea | Shows generated security.txt content |
 
 **Well-Known Settings:**
 
@@ -14597,23 +15668,31 @@ web:
 |----------|--------|------|---------|
 | `/.well-known/security.txt` | GET | None | RFC 9116 file — see above |
 | `/.well-known/pgp-key.asc` | GET | None | Project's PGP public key (ASCII-armored). 404 if no keypair generated yet. |
-| `/server/security/policy` | GET | None | Disclosure policy page (HTML). Default content provided; editable via API. Lists the coordinated-disclosure window, in-scope domains, out-of-scope behaviors, safe-harbor language. |
+| `/server/security/policy` | GET | None | Disclosure policy page (HTML). Default content provided; editable from admin panel. Lists the coordinated-disclosure window, in-scope domains, out-of-scope behaviors, safe-harbor language. |
 | `/server/security/thanks` | GET | None | Acknowledgments page. Lists researchers who opted in (real name, handle, or anonymized "Anonymous Researcher #n") with the year and short credit. |
 | `/server/security/report/{tracking_id}` | GET | One-shot token in URL | Researcher status page — shows triage state (Received / Triaged / Confirmed / Patching / Disclosed / Won't Fix), maintainer comments visible to researcher, expected disclosure date. Token is single-use-per-day; expires after the report is closed for 30 days. |
 
-### Security Administration (config file)
+### Admin Panel — `/server/{admin_path}/config/security/`
 
-**Server security is managed via config file. There are no web routes for server administration.**
+**Note on the two `security` admin namespaces:**
 
-**Security namespaces:**
+| Path | Concern | Cross-link |
+|------|---------|------------|
+| `/server/{admin_path}/config/security/{reports,policy,thanks,keypair}` | **Disclosure feature** — managing the coordinated-disclosure pipeline (reports, policy page, hall of fame, GPG keypair). | This section. |
+| `/server/{admin_path}/config/security/{blocked-ips,allowlist,locked-accounts}` | **Runtime defense** — IP blocks, allow-lists, account lockouts. | PART 11 → "IP Block Management" (already documented). |
+| `/server/{admin_path}/config/web/security` | **`security.txt` content** — the file's `Expires`, languages, keyservers list. Recipient email is in `server.contact.security.email` (PART 12). | Existing — PART 11 → "security.txt". |
 
-| Concern | Configuration |
-|---------|---------------|
-| **Disclosure feature** — coordinated-disclosure pipeline (reports, policy page, hall of fame, GPG keypair) | Configured via config file; security reports accessible via public `/server/security/*` routes |
-| **Runtime defense** — IP blocks, allow-lists, account lockouts | Configured via config file; see PART 11 → "IP Block Management" |
-| **`security.txt` content** — `Expires`, languages, keyservers list | Configured via `web.security.*` config keys |
+All three coexist under the admin tree. The admin-panel UI groups them under a single "Security" sidebar entry with sub-tabs so operators see them in one place even though the route paths are slightly different.
 
-### GPG Keypair Management (Admin API)
+| Page | Purpose |
+|------|---------|
+| `/server/{admin_path}/config/security/reports` | List of all security reports with `tracking_id`, summary, severity, state. Sortable/filterable. Click → full report (decrypted on the server, viewed in-browser via authenticated session — never sent to log files). |
+| `/server/{admin_path}/config/security/reports/{tracking_id}` | Full report view: vulnerability details, researcher info, attached PGP-encrypted artifacts, triage notes, state machine controls, "send researcher update" composer (encrypts to researcher pubkey). |
+| `/server/{admin_path}/config/security/policy` | Edit `/server/security/policy` content (Markdown). Default safe-harbor text provided. |
+| `/server/{admin_path}/config/security/thanks` | Manage acknowledgment listings (toggle visibility per researcher, edit handle, sort order). Adding/removing entries follows researcher's stored credit preference. |
+| `/server/{admin_path}/config/security/keypair` | GPG keypair management — see "GPG Keypair Management" below. |
+
+### GPG Keypair Management (Admin Panel)
 
 **One project-level GPG keypair. Used to encrypt incoming security reports at rest, sign outbound notifications, and seed the `Encryption:` line in security.txt.**
 
@@ -14622,7 +15701,7 @@ web:
 | **Generate** | Generates an Ed25519 (signing) + Curve25519 (encryption) keypair. Identity is `{app_name} Security <{security_contact}>`. Expires 2 years from generation. Private key is encrypted with a key derived from `installation_secret` and stored in `{config_dir}/security/pgp.priv.asc.enc`. Public key stored at `{config_dir}/security/pgp.pub.asc` (also served at `/.well-known/pgp-key.asc`). |
 | **Rotate** | Generates a new keypair, signs the new pubkey with the old key, publishes the rotation to configured keyservers. Old key stays valid for 30 days for in-flight reports. |
 | **Publish to keyservers** | POST the public key to each entry in `web.security.keyservers`. Uses the keyserver's HTTP submission endpoint (`https://keys.openpgp.org/vks/v1/upload` for keys.openpgp.org, similar for ubuntu). Triggered automatically on generate/rotate; manually via "Republish" button. Failures are logged + retried with exponential backoff. |
-| **Export public key** | Use the public URL `/.well-known/pgp-key.asc` or copy `{config_dir}/security/pgp.pub.asc` directly. |
+| **Export public key** | Download `pgp.pub.asc` directly from the admin panel. Or use the public URL `/.well-known/pgp-key.asc`. |
 | **Export private key** | **Full export, ASCII-armored, decrypted with the operator's confirmation password.** Triggers a sensitive-operation flow (PART 5 → "Sensitive Operations"): re-prompt admin password, log to `audit.log` as `security.private_key_exported`, return the file as a single download. **The download is rate-limited to 1 per hour per admin and the audit entry includes admin username, IP, and reason text the admin must type.** |
 | **Import private key** | Upload an existing `pgp.priv.asc` (e.g., restoring from backup, migrating from another instance). Same sensitive-operation gate. Validates the key's identity matches the project's expected identity (warns on mismatch — admin can override). |
 | **Delete** | Sensitive-operation flow. Deletes both keys, sets `web.security.publish_pgp_key: false`, removes `Encryption:` line from security.txt. In-flight encrypted reports become un-decryptable — admin warned and must type confirmation. |
@@ -14638,9 +15717,9 @@ web:
 | `keyservers_published` | List of keyservers the pubkey has been pushed to (with timestamps) |
 | `revoked` | Boolean — set if `Delete` was used (the key file may be gone but the fingerprint stays in audit history) |
 
-### Backup Integration (PART 21)
+### Backup Integration (PART 22)
 
-**The PGP private key is part of the backup set — losing it means losing the ability to decrypt in-flight security reports. PART 21 → "Backup Contents" includes:**
+**The PGP private key is part of the backup set — losing it means losing the ability to decrypt in-flight security reports. PART 22 → "Backup Contents" includes:**
 
 | Path | Included | Notes |
 |------|----------|-------|
@@ -14865,64 +15944,197 @@ server:
 
 ### Audit Log
 
-**The audit log records all security-relevant events and config changes. It is append-only and tamper-evident.**
+**The audit log records ALL security-relevant events and administrative actions. It is the authoritative record of who did what and when.**
 
 ## Audit Log Purpose
 
 | Purpose | Description |
 |---------|-------------|
-| **Security** | Detect rate limit violations and suspicious activity |
-| **Compliance** | Audit trail of configuration changes |
+| **Accountability** | Track all admin and user actions |
+| **Security** | Detect unauthorized access attempts |
+| **Compliance** | Meet regulatory requirements (GDPR, SOC2, etc.) |
 | **Debugging** | Investigate issues and incidents |
 | **Forensics** | Post-incident analysis |
 
 ## Audit Log Events
 
+### Server Admin Events
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `admin.login` | Admin logged in | IP, user agent, MFA used, admin username |
+| `admin.logout` | Admin logged out | Admin username, session duration |
+| `admin.login_failed` | Failed login attempt | IP, user agent, reason, attempted username |
+| `admin.created` | New admin account created | New admin username, created by (admin username) |
+| `admin.deleted` | Admin account removed | Deleted admin username, deleted by (admin username) |
+| `admin.password_changed` | Admin changed password | Admin username, IP (NEVER log password) |
+| `admin.mfa_enabled` | Admin enabled 2FA | Admin username, method (TOTP, WebAuthn) |
+| `admin.mfa_disabled` | Admin disabled 2FA | Admin username, method |
+| `admin.token_regenerated` | Admin API token regenerated | Admin username, IP |
+| `admin.session_expired` | Admin session timed out | Admin username, session ID |
+| `admin.session_revoked` | Admin session manually ended | Admin username, revoked by |
+
+### User Events (Multi-User Mode)
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `user.registered` | New user registered | User ID, IP, registration method (form, OIDC, invite) |
+| `user.login` | User logged in | User ID, IP, user agent, auth method |
+| `user.logout` | User logged out | User ID, session duration |
+| `user.login_failed` | Failed login attempt | IP, user agent, reason (NOT username/email) |
+| `user.created` | Admin created user | User ID, created by (admin username) |
+| `user.deleted` | User account deleted | User ID, deleted by (admin/self), reason |
+| `user.suspended` | User account suspended | User ID, suspended by, reason |
+| `user.unsuspended` | User account reactivated | User ID, unsuspended by |
+| `user.role_changed` | User role modified | User ID, old role, new role, changed by |
+| `user.password_changed` | User changed password | User ID, IP, method (direct, reset link) |
+| `user.password_reset_requested` | Password reset requested | IP (NOT email/username) |
+| `user.password_reset_completed` | Password reset completed | User ID, IP |
+| `user.email_verified` | Email address verified | User ID, email (masked) |
+| `user.mfa_enabled` | User enabled 2FA | User ID, method |
+| `user.mfa_disabled` | User disabled 2FA | User ID, method, disabled by (self/admin) |
+| `user.recovery_key_used` | Recovery key consumed | User ID, keys remaining |
+
+### Organization Events (Multi-User Mode)
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `org.created` | Organization created | Org ID, org slug, created by (user ID) |
+| `org.deleted` | Organization deleted | Org ID, org slug, deleted by, member count at deletion |
+| `org.settings_updated` | Org settings changed | Org ID, changed keys, changed by |
+| `org.member_invited` | Member invitation sent | Org ID, invited email (masked), role, invited by |
+| `org.member_joined` | Member joined org | Org ID, user ID, role, join method (invite, direct) |
+| `org.member_removed` | Member removed from org | Org ID, user ID, removed by, reason |
+| `org.member_left` | Member left org voluntarily | Org ID, user ID |
+| `org.role_changed` | Member role changed | Org ID, user ID, old role, new role, changed by |
+| `org.role_created` | Custom role created | Org ID, role name, permissions, created by |
+| `org.role_updated` | Custom role modified | Org ID, role name, changed permissions, updated by |
+| `org.role_deleted` | Custom role deleted | Org ID, role name, deleted by |
+| `org.token_created` | Org API token created | Org ID, token ID (partial), permissions, created by |
+| `org.token_revoked` | Org API token revoked | Org ID, token ID (partial), revoked by |
+| `org.ownership_transferred` | Org ownership transferred | Org ID, old owner, new owner |
+| `org.billing_updated` | Billing settings changed | Org ID, changed by (NOT payment details) |
+
+### Organization Audit Compliance
+
+**Org audit logs are stored separately per organization for compliance isolation.**
+
+| Requirement | Implementation |
+|-------------|----------------|
+| **Isolation** | Each org's audit log stored in separate table/partition |
+| **Retention** | Configurable per-org (default: 2 years, min: 90 days) |
+| **Immutability** | Append-only, no modification or deletion by org admins |
+| **Export** | JSON, CSV, or PDF export for auditors (`/orgs/{slug}/security/audit/export`) |
+| **Filtering** | Filter by date range, event type, actor, target |
+| **Search** | Full-text search on audit entries |
+| **Access control** | Only org admins with `audit:read` permission |
+| **Server admin access** | Server admins can view for moderation (logged as `admin.org_audit_viewed`) |
+
+**Compliance Export Format:**
+```json
+{
+  "export_info": {
+    "org_id": "org_abc123",
+    "org_slug": "acme-corp",
+    "exported_at": "2025-01-15T10:00:00Z",
+    "exported_by": "user_xyz",
+    "date_range": { "from": "2024-01-01", "to": "2024-12-31" },
+    "total_events": 15420,
+    "hash": "sha256:abc123..."
+  },
+  "events": [...]
+}
+```
+
+**Org Audit API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/orgs/{slug}/security/audit` | GET | List audit events (paginated) |
+| `/api/{api_version}/orgs/{slug}/security/audit/export` | POST | Request audit export |
+| `/api/{api_version}/orgs/{slug}/security/audit/export/{id}` | GET | Download audit export |
+| `/api/{api_version}/orgs/{slug}/security/audit/retention` | GET | Get retention settings |
+| `/api/{api_version}/orgs/{slug}/security/audit/retention` | PATCH | Update retention (org owner only) |
+
+### OIDC/LDAP Events
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `oidc.login` | User logged in via OIDC | User ID, provider name, IP |
+| `oidc.login_failed` | OIDC login failed | Provider name, IP, reason |
+| `oidc.user_created` | Auto-provisioned user via OIDC | User ID, provider name |
+| `oidc.admin_granted` | Admin access via group mapping | User ID, provider name, group name |
+| `oidc.admin_revoked` | Admin access removed (group change) | User ID, provider name |
+| `ldap.login` | User logged in via LDAP | User ID, IP |
+| `ldap.login_failed` | LDAP login failed | IP, reason |
+| `ldap.admin_granted` | Admin access via group mapping | User ID, group DN |
+| `ldap.admin_revoked` | Admin access removed (group change) | User ID |
+
 ### Configuration Events
 
 | Event | Description | Logged Data |
 |-------|-------------|-------------|
-| `config.updated` | Configuration changed | Changed keys (NOT sensitive values), IP |
-| `config.smtp_updated` | SMTP settings changed | IP (NOT credentials) |
-| `config.ssl_updated` | SSL certificate changed | Subject, expiry |
+| `config.updated` | Configuration changed | Changed keys (NOT sensitive values), changed by |
+| `config.smtp_updated` | SMTP settings changed | Changed by (NOT credentials) |
+| `config.ssl_updated` | SSL certificate changed | Subject, expiry, changed by |
 | `config.ssl_expired` | SSL certificate expired | Domain |
-| `config.tor_address_regenerated` | Onion address regenerated | IP |
-| `config.branding_updated` | Branding settings changed | IP |
+| `config.tor_address_regenerated` | Onion address regenerated | Changed by |
+| `config.branding_updated` | Branding settings changed | Changed by |
+| `config.oidc_provider_added` | OIDC provider configured | Provider name, added by |
+| `config.oidc_provider_updated` | OIDC provider changed | Provider name, changed by |
+| `config.oidc_provider_removed` | OIDC provider removed | Provider name, removed by |
+| `config.ldap_provider_added` | LDAP provider configured | Provider name, added by |
+| `config.ldap_provider_updated` | LDAP provider changed | Provider name, changed by |
+| `config.ldap_provider_removed` | LDAP provider removed | Provider name, removed by |
+| `config.admin_groups_updated` | Admin group mapping changed | Old groups, new groups, changed by |
 
 ### Security Events
 
 | Event | Description | Logged Data |
 |-------|-------------|-------------|
 | `security.rate_limit_exceeded` | Rate limit hit | IP, endpoint, limit |
-| `security.ip_blocked` | IP address blocked | IP, reason, duration |
-| `security.ip_unblocked` | IP address unblocked | IP, reason |
-| `security.country_blocked` | Request blocked by GeoIP signal | IP, country code |
+| `security.ip_blocked` | IP address blocked | IP, reason, duration, auto/manual |
+| `security.ip_unblocked` | IP address unblocked | IP, unblocked_by (system/admin), reason |
+| `security.country_blocked` | Request blocked by GeoIP | IP, country code |
+| `security.csrf_failure` | CSRF token validation failed | IP, endpoint |
+| `security.invalid_token` | Invalid API token used | Token type, IP |
+| `security.brute_force_detected` | Brute force attempt detected | IP, target (masked), attempt count |
 | `security.suspicious_activity` | Unusual activity detected | IP, activity type, details |
+
+### Token Events
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `token.created` | API token created | Token ID (partial), permissions, expiry, created by |
+| `token.revoked` | API token revoked | Token ID (partial), revoked by |
+| `token.expired` | API token expired | Token ID (partial) |
+| `token.used` | API token used (optional, high volume) | Token ID (partial), endpoint, IP |
 
 ### Backup & System Events
 
 | Event | Description | Logged Data |
 |-------|-------------|-------------|
-| `backup.created` | Backup created | Filename, size |
-| `backup.restored` | Backup restored | Filename |
-| `backup.deleted` | Backup deleted | Filename |
+| `backup.created` | Backup created | Filename, size, created by |
+| `backup.restored` | Backup restored | Filename, restored by |
+| `backup.deleted` | Backup deleted | Filename, deleted by |
 | `backup.failed` | Backup failed | Error message |
 | `server.started` | Application started | Version, mode, node ID |
 | `server.stopped` | Application stopped | Reason, uptime |
-| `server.maintenance_entered` | Maintenance mode enabled | Reason |
-| `server.maintenance_exited` | Maintenance mode disabled | Duration |
+| `server.maintenance_entered` | Maintenance mode enabled | Reason, enabled by |
+| `server.maintenance_exited` | Maintenance mode disabled | Duration, disabled by |
 | `server.updated` | Application updated | Old version, new version |
 | `scheduler.task_failed` | Scheduled task failed | Task name, error |
-| `scheduler.task_manual_run` | Task manually triggered | Task name, IP |
+| `scheduler.task_manual_run` | Task manually triggered | Task name, triggered by |
 
 ### Cluster Events
 
 | Event | Description | Logged Data |
 |-------|-------------|-------------|
 | `cluster.node_joined` | Node joined cluster | Node ID, IP |
-| `cluster.node_removed` | Node removed from cluster | Node ID |
+| `cluster.node_removed` | Node removed from cluster | Node ID, removed by |
 | `cluster.node_failed` | Node became unreachable | Node ID, last seen |
-| `cluster.mode_changed` | Cluster mode changed | Old mode, new mode |
+| `cluster.token_generated` | Join token generated | Token ID (partial), generated by |
+| `cluster.mode_changed` | Cluster mode changed | Old mode, new mode, changed by |
 
 ## Audit Log Format
 
@@ -14932,18 +16144,22 @@ server:
 {
   "id": "audit_01HQXYZ123ABC",
   "time": "2025-01-15T10:30:00.123Z",
-  "event": "config.updated",
-  "category": "config",
+  "event": "admin.login",
+  "category": "authentication",
   "severity": "info",
   "actor": {
-    "ip": "192.168.1.100"
+    "type": "admin",
+    "id": "administrator",
+    "ip": "192.168.1.100",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
   },
   "target": {
-    "type": "config",
-    "id": "server.port"
+    "type": "session",
+    "id": "sess_abc123"
   },
   "details": {
-    "changed_keys": ["server.port"]
+    "mfa_used": true,
+    "mfa_method": "totp"
   },
   "result": "success",
   "node_id": "node-1"
@@ -14998,13 +16214,19 @@ server:
 
       # What to log (event categories)
       events:
+        authentication: true  # Login/logout events
         configuration: true   # Config changes
-        security: true        # Rate limit violations and security events
+        security: true        # Security events
+        tokens: true          # Token create/revoke
+        users: true           # User management
         backup: true          # Backup/restore
         server: true          # Server events (start, stop, maintenance)
         cluster: true         # Cluster events
+        token_usage: false    # Individual token uses (high volume - disabled by default)
 
       # Sensitive data handling
+      mask_emails: true       # Show j***n@e***.com instead of full
+      mask_usernames: false   # Show full usernames in logs
       include_user_agent: true
 ```
 
@@ -15018,7 +16240,7 @@ server:
 | `keep` | `none` | Delete on rotation (no old logs kept) |
 | `compress` | `false` | No compression (deleted immediately) |
 | `mask_emails` | `true` | Mask email addresses |
-| All event categories | `true` | Log config, security, backup, server, cluster events |
+| All event categories | `true` | Log all events |
 | `token_usage` | `false` | Don't log every token use |
 
 **Why `keep: none` by default?**
@@ -15030,10 +16252,14 @@ server:
 ## Audit Log Rules
 
 **NEVER Log:**
-- ❌ Private keys or TLS secrets
-- ❌ SMTP credentials
-- ❌ Full API credentials of any kind
-- ❌ Credit card numbers or financial data
+- ❌ Passwords (plain, hashed, or encrypted)
+- ❌ API tokens or secrets (full value)
+- ❌ Session tokens (full value)
+- ❌ Recovery keys
+- ❌ TOTP secrets
+- ❌ Private keys
+- ❌ Credit card numbers
+- ❌ Full email addresses (mask them)
 
 **ALWAYS Log:**
 - ✓ Timestamp in UTC with milliseconds
@@ -15046,7 +16272,7 @@ server:
 - Show only first 8 characters: `token_abc12345...`
 - Or use separate ID field that doesn't expose token value
 
-## Audit Log
+## Admin Panel (`/server/{admin_path}/config/logs/audit`)
 
 | Element | Type | Description |
 |---------|------|-------------|
@@ -15359,6 +16585,9 @@ When GDPR/CCPA (right to erasure) conflicts with HIPAA/SOC2 (retention requireme
 | `/users/consents` | PATCH | Update consent preferences |
 | `/server/privacy` | GET | Privacy policy |
 | `/server/dpo` | GET | Data Protection Officer contact (GDPR) |
+| `/server/{admin_path}/config/compliance` | GET | Compliance dashboard |
+| `/server/{admin_path}/config/compliance/report` | POST | Generate compliance report |
+| `/server/{admin_path}/config/compliance/breach` | POST | Report data breach |
 
 ### Compliance API Endpoints
 
@@ -15369,10 +16598,15 @@ When GDPR/CCPA (right to erasure) conflicts with HIPAA/SOC2 (retention requireme
 | `/api/{api_version}/users/data/delete` | POST | Request deletion |
 | `/api/{api_version}/users/consents` | GET | Get consents |
 | `/api/{api_version}/users/consents` | PATCH | Update consents |
+| `/api/{api_version}/server/{admin_path}/config/compliance` | GET | Compliance status |
+| `/api/{api_version}/server/{admin_path}/config/compliance/standards` | GET | Enabled standards |
+| `/api/{api_version}/server/{admin_path}/config/compliance/report` | POST | Generate report |
+| `/api/{api_version}/server/{admin_path}/config/compliance/breach` | POST | Report breach |
+| `/api/{api_version}/server/{admin_path}/config/compliance/audit` | GET | Compliance audit log |
 
 ### Admin UI: Compliance Dashboard
 
-**Location:** Compliance dashboard is managed via config file.
+**Location:** `/server/{admin_path}/config/compliance`
 
 | Section | Description |
 |---------|-------------|
@@ -15433,34 +16667,109 @@ The application does **not** implement database-level encryption. This is intent
 
 | Protected | How |
 |-----------|-----|
-| Backup files | AES-256-GCM encrypted with passphrase (if configured) |
+| Passwords | Argon2id hash (never stored in plain text) |
+| API tokens | SHA-256 hash (never stored in plain text) |
+| 2FA secrets | AES-256-GCM encrypted with server-generated key |
+| Backup files | AES-256-GCM encrypted with admin password (if configured) |
+| Session tokens | Cryptographically random, short-lived |
 
-### Abuse Detection
+**Server Encryption Key:**
+
+For 2FA secrets and other server-encrypted data:
+
+```yaml
+# Auto-generated on first run, stored in server.yml
+server:
+  security:
+    encryption_key: "base64-encoded-32-byte-random-key"
+```
+
+- Generated automatically on first run (32 bytes from crypto/rand)
+- Stored in config file (protected by file permissions)
+- Used to encrypt 2FA secrets and similar sensitive data
+- If lost, users must re-enroll 2FA
+
+### Breach Detection
 
 **Automated Detection Mechanisms:**
 
 | Detection Type | Trigger | Severity | Auto-Action |
 |----------------|---------|----------|-------------|
-| **Request Flood** | 10x rate limit in short burst from same IP | Medium | Block IP, alert via email |
-| **API Abuse** | API rate exceeded 10x normal | Medium | Throttle, alert |
-| **Database Anomaly** | Unusual query patterns (injection attempts) | Critical | Block request |
-| **Config Tampering** | Unauthorized config file modification | Critical | Rollback |
+| **Brute Force** | 10+ failed logins in 5min from same IP | Medium | Block IP, alert admin |
+| **Credential Stuffing** | 50+ failed logins in 10min across accounts | High | Rate limit, alert admin |
+| **Unusual Access Pattern** | Access from new country + sensitive action | Medium | Require 2FA, alert user |
+| **Mass Data Export** | Export requests > threshold in timeframe | High | Queue for review, alert admin |
+| **Privilege Escalation** | Unauthorized admin action attempt | Critical | Block session, alert admin |
+| **API Abuse** | API rate exceeded 10x normal | Medium | Throttle, alert admin |
+| **Session Anomaly** | Same session from multiple IPs/locations | High | Invalidate session, alert user |
+| **Database Anomaly** | Unusual query patterns (injection attempts) | Critical | Block request, alert admin |
+| **File Access Anomaly** | Access to backup/export files without request | Critical | Block, alert admin |
+| **Config Tampering** | Unauthorized config file modification | Critical | Rollback, alert admin |
 
 **Detection Configuration:**
+
+Breach detection is **always enabled** with sane defaults. Thresholds are configurable but detection cannot be disabled.
 
 ```yaml
 server:
   security:
-    abuse_detection:
-      # Request flood: too many requests from same IP
-      request_flood:
-        multiplier: 10       # 10x rate limit triggers flood detection
+    breach_detection:
+      # Brute force: too many failed logins from same IP
+      brute_force:
+        attempts: 10
+        window: 5m
         block_duration: 1h
+
+      # Credential stuffing: failed logins across many accounts
+      credential_stuffing:
+        attempts: 50
+        window: 10m
+
+      # Unusual access patterns
+      unusual_access:
+        new_country_alert: true
+        new_device_alert: true
+
+      # Mass data export detection
+      mass_export:
+        threshold: 10
+        window: 1h
+
+      # API abuse (multiplier of normal rate)
+      api_abuse:
+        multiplier: 10
 
       # Auto-actions (all enabled by default)
       auto_block_ip: true
-      auto_alert: true
+      auto_invalidate_sessions: true
+      auto_alert_admin: true
+      auto_alert_user: true
 ```
+
+**Sane Defaults :**
+
+| Setting | Default | Rationale |
+|---------|---------|-----------|
+| Brute force threshold | 10 attempts / 5min | Catches attacks, allows typos |
+| Credential stuffing | 50 attempts / 10min | Cross-account pattern detection |
+| Block duration | 1 hour | Sufficient deterrent, not permanent |
+| New country alert | Enabled | High-value security signal |
+| New device alert | Enabled | Helps users spot compromises |
+| Mass export threshold | 10 / hour | Prevents data scraping |
+| API abuse multiplier | 10x | Catches abuse, allows bursts |
+| Auto-block IP | Enabled | Immediate threat response |
+| Auto-invalidate sessions | Enabled | Limits breach scope |
+| Auto-alert admin | Enabled | Ensures visibility |
+| Auto-alert user | Enabled | User can take action |
+
+**Detection Events (Audit Log):**
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `security.breach_detected` | Automated breach detection triggered | Detection type, severity, details |
+| `security.breach_auto_action` | Auto-action taken | Action type, target, reason |
+| `security.threat_blocked` | Threat automatically blocked | Threat type, source IP, target |
+| `security.anomaly_detected` | Anomalous pattern detected | Anomaly type, score, details |
 
 ### IP Block Management
 
@@ -15468,14 +16777,71 @@ server:
 
 | Type | Duration | Release | Description |
 |------|----------|---------|-------------|
-| **Temporary** | Configurable (default 1h) | Auto-release after expiry | Rate limit abuse |
-| **Permanent** | Indefinite | Manual only | Config file entry only |
+| **Temporary** | Configurable (default 1h) | Auto-release after expiry | Brute force, rate limiting |
+| **Extended** | 24 hours | Auto-release after expiry | Credential stuffing, repeated offenses |
+| **Permanent** | Indefinite | Manual only | Admin-added, severe threats |
 
 **Auto-Release:**
 
 Temporary blocks are automatically released when:
 1. Block duration expires (checked every minute by scheduler)
-2. IP is added to allowlist
+2. Admin manually unblocks
+3. IP is added to allowlist
+
+**Escalation (Repeat Offenders):**
+
+| Offense | Block Duration |
+|---------|----------------|
+| 1st | 1 hour (configurable) |
+| 2nd within 24h | 4 hours |
+| 3rd within 24h | 24 hours |
+| 4th+ within 7 days | 7 days + admin alert |
+
+### Account Lockout (User-Level)
+
+**Separate from IP blocking.** When a specific user account has too many failed login attempts:
+
+| Failed Attempts | Action | Duration |
+|-----------------|--------|----------|
+| 5 in 15 minutes | Soft lock | 15 minutes |
+| 10 in 1 hour | Hard lock | 1 hour |
+| 15 in 24 hours | Account lock | Until admin unlock OR password reset |
+
+**Sane Defaults:**
+```yaml
+server:
+  security:
+    account_lockout:
+      # Soft lock: brief lockout after few failures
+      soft_lock_attempts: 5
+      soft_lock_window: 15m
+      soft_lock_duration: 15m
+      # Hard lock: longer lockout after more failures
+      hard_lock_attempts: 10
+      hard_lock_window: 1h
+      hard_lock_duration: 1h
+      # Permanent lock: requires admin unlock or password reset
+      permanent_lock_attempts: 15
+      permanent_lock_window: 24h
+```
+
+**Lockout Behavior:**
+- **Soft lock**: User sees "Too many attempts, try again in X minutes"
+- **Hard lock**: Same message, longer wait
+- **Permanent lock**: User must reset password via email OR admin unlocks
+
+**Unlock Methods:**
+| Method | Who Can Do | When |
+|--------|------------|------|
+| Wait | System | Soft/hard lock expiry |
+| Password reset | User | Any lockout |
+| Admin unlock | Server admin | Any lockout |
+| Allowlisted IP | System | Never locked from trusted IPs |
+
+**Why Both IP Block AND Account Lockout?**
+- IP block stops distributed attacks from one source
+- Account lockout stops attacks targeting one account from multiple IPs
+- Together they cover credential stuffing (many accounts, one IP) AND targeted attacks (one account, many IPs)
 
 **IP Block Data Model:**
 
@@ -15484,26 +16850,132 @@ type BlockType string
 
 const (
     BlockTypeTemporary BlockType = "temporary"
+    BlockTypeExtended  BlockType = "extended"
     BlockTypePermanent BlockType = "permanent"
 )
 
 type IPBlock struct {
-    IP          string     `json:"ip"`
-    CIDR        string     `json:"cidr,omitempty"`
-    Type        BlockType  `json:"type"`
-    Reason      string     `json:"reason"`
-    BlockedAt   time.Time  `json:"blocked_at"`
+    IP          string    `json:"ip"`
+    // Optional range block
+    CIDR        string    `json:"cidr,omitempty"`
+    // temporary, extended, permanent
+    Type        BlockType `json:"type"`
+    Reason      string    `json:"reason"`
+    BlockedAt   time.Time `json:"blocked_at"`
+    // nil = permanent
     ExpiresAt   *time.Time `json:"expires_at,omitempty"`
-    OffenseCount int       `json:"offense_count"`
-    AutoBlocked bool       `json:"auto_blocked"`
+    OffenseCount int      `json:"offense_count"`
+    // true = system, false = admin
+    AutoBlocked bool      `json:"auto_blocked"`
+    // admin ID if manual
+    BlockedBy   string    `json:"blocked_by,omitempty"`
 }
 ```
 
-**IP blocks and allowlists are managed via config file (`server.security.blocked_ips`, `server.security.allowlist`).**
+**IP Management API:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/security/blocked-ips` | GET | List blocked IPs |
+| `/api/{api_version}/server/{admin_path}/config/security/blocked-ips` | POST | Manually block IP/CIDR |
+| `/api/{api_version}/server/{admin_path}/config/security/blocked-ips/{ip}` | GET | Get block details |
+| `/api/{api_version}/server/{admin_path}/config/security/blocked-ips/{ip}` | DELETE | Unblock IP |
+| `/api/{api_version}/server/{admin_path}/config/security/blocked-ips/expired` | DELETE | Purge expired blocks from log |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist` | GET | List allowlisted IPs/CIDRs (see Allowlist section) |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist` | POST | Add IP/CIDR to allowlist |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist/{id}` | DELETE | Remove from allowlist |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist/check/{ip}` | GET | Check if IP is allowlisted |
+
+**Account Lockout API:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/security/locked-accounts` | GET | List locked accounts |
+| `/api/{api_version}/server/{admin_path}/config/security/locked-accounts/{id}` | DELETE | Unlock account |
+
+**Security Settings API:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/security/settings` | GET | Get all security settings |
+| `/api/{api_version}/server/{admin_path}/config/security/settings` | PATCH | Update security settings |
+| `/api/{api_version}/server/{admin_path}/config/security/auth` | GET | Get auth settings (password policy, provider summaries, etc.) |
+| `/api/{api_version}/server/{admin_path}/config/security/auth` | PATCH | Update shared auth settings |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers` | GET | List configured OIDC providers |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers` | POST | Create OIDC provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers/{provider}` | GET | Get one OIDC provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers/{provider}` | PATCH | Update one OIDC provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers/{provider}` | DELETE | Remove one OIDC provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/oidc/providers/{provider}/test` | POST | Test one OIDC provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers` | GET | List configured LDAP providers |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers` | POST | Create LDAP provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers/{provider}` | GET | Get one LDAP provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers/{provider}` | PATCH | Update one LDAP provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers/{provider}` | DELETE | Remove one LDAP provider |
+| `/api/{api_version}/server/{admin_path}/config/security/auth/ldap/providers/{provider}/test` | POST | Test one LDAP provider |
+| `/api/{api_version}/server/{admin_path}/config/security/ratelimit` | GET | Get rate limit settings |
+| `/api/{api_version}/server/{admin_path}/config/security/ratelimit` | PATCH | Update rate limit settings |
+
+**Password Policy (Sane Defaults):**
+
+```yaml
+server:
+  security:
+    password:
+      # Minimum 8 chars (auto-upgrades to 12 if HIPAA/SOC2 enabled)
+      min_length: 8
+      # Complexity requirements (auto-enabled if compliance standards active)
+      require_uppercase: false
+      require_lowercase: false
+      require_number: false
+      require_special: false
+      # Password expiry (0 = never, auto-sets to 90 if compliance)
+      max_age_days: 0
+      # Password history (0 = none, auto-sets to 12 if compliance)
+      history_count: 0
+```
+
+**Password Policy Auto-Upgrade (Compliance):**
+
+When compliance standards are enabled, password policy automatically upgrades:
+
+| Setting | Default | HIPAA/SOC2/PCI-DSS |
+|---------|---------|---------------------|
+| min_length | 8 | 12 |
+| require_uppercase | false | true |
+| require_number | false | true |
+| require_special | false | true |
+| max_age_days | 0 | 90 |
+| history_count | 0 | 12 |
+
+**Note:** These are minimums. Admin can set stricter policies but not weaker when compliance is enabled.
+
+**API Token Management:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/security/tokens` | GET | List all API tokens (admin view) |
+| `/api/{api_version}/server/{admin_path}/config/security/tokens/{id}` | DELETE | Revoke token |
+| `/api/{api_version}/server/{admin_path}/config/security/tokens/{id}/rotate` | POST | Force token rotation |
+
+**Token Expiry (Sane Defaults):**
+
+```yaml
+server:
+  security:
+    tokens:
+      # 0 = tokens never expire
+      default_expiry: 0
+      # Maximum allowed expiry (365 days)
+      max_expiry: 365d
+      # Remind admin to rotate after 90 days
+      rotation_reminder: 90d
+```
 
 **Allowlist (Trusted IPs):**
 
-Allowlisted IPs bypass security enforcement. Use for monitoring, CI/CD, load balancers, and reverse proxies.
+Allowlisted IPs bypass security enforcement but **never bypass authentication**.
+Use for admin IPs, monitoring, CI/CD, load balancers, and reverse proxies.
 
 **What allowlist bypasses:**
 
@@ -15511,13 +16983,16 @@ Allowlisted IPs bypass security enforcement. Use for monitoring, CI/CD, load bal
 |-------|----------|-----|
 | IP blocklists | Yes | Trusted source, don't block |
 | Rate limiting | Yes | Monitoring/CI may send many requests |
-| GeoIP country blocking | Yes | Operator may be in a blocked country |
-| Auto IP blocking | Yes | Never auto-block trusted IPs |
+| GeoIP country blocking | Yes | Admin may be in a blocked country |
+| Auto IP blocking (brute force) | Yes | Never auto-block trusted IPs |
+| Account lockout | Yes | Prevent lockout from trusted IPs |
 
 **What allowlist does NOT bypass:**
 
 | Layer | Bypassed | Why |
 |-------|----------|-----|
+| Admin authentication | No | Auth is identity, not network trust |
+| API token validation | No | Tokens verify who, not where |
 | CSRF protection | No | Prevents cross-site attacks regardless of IP |
 | Path security (traversal) | No | Always enforced |
 | SSL/TLS | No | Always enforced when enabled |
@@ -15568,7 +17043,10 @@ type AllowlistEntry struct {
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-Allowlist entries are managed via config file (`server.security.allowlist`).
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist` | GET | List all allowlisted IPs/CIDRs |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist` | POST | Add IP/CIDR with optional description |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist/{id}` | DELETE | Remove from allowlist |
+| `/api/{api_version}/server/{admin_path}/config/security/allowlist/check/{ip}` | GET | Check if IP is allowlisted |
 
 **Middleware:**
 
@@ -15596,22 +17074,202 @@ func IsAllowlisted(ctx context.Context) bool {
 }
 ```
 
-**Allowlist configuration is managed via config file (`server.security.allowlist`).**
+**Admin UI (`/server/{admin_path}/config/security/allowlist`):**
+
+**Note:** Wireframe shows English for documentation. Actual UI renders ALL text via `t()` translation keys (see `admin.allowlist.*` in translation files). User sees their selected language.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Allowlist (Trusted IPs)                                        [Save All] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Allowlisted IPs bypass blocklists, rate limits, and country blocking.  │
+│  Authentication is ALWAYS required regardless of allowlist status.       │
+│                                                                         │
+│ ┌─ Current Entries ─────────────────────────────────────────────────┐   │
+│ │                                                                    │   │
+│ │ 10.0.0.0/8          Internal network           config    [Remove]  │   │
+│ │ 192.168.1.0/24      Office LAN                 config    [Remove]  │   │
+│ │ 203.0.113.50/32     Admin home IP              admin     [Remove]  │   │
+│ │ ::1/128             Localhost                   config    [Remove]  │   │
+│ │ 198.51.100.10/32    CI/CD server               admin     [Remove]  │   │
+│ │ 2001:db8::1/128     Monitoring server          admin     [Remove]  │   │
+│ │                                                                    │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│ ┌─ Add Entry ───────────────────────────────────────────────────────┐   │
+│ │ IP/CIDR: [___________________]  Description: [________________]   │   │
+│ │                                                          [Add]    │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│ ┌─ Check IP ────────────────────────────────────────────────────────┐   │
+│ │ IP: [_______________]  [Check]                                    │   │
+│ │ Result: 192.168.1.50 → Allowlisted (192.168.1.0/24 "Office LAN") │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Audit Events:**
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `security.ip_allowlisted` | IP/CIDR added to allowlist | CIDR, description, added_by |
+| `security.ip_allowlist_removed` | IP/CIDR removed from allowlist | CIDR, removed_by |
 
 **Validation:**
 - Must be valid IPv4, IPv6, or CIDR notation
 - Single IPs auto-expand: `1.2.3.4` → `1.2.3.4/32`, `::1` → `::1/128`
 - Reject overly broad ranges with confirmation: `/0` through `/7` (IPv4) or `/0` through `/15` (IPv6)
 - Duplicates and overlapping ranges are allowed (no error, just redundant)
+- Entries from config file show source as `config`; entries added via API/UI show admin username
+
+**Admin UI: IP Blocks**
+
+**Location:** `/server/{admin_path}/config/security/blocked-ips`
+
+| Section | Description |
+|---------|-------------|
+| Active Blocks | Currently blocked IPs with expiry countdown |
+| Block History | Past blocks (configurable retention) |
+| Allowlist | Trusted IPs that bypass blocking |
+| Add Block | Manually block IP/CIDR |
+| Bulk Actions | Unblock selected, export list |
+
+**Block Details View:**
+
+| Field | Description |
+|-------|-------------|
+| IP/CIDR | Blocked address or range |
+| Type | Temporary / Extended / Permanent |
+| Reason | Why blocked (brute_force, credential_stuffing, manual, etc.) |
+| Blocked At | Timestamp |
+| Expires At | Countdown or "Never" |
+| Offense Count | Number of times this IP triggered blocks |
+| Related Events | Link to audit log entries |
+| Actions | Unblock, Extend, Make Permanent |
 
 **Audit Events:**
 
 | Event | Description | Logged Data |
 |-------|-------------|-------------|
-| `security.ip_blocked` | IP was blocked | IP, reason, duration |
-| `security.ip_unblocked` | IP was unblocked | IP, reason |
-| `security.ip_allowlisted` | IP/CIDR added to allowlist | CIDR, description |
-| `security.ip_allowlist_removed` | IP/CIDR removed from allowlist | CIDR |
+| `security.ip_blocked` | IP was blocked | IP, reason, duration, auto/manual |
+| `security.ip_unblocked` | IP was unblocked | IP, unblocked_by (system/admin), reason |
+| `security.ip_block_extended` | Block duration extended | IP, new_expiry, reason |
+| `security.ip_allowlisted` | IP/CIDR added to allowlist | CIDR, description, added_by |
+| `security.ip_allowlist_removed` | IP/CIDR removed from allowlist | CIDR, removed_by |
+| `security.account_soft_locked` | Account soft locked | User ID (masked), attempts, duration |
+| `security.account_hard_locked` | Account hard locked | User ID (masked), attempts, duration |
+| `security.account_locked` | Account permanently locked | User ID (masked), attempts |
+| `security.account_unlocked` | Account unlocked | User ID, unlocked_by (system/admin/password_reset) |
+| `security.password_policy_changed` | Password policy updated | Changed fields, changed_by |
+| `security.token_revoked` | API token revoked | Token ID (masked), revoked_by |
+| `security.token_rotated` | API token rotated | Token ID (masked), rotated_by |
+
+### Breach Management
+
+**Breach Lifecycle:**
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────────┐     ┌─────────────┐
+│  Detected   │────▶│ Investigating│────▶│   Contained   │────▶│  Notifying  │
+└─────────────┘     └──────────────┘     └───────────────┘     └─────────────┘
+                                                                      │
+                    ┌──────────────┐     ┌───────────────┐           │
+                    │   Resolved   │◀────│  Remediated   │◀──────────┘
+                    └──────────────┘     └───────────────┘
+```
+
+**Breach Severity Levels:**
+
+| Level | Description | Notification Timeline | Auto-Escalate |
+|-------|-------------|----------------------|---------------|
+| **Critical** | Active data exfiltration, full system compromise | Immediate | Yes |
+| **High** | Unauthorized access to sensitive data | 24 hours | Yes (72hr) |
+| **Medium** | Potential data exposure, failed attacks | 72 hours | No |
+| **Low** | Minor security events, policy violations | 7 days | No |
+
+**Breach Management API:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/breaches` | GET | List all breaches |
+| `/api/{api_version}/server/{admin_path}/config/breaches` | POST | Report new breach |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}` | GET | Get breach details |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}` | PATCH | Update breach status |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/investigate` | POST | Start investigation |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/contain` | POST | Mark as contained |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/notify` | POST | Send notifications |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/resolve` | POST | Mark as resolved |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/affected` | GET | List affected users |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/timeline` | GET | Breach timeline/events |
+| `/api/{api_version}/server/{admin_path}/config/breaches/{id}/report` | GET | Generate breach report |
+
+**Breach Data Model:**
+
+```go
+type Breach struct {
+    ID              string        `json:"id"`
+    Status          BreachStatus  `json:"status"`
+    Severity        Severity      `json:"severity"`
+    Type            string        `json:"type"`
+    Summary         string        `json:"summary"`
+    Description     string        `json:"description"`
+    DetectedAt      time.Time     `json:"detected_at"`
+    // "system" or admin ID
+    DetectedBy      string        `json:"detected_by"`
+    // automated/manual/external
+    DetectionMethod string        `json:"detection_method"`
+    // data categories
+    AffectedData    []string      `json:"affected_data"`
+    AffectedUsers   int           `json:"affected_users"`
+    ContainedAt     *time.Time    `json:"contained_at,omitempty"`
+    NotifiedAt      *time.Time    `json:"notified_at,omitempty"`
+    ResolvedAt      *time.Time    `json:"resolved_at,omitempty"`
+    RootCause       string        `json:"root_cause,omitempty"`
+    Remediation     string        `json:"remediation,omitempty"`
+    Timeline        []BreachEvent `json:"timeline"`
+    // applicable standards
+    Compliance      []string      `json:"compliance"`
+    // based on strictest standard
+    NotifyDeadline  time.Time     `json:"notify_deadline"`
+}
+
+type BreachStatus string
+const (
+    BreachDetected     BreachStatus = "detected"
+    BreachInvestigating BreachStatus = "investigating"
+    BreachContained    BreachStatus = "contained"
+    BreachNotifying    BreachStatus = "notifying"
+    BreachRemediated   BreachStatus = "remediated"
+    BreachResolved     BreachStatus = "resolved"
+)
+```
+
+**Admin UI: Breach Management**
+
+**Location:** `/server/{admin_path}/config/compliance/breaches`
+
+| Section | Description |
+|---------|-------------|
+| Active Breaches | Current breaches requiring attention |
+| Breach Timeline | Visual timeline of all breach events |
+| Affected Users | List users impacted, notification status |
+| Notification Queue | Pending notifications, send/preview |
+| Authority Reporting | Generate reports for regulatory authorities |
+| Breach History | All past breaches with outcomes |
+
+**Report New Breach Form:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| Severity | Select | Yes | Critical/High/Medium/Low |
+| Type | Select | Yes | Unauthorized access, Data exposure, etc. |
+| Summary | Text | Yes | Brief description (shown in notifications) |
+| Description | Textarea | Yes | Full details for internal use |
+| Affected Data | Multi-select | Yes | Categories: credentials, email, profile, etc. |
+| Detection Method | Select | Yes | Automated/Manual/External report |
+| Estimated Affected Users | Number | No | Initial estimate |
 
 ---
 
@@ -15705,7 +17363,7 @@ labels:
 **Behavior:**
 - All routes prefixed with baseurl (e.g., `/myproject/server/healthz`, `/myproject/api/v1/...`)
 - Static assets served from `{baseurl}/static/`
-- Server administration is via config file (no admin web panel)
+- Admin panel at `{baseurl}/server/{admin_path}/`
 - Generated URLs (redirects, links) use detected baseurl
 - Trailing slash normalized (both `/myproject` and `/myproject/` work)
 - Empty string treated as `/`
@@ -15779,6 +17437,37 @@ server:
 
 **On a public-facing direct deployment (no proxy in front)** leave `additional: []`. The X-Forwarded headers from random internet peers are then dropped, falling back to `r.Host` and `r.RemoteAddr` for URL construction — exactly the behavior we want.
 
+## Session Configuration
+
+```yaml
+server:
+  session:
+    # Admin sessions (server.db admin_sessions table)
+    admin:
+      cookie_name: admin_session
+      max_age: 30d                   # Absolute session lifetime
+      idle_timeout: 24h              # Session expires after inactivity
+    # User sessions (users.db user_sessions table) - only if app has users
+    user:
+      cookie_name: user_session
+      max_age: 7d                    # Absolute session lifetime
+      idle_timeout: 24h              # Session expires after inactivity
+    # Common settings (apply to both)
+    extend_on_activity: true     # Reset idle timeout on each request
+    # auto, true, false
+    secure: auto
+    http_only: true
+    # strict, lax, none
+    same_site: lax
+```
+
+**Session Lifetime vs Idle Timeout:**
+
+| Setting | Admin Default | User Default | Description |
+|---------|---------------|--------------|-------------|
+| `max_age` | 30 days | 7 days | Absolute session lifetime (cookie expiry) |
+| `idle_timeout` | 24 hours | 24 hours | Expires after inactivity (reset on each request if `extend_on_activity` is true) |
+
 ## Rate Limiting
 
 Rate limiting is the primary abuse defense. All limits are per-IP using a sliding window counter stored in `server.db`.
@@ -15797,6 +17486,17 @@ server:
       requests: 120    # per minute per IP (health/status endpoints)
       window: 60
     global_burst: 240  # per minute per IP (absolute ceiling across all endpoint types)
+    # Auth endpoints — stricter limits, applied independently of the general limits above
+    auth:
+      login:
+        requests: 5
+        window: 900    # 15 minutes
+      password_reset:
+        requests: 3
+        window: 3600   # 1 hour
+      registration:
+        requests: 5
+        window: 3600   # 1 hour
 ```
 
 | Endpoint class | Default limit | Window | Notes |
@@ -15805,10 +17505,13 @@ server:
 | Write (POST, PUT, PATCH, DELETE) | 10 req/min | 60s | Per IP, sliding window |
 | Health / status | 120 req/min | 60s | `/healthz`, `/readyz`, `/livez` |
 | Global burst | 240 req/min | 60s | Absolute ceiling across all types |
+| Login | 5 req / 15 min | 900s | Per IP + per identifier |
+| Password reset | 3 req / 1 hr | 3600s | Per IP, no email hint on exceed |
+| Registration | 5 req / 1 hr | 3600s | Per IP |
 
 **Response when limited:** `429 Too Many Requests` with `Retry-After` header set to seconds until the window resets. Body: `{"ok":false,"error":"RATE_LIMITED","message":"Too many requests","retry_after":N}`.
 
-**Note:** All limits are configurable under `server.rate_limit.*` in `server.yml`.
+**Note:** All limits are configurable under `server.rate_limit.*` in `server.yml` and via the admin panel.
 
 ## Internationalization (i18n)
 
@@ -15903,7 +17606,7 @@ Every outbound webhook POST includes these headers so the receiver can verify th
 
 | Header | Value |
 |--------|-------|
-| `X-Webhook-Signature` | `sha256=<hex_hmac>` where `hmac = HMAC-SHA256(per_webhook_secret, request_body_bytes)`. The `per_webhook_secret` is auto-generated when the webhook URL is first saved (random 32 bytes, persisted in `server.yml` next to the URL as `webhooks.<name>_secret`) and returned ONCE in the API response for the operator to configure on the receiving end. |
+| `X-Webhook-Signature` | `sha256=<hex_hmac>` where `hmac = HMAC-SHA256(per_webhook_secret, request_body_bytes)`. The `per_webhook_secret` is auto-generated when the webhook URL is first saved (random 32 bytes, persisted in `server.yml` next to the URL as `webhooks.<name>_secret`) and shown ONCE in the admin panel for the operator to configure on the receiving end. |
 | `X-Webhook-Timestamp` | Unix seconds — receiver SHOULD reject if delta exceeds `±5 min` to prevent replay |
 | `X-Webhook-ID` | UUID v7 (PART 13) — idempotency key the receiver can use to deduplicate retries |
 | `X-Webhook-Event` | The event type (e.g., `security.report_received`, `admin.cluster_failover`) |
@@ -15928,7 +17631,7 @@ if !subtle.ConstantTimeCompare([]byte(got), []byte(want)) {
 
 | Role | When triggered | What is sent |
 |------|----------------|--------------|
-| `admin` | Server-internal events: error rate spike, panic, cluster failover, backup failure, cert renewal, security report received (summary only) | Subject + body + severity. NEVER includes user content. |
+| `admin` | Server-internal events: error rate spike, panic, cluster failover, backup failure, cert renewal, security report received (summary only) | Subject + body + severity + a deep-link to `/server/{admin_path}/config/...`. NEVER includes user content. |
 | `security` | Incoming security report (full content, encrypted), researcher status update, CVE assignment milestone | PGP-encrypted body if a researcher pubkey or admin pubkey is configured (PART 11 → "GPG Keypair Management"). |
 | `general` | `/server/contact` form submission (non-security) | Sender name, sender email, subject, message body. Spam-filtered before dispatch. |
 
@@ -15939,7 +17642,7 @@ if !subtle.ConstantTimeCompare([]byte(got), []byte(want)) {
 | `server.contact.admin.email` | NEVER public | Server-internal recipient only. |
 | `server.contact.security.email` | Public (security.txt `Contact: mailto:` line) | Researchers need to reach you. Choose carefully. Suggest a role address (`security@{fqdn}`) over a personal one. |
 | `server.contact.general.email` | Public (contact form, footer "Contact us") | Same — role address recommended. |
-| Any `webhooks.*` | NEVER public | URLs contain secrets / chat IDs / etc. |
+| Any `webhooks.*` | NEVER public | URLs contain bearer tokens / chat IDs / etc. |
 
 ### Canonical Contact Keys Only
 
@@ -15951,9 +17654,9 @@ Use only the canonical contact keys in all new config, examples, docs, UI, and c
 
 Do NOT introduce flat aliases, duplicate names, or migration shims for contact recipients unless the user explicitly requests a migration feature.
 
-### Notification Configuration (config file)
+### Admin Panel — `/server/{admin_path}/config/notify`
 
-Notification channels are configured via config file. Three roles (admin, security, general) each have email and webhook settings.
+Single page with three tabs (Admin / Security / General). Each tab shows email + webhooks for that role with "test" buttons that send a sample notification through every configured transport.
 
 ## Analytics Tracking
 
@@ -16204,9 +17907,15 @@ func TrackingScript() template.HTML {
 {{ trackingScript }}
 ```
 
-### Analytics Tracking Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/tracking)
 
-Analytics tracking is configured via `server.tracking` config keys.
+| Element | Type | Description |
+|---------|------|-------------|
+| Analytics Type | Dropdown | Select platform (None, Google, Matomo, etc.) |
+| Tracking/Site ID | Text input | ID format depends on type |
+| Analytics URL | Text input | Self-hosted URL (shown only when required) |
+| Test Connection | Button | Verify URL is reachable (for self-hosted) |
+| Preview | Code block | Shows generated tracking script |
 
 **Conditional URL Field:**
 ```
@@ -16391,7 +18100,7 @@ server:
       # Essential cookies - ALWAYS enabled, cannot be disabled
       essential:
         enabled: true  # Always true, not configurable
-        description: "Required for the site to function. Includes security tokens (CSRF) and site preferences. These cookies are strictly necessary and cannot be disabled."
+        description: "Required for the site to function. Includes session management, security tokens (CSRF), and authentication. These cookies are strictly necessary and cannot be disabled."
 
       # Preference cookies (theme, language, UI settings)
       preferences:
@@ -16680,9 +18389,15 @@ type ConsentState struct {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Privacy Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/privacy)
 
-Privacy consent, cookie descriptions, data retention, and third-party service settings are configured via `server.privacy` config keys.
+| Section | Elements |
+|---------|----------|
+| **Consent Banner** | Message, policy link, button labels, position |
+| **Cookie Descriptions** | Text for each cookie category |
+| **Data Retention** | Retention period text, export/deletion toggles |
+| **Third-Party Services** | Add/remove services with name, purpose, policy URL |
+| **Preview** | Live preview of consent banner |
 
 ### Implementation
 
@@ -16858,9 +18573,9 @@ server:
 | Pub/Sub events | Yes | Real-time state sync |
 | Distributed locks | Yes | Prevent duplicate task execution |
 
-## Settings Configuration (config file)
+## Admin Panel (/server/{admin_path}/config/settings)
 
-All settings above are configured via config file:
+All settings above MUST be configurable via admin panel:
 
 | Section | Settings |
 |---------|----------|
@@ -16928,7 +18643,7 @@ All settings above are configured via config file:
 
 #### Backend Structure (Go)
 
-**Based on template PARTS: branding (PART 16), modes (PART 6), cluster (PART 10), features (PARTS 20, 32), scheduler (PART 18).**
+**Based on template PARTS: branding (PART 16), modes (PART 6), cluster (PART 10), features (PARTS 20, 32, 34, 35), scheduler (PART 19).**
 
 ```go
 // HealthResponse - canonical field order for /server/healthz
@@ -16956,7 +18671,7 @@ type HealthResponse struct {
     // 5. Cluster info (PART 10: database & cluster)
     Cluster ClusterInfo `json:"cluster"`
 
-    // 6. Features - PUBLIC only (PARTS 20, 32)
+    // 6. Features - PUBLIC only (PARTS 20, 32, 34, 35)
     Features FeaturesInfo `json:"features"`
 
     // 7. Component health checks
@@ -16992,20 +18707,28 @@ type ClusterInfo struct {
     Role      string   `json:"role,omitempty"`      // "primary" or "member"
 }
 
-// FeaturesInfo - PUBLIC features only (no /metrics - PART 20 is internal)
+// FeaturesInfo - PUBLIC features only (no /metrics - PART 21 is internal)
 // Only shows NON-NEGOTIABLE features.
-// For project-specific optional features, add fields here when implemented.
+// If project uses optional features (PARTS 34, 35, 36), they become
+// non-negotiable FOR THAT PROJECT and show actual enabled/disabled status.
 type FeaturesInfo struct {
-    // PART 31: Tor Hidden Service
+    // PART 32: Tor Hidden Service
     Tor TorInfo `json:"tor"`
 
-    // PART 19: GeoIP
+    // PART 20: GeoIP
     GeoIP bool `json:"geoip"`  // true = enabled, false = disabled
 
+    // --- PROJECT-SPECIFIC: Add when optional features are used ---
+    // When used, show actual status (admin can enable/disable):
+    //
+    // PART 34: MultiUser bool `json:"multi_user"`           // true/false
+    // PART 35: Organizations bool `json:"organizations"`     // true/false
+    // PART 36: CustomDomains bool `json:"custom_domains"`   // true/false
+    //
     // APP-SPECIFIC: Add your app's features with enabled/disabled status
 }
 
-// TorInfo - from Tor manager (PART 31)
+// TorInfo - from Tor manager (PART 32)
 type TorInfo struct {
     Enabled  bool   `json:"enabled"`  // Tor binary found and running
     Running  bool   `json:"running"`  // Hidden service active
@@ -17018,9 +18741,9 @@ type ChecksInfo struct {
     Database  string `json:"database"`            // PART 10: "ok" or "error"
     Cache     string `json:"cache"`               // PART 10: "ok" or "error"
     Disk      string `json:"disk"`                // Disk space check
-    Scheduler string `json:"scheduler"`           // PART 18: "ok" or "error"
+    Scheduler string `json:"scheduler"`           // PART 19: "ok" or "error"
     Cluster   string `json:"cluster,omitempty"`   // PART 10: "ok" or "error" (if enabled)
-    Tor       string `json:"tor,omitempty"`       // PART 31: "ok" or "error" (if enabled)
+    Tor       string `json:"tor,omitempty"`       // PART 32: "ok" or "error" (if enabled)
     // APP-SPECIFIC: Add your checks here
     // Example: Storage string `json:"storage"`
 }
@@ -17052,7 +18775,7 @@ type StatsInfo struct {
 | `cluster.*` | `clusterManager.*` | 10 |
 | `features.tor.*` | `torManager.*` | 32 |
 | `features.geoip` | `cfg.GeoIP.Enabled` (true/false) | 20 |
-| `features.*` (project-specific) | Show actual status when project-specific optional features used | - |
+| `features.*` (project-specific) | Show actual status when optional PARTS used | 34, 35, 36 |
 | `checks.database` | `checkDatabase()` | 10 |
 | `checks.cache` | `checkCache()` | 10 |
 | `checks.scheduler` | `checkScheduler()` | 19 |
@@ -17275,7 +18998,7 @@ type StatsInfo struct {
     <section class="section-card">
       <h2>📈 Server Statistics</h2>
       <!-- NOTE: Public-safe aggregate stats only.
-           /metrics endpoint (PART 20) is internal/authenticated, not shown here. -->
+           /metrics endpoint (PART 21) is internal/authenticated, not shown here. -->
       <dl class="info-list stats-grid">
         <dt>📥 Total Requests</dt>
         <dd>1,234,567</dd>
@@ -17349,7 +19072,7 @@ type StatsInfo struct {
 
 **Fields in canonical order (see "Field Order & Structure" above). References template PARTS.**
 
-**Note:** Only non-negotiable features shown with actual status (true/false, enabled/disabled). If project uses project-specific optional features, those become non-negotiable for that project and show their actual enabled/disabled status.
+**Note:** Only non-negotiable features shown with actual status (true/false, enabled/disabled). If project uses optional PARTS (34, 35, 36), those become non-negotiable for that project and show their actual enabled/disabled status.
 
 ```json
 {
@@ -17639,7 +19362,8 @@ OS/Arch: {GOOS}/{GOARCH}
 # PART 14: API STRUCTURE
 
 **Note:** This section covers API structure and requirements. For specific route listings, see:
-- Admin API Routes: PART 11 (Security & Logging → Admin token routes)
+- Admin Web Routes: PART 17 (Admin Panel)
+- Admin API Routes: PART 17 (Admin Panel → API Routes)
 - Project-specific Routes: IDEA.md
 
 ## Legacy vs Compatibility Endpoints
@@ -17696,10 +19420,10 @@ OS/Arch: {GOOS}/{GOARCH}
 | API Type | Frontend Required | Example |
 |----------|-------------------|---------|
 | **User-facing features** | Yes | `/api/{api_version}/users` → `/users` page |
-| **Admin features** | No (config file only) | Server administration is file-only — no web routes |
+| **Admin features** | Yes | `/api/{api_version}/server/{admin_path}/*` → `/server/{admin_path}/*` pages |
 | **Health/status** | Yes | `/server/healthz` has HTML frontend (with emojis), `/api/{api_version}/server/healthz` is JSON, `/api/healthz` is direct alias JSON |
 | **Agent endpoints** | No | `/api/{api_version}/*/agents/*` - CLI/agent only |
-| **Cluster nodes** | No | Node-to-node cluster communication only |
+| **Cluster nodes** | No | `/api/{api_version}/server/{admin_path}/config/nodes/*` - node-to-node only |
 
 | Requirement | Description |
 |-------------|-------------|
@@ -17722,8 +19446,8 @@ OS/Arch: {GOOS}/{GOARCH}
 
 | API Endpoint | Why No Frontend |
 |--------------|-----------------|
-| `/api/{api_version}/server/config/agents/*` | Agent binary uses directly |
-| `/api/{api_version}/server/config/nodes/*` | Node-to-node cluster communication |
+| `/api/{api_version}/server/{admin_path}/config/agents/*` | Agent binary uses directly |
+| `/api/{api_version}/server/{admin_path}/config/nodes/*` | Node-to-node cluster communication |
 
 ### Frontend Functionality Requirements
 
@@ -17788,7 +19512,7 @@ Before adding ANY route, verify:
 - [ ] Is it versioned? (`/api/{api_version}/...`)
 - [ ] Is the resource name plural? (`users`, not `user`)
 - [ ] Is it lowercase with hyphens? (`api-keys`, not `API_Keys`)
-- [ ] Does the route follow scope rules? (`/server/`, `/api/{api_version}/*`)
+- [ ] Does the route follow scope rules? (`/server/`, `/server/auth/`, `/server/{admin_path}/`, `/users/`, `/orgs/`)
 - [ ] If user-facing: does frontend route exist and work?
 - [ ] If system/agent: documented as API-only?
 
@@ -17800,28 +19524,70 @@ Before adding ANY route, verify:
 
 | ✓ Correct | ✗ Wrong |
 |-----------|---------|
-| `/api/{api_version}/items` | `/api/{api_version}/item` |
-| `/api/{api_version}/posts` | `/api/{api_version}/post` |
-| `/api/{api_version}/posts/{id}/comments` | `/api/{api_version}/post/{id}/comments` |
+| `/api/{api_version}/users` | `/api/{api_version}/user` |
+| `/api/{api_version}/orgs` | `/api/{api_version}/org` |
+| `/api/{api_version}/orgs/{slug}/members` | `/api/{api_version}/org/{slug}/members` |
 
 ### Route Scopes
 
 | Scope | Web Route | API Route | ID Required | Description |
 |-------|-----------|-----------|-------------|-------------|
 | **Server** | `/server/*` | `/api/{api_version}/server/*` | No | Server-owned public pages, docs, health |
-| **Project** | `/*` | `/api/{api_version}/*` | Varies | Project-specific resources (open, no auth) |
+| **Auth** | `/server/auth/*` | `/api/{api_version}/server/auth/*` | No | Login, register, logout, 2FA, password, invite, verify |
+| **Users** | `/users/*` | `/api/{api_version}/users/*` | **No** | Current user's resources (from session) |
+| **Orgs** | `/orgs/*` | `/api/{api_version}/orgs/*` | **Yes** (`{slug}`) | User can own multiple orgs |
+| **Server Admin** | `/server/{admin_path}/*` | `/api/{api_version}/server/{admin_path}/*` | No | Admin dashboard root, admin self area, config subtree |
+| **Admin Self** | `/server/{admin_path}/{admin_username}/*` | `/api/{api_version}/server/{admin_path}/{admin_username}/*` | **Yes** (`{admin_username}`) | The authenticated admin's own account/profile/preferences/notifications |
+| **Admin Config** | `/server/{admin_path}/config/*` | `/api/{api_version}/server/{admin_path}/config/*` | No | ALL server-wide admin/configuration routes |
+| **Project** | `/*` | `/api/{api_version}/*` | Varies | Project-specific (jokes, pastes, etc.) |
 
 **Note:** Examples throughout this document use `/api/{api_version}/` as the default value. In code, always use `APIBasePath()` or `{api_version}` - never hardcode `v1`.
 
+### User Routes - No ID Required
+
+**Users can only manage themselves. The app knows who from the session.**
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/{api_version}/users` | Current user's profile |
+| `PATCH /api/{api_version}/users` | Update current user's profile |
+| `GET /api/{api_version}/users/tokens` | Current user's API tokens |
+| `GET /api/{api_version}/users/security` | Current user's security settings |
+| `GET /api/{api_version}/users/settings` | Current user's preferences |
+
+**Admin routes for managing OTHER users use `/server/{admin_path}/config/users/{id}`:**
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/{api_version}/server/{admin_path}/config/users` | List all users (admin) |
+| `GET /api/{api_version}/server/{admin_path}/config/users/{id}` | View specific user (admin) |
+| `PATCH /api/{api_version}/server/{admin_path}/config/users/{id}` | Edit specific user (admin) |
+
+### Org Routes - Slug Required
+
+**Users can own multiple orgs. Slug identifies which org.**
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/{api_version}/orgs` | List user's organizations |
+| `POST /api/{api_version}/orgs` | Create new organization |
+| `GET /api/{api_version}/orgs/{slug}` | Get specific org |
+| `GET /api/{api_version}/orgs/{slug}/members` | Get org members |
+| `GET /api/{api_version}/orgs/{slug}/settings` | Get org settings |
+
 ### Frontend Must Match Backend
 
-**Public API routes with a UI have corresponding frontend routes. They MUST match.**
+**User-facing API routes have corresponding frontend routes. They MUST match.**
 
 | API Route | Frontend Route | Notes |
 |-----------|----------------|-------|
+| `/api/{api_version}/users` | `/users` | Current user profile |
+| `/api/{api_version}/users/tokens` | `/users/tokens` | Current user's tokens |
+| `/api/{api_version}/users/settings` | `/users/settings` | Current user's settings |
+| `/api/{api_version}/orgs` | `/orgs` | User's org list |
+| `/api/{api_version}/orgs/{slug}` | `/orgs/{slug}` | Specific org |
+| `/api/{api_version}/orgs/{slug}/members` | `/orgs/{slug}/members` | Org members |
 | `/api/{api_version}/server/about` | `/server/about` | About page |
-| `/api/{api_version}/items` | `/items` | Example project resource list |
-| `/api/{api_version}/items/{id}` | `/items/{id}` | Example resource detail |
 
 **Frontend uses same routes, different response format:**
 - Browser request → HTML page
@@ -17832,7 +19598,7 @@ Before adding ANY route, verify:
 
 | Direction | Example | Reason |
 |-----------|---------|--------|
-| **API-only** | `/api/{api_version}/server/config/agents/*`, `/api/{api_version}/server/config/nodes/*` | Machine/system use only (see table above) |
+| **API-only** | `/api/{api_version}/server/{admin_path}/config/agents/*`, `/api/{api_version}/server/{admin_path}/config/nodes/*` | Machine/system use only (see table above) |
 | **Frontend-only** | `/server` → `/server/about` redirect | UX convenience redirects, no API equivalent needed |
 
 ### ID/Slug Consistency
@@ -17841,8 +19607,11 @@ Before adding ANY route, verify:
 
 | Route | Parameter | Notes |
 |-------|-----------|-------|
-| `/items/{item_id}` | `item_id` | Resource identifier |
-| `/items/{item_id}/comments/{comment_id}` | `comment_id` | Nested resource |
+| `/users/tokens/{token_id}` | `token_id` | User's token |
+| `/users/sessions/{session_id}` | `session_id` | User's session |
+| `/orgs/{slug}` | `slug` | Org identifier |
+| `/orgs/{slug}/members/{member_id}` | `member_id` | Org member |
+| `/orgs/{slug}/tokens/{token_id}` | `token_id` | Org's token |
 
 ## URL Parameters
 
@@ -17850,25 +19619,27 @@ Before adding ANY route, verify:
 
 | Parameter Type | Use When | Example |
 |----------------|----------|---------|
-| **Path params** | Identifying a resource | `/api/{api_version}/items/{id}`, `/api/{api_version}/jokes/{category}` |
+| **Path params** | Identifying a resource | `/api/{api_version}/users/{username}/repos/{id}`, `/api/{api_version}/jokes/{category}` |
 | **Query params** | Filtering, sorting, pagination | `?page=2&limit=10&sort=date` |
 
 **Path Parameters (Preferred):**
 ```
-GET /api/{api_version}/items/123              ✓ Good - resource by ID
+GET /api/{api_version}/users/repos/123        ✓ Good - current user's repo by ID
+GET /api/{api_version}/users/alice/repos/123  ✓ Good - user alice's repo by ID
+GET /api/{api_version}/orgs/acme/repos/123    ✓ Good - org acme's repo by ID
 GET /api/{api_version}/jokes/programming      ✓ Good - category in path (project-scoped)
 GET /api/{api_version}/search/golang          ✓ Good - search term in path
 
-GET /api/{api_version}/items?id=123           ✗ Bad - should be path param
+GET /api/{api_version}/users/repos?id=123     ✗ Bad - should be path param
 GET /api/{api_version}/jokes?category=prog    ✗ Bad - should be path param
 ```
 
 **Query Parameters (When Needed):**
 ```
-GET /api/{api_version}/items?page=2&limit=10          ✓ Pagination
+GET /api/{api_version}/users/repos?page=2&limit=10    ✓ Pagination
 GET /api/{api_version}/jokes?sort=rating&order=desc   ✓ Sorting (project-scoped)
 GET /api/{api_version}/search/golang?safe=true        ✓ Filtering/options
-GET /api/{api_version}/items?status=active            ✓ Filtering
+GET /api/{api_version}/server/{admin_path}/config/users?status=active&role=admin ✓ Admin filters
 ```
 
 **Rules:**
@@ -18074,6 +19845,7 @@ tail -c 2 file.txt | od -An -tx1
 | Endpoint | Default | Browser | curl/CLI | API Client |
 |----------|---------|---------|----------|------------|
 | `/` (public pages) | HTML | HTML | Text | HTML |
+| `/server/{admin_path}/*` | HTML | HTML | HTML | HTML |
 | `/api/{api_version}/*` | JSON | JSON | Text | JSON |
 | `/server/healthz` | HTML | HTML | Text | JSON (Accept: application/json) |
 | `*.txt` extension | Text | Text | Text | Text |
@@ -18140,7 +19912,7 @@ func getAPIResponseFormat(r *http.Request) string {
 - ✓ ALL `/api/{api_version}/*` endpoints
 - ✓ Health API endpoints (`/api/{api_version}/server/healthz`)
 - ✓ Project-specific API endpoints
-- ✓ Server API endpoints (`/api/{api_version}/server/*`)
+- ✓ Admin API endpoints (`/api/{api_version}/server/{admin_path}/*`)
 
 **API Routes (JSON default, text via CLI/.txt/Accept header):**
 
@@ -18176,7 +19948,7 @@ func getAPIResponseFormat(r *http.Request) string {
 **Testing:** Test scripts MUST verify:
 - API `.txt` extension works
 - Frontend smart detection works (browser → HTML, CLI → formatted text)
-- Accept headers work on both API and frontend (see PART 28: TESTING & DEVELOPMENT)
+- Accept headers work on both API and frontend (see PART 29: TESTING & DEVELOPMENT)
 
 ### Content Negotiation Priority
 
@@ -19150,6 +20922,8 @@ Need additional compatible endpoints?"
 | `/server/docs/swagger` | GET | None | Swagger UI (interactive REST explorer; fetches spec from `/api/swagger`) |
 | `/server/docs/graphql` | GET | None | GraphiQL UI (interactive GraphQL explorer; POSTs to `/api/graphql`) |
 | `/metrics` | GET | Optional | Prometheus metrics |
+| `/server/{admin_path}` | GET | Session | Admin panel login |
+| `/server/{admin_path}/*` | ALL | Session | Admin panel pages |
 | `/api/autodiscover` | GET | None | Server settings, config schema, and options for CLI/agent (non-versioned) |
 | `/api/swagger` | GET | None | OpenAPI JSON spec — direct alias for current `{api_version}` |
 | `/api/graphql` | POST | None | GraphQL queries — direct alias for current `{api_version}` |
@@ -19157,7 +20931,7 @@ Need additional compatible endpoints?"
 | `/api/{api_version}/server/swagger` | GET | None | OpenAPI JSON spec (versioned) |
 | `/api/{api_version}/server/graphql` | POST | None | GraphQL queries (versioned; schema may differ across versions) |
 | `/api/{api_version}/server/healthz` | GET | None | Health check (JSON default; text via API rules) |
-| `/api/{api_version}/server/*` | ALL | None | Server API (publicly accessible) |
+| `/api/{api_version}/server/{admin_path}/*` | ALL | Bearer | Admin API |
 
 **NOTE:** OpenAPI is JSON only — no `.yaml` endpoint, no `.json` suffix on the path. The `/api/{api_version}/server/swagger` and `/api/swagger` paths return `Content-Type: application/json`.
 
@@ -19309,7 +21083,7 @@ Before proceeding, confirm you understand:
 - [ ] Project-wide theme system: light/dark/auto (dark is default)
 - [ ] Themes apply to entire project: WebUI, admin, Swagger, GraphQL
 - [ ] All 3 API types required: REST, Swagger, GraphQL (Swagger & GraphQL in sync)
-- [ ] Standard endpoints must exist (`/server/healthz`, `/api/{api_version}/server/swagger`, `/api/{api_version}/server/graphql`, `/api/swagger` alias, `/api/graphql` alias, `/server/docs/swagger`, `/server/docs/graphql`)
+- [ ] Standard endpoints must exist (`/server/healthz`, `/api/{api_version}/server/swagger`, `/api/{api_version}/server/graphql`, `/api/swagger` alias, `/api/graphql` alias, `/server/docs/swagger`, `/server/docs/graphql`, `/server/{admin_path}`)
 - [ ] OpenAPI uses JSON only (no YAML)
 
 ---
@@ -19330,13 +21104,15 @@ Before proceeding, confirm you understand:
 
 ### DNS-01 Provider Configuration
 
-**ALL DNS providers are supported.** Set `server.tls.dns_provider` in `server.yml` to the provider name; the corresponding credential fields are documented below.
+**ALL DNS providers are supported.** The admin WebUI provides a dropdown that dynamically shows the appropriate credential fields based on the selected provider.
 
-**DNS-01 Provider Configuration (config file):**
+**Admin WebUI Flow (`/server/{admin_path}/config/ssl`):**
 
-1. Set `server.tls.dns_provider` to the desired provider name
-2. Set provider credentials in `server.tls.dns_credentials.*` (encrypted at rest)
-3. Server validates credentials on startup and before certificate requests
+1. Select DNS provider from dropdown (all lego-supported providers available)
+2. Form dynamically shows required credential fields for that provider
+3. Submit credentials → app validates by attempting DNS API connection
+4. On success, credentials are **encrypted** and stored for reuse
+5. Certificate requests use stored encrypted credentials
 
 **Provider Credential Storage:**
 
@@ -19359,7 +21135,7 @@ Before proceeding, confirm you understand:
 
 **Note:** Full provider list from [lego DNS providers](https://go-acme.github.io/lego/dns/). Fields are determined dynamically at runtime.
 
-**Custom domain support (user/org branded domains) is an optional per-project feature — implement via IDEA.md if needed.**
+**See PART 36: CUSTOM DOMAINS for user/org custom domain support (optional per-project feature).**
 
 ### FQDN Resolution
 
@@ -20076,9 +21852,19 @@ formatURL(host, 8443, true)
 │  ✅ Server started on {startup_datetime}                  │
 ╰───────────────────────────────────────────────────────────╯
 
+┌───────────────────────────────────────────────────────────┐
+│  🔑 SETUP REQUIRED                                        │
+├───────────────────────────────────────────────────────────┤
+│  Setup Token: {setup_token}                               │
+│                                                           │
+│  Go to {proto}://{fqdn}/server/{admin_path}/config/setup         │
+│  and enter this token to complete setup.                  │
+│                                                           │
+│  This token will only be shown ONCE.                      │
+└───────────────────────────────────────────────────────────┘
 ```
 
-**Note:** On first run, a default `server.yml` is written to `{config_dir}/server.yml`. Edit it before or after starting the server.
+**Note:** Setup token is displayed ONCE on first run. After setup wizard is completed, this section never appears again.
 
 ---
 
@@ -20102,6 +21888,11 @@ formatURL(host, 8443, true)
 🌐 {proto}://{address}:{port}
 📡 Listening: {proto}://{address}:{port}
 ✅ Started: {startup_datetime}
+
+🔑 SETUP REQUIRED
+Token: {setup_token}
+Go to: {proto}://{fqdn}/server/{admin_path}/config/setup
+(Token shown ONCE)
 ```
 
 **40-59 cols (Minimal - abbreviated, no icons):**
@@ -20116,6 +21907,7 @@ formatURL(host, 8443, true)
 {PROJECT_NAME} {projectversion}
 {app_mode}
 {address}:{port}
+SETUP: {setup_token}
 ```
 
 **<40 cols (Micro - single line):**
@@ -20144,6 +21936,11 @@ Mode: {app_mode}
 URL: {proto}://{address}:{port}
 Listening: {proto}://{address}:{port}
 Started: {startup_datetime}
+
+SETUP REQUIRED
+Token: {setup_token}
+Setup URL: {proto}://{fqdn}/server/{admin_path}/config/setup
+This token will only be shown ONCE.
 ```
 
 **--color flag overrides (applies to all sizes):**
@@ -20305,7 +22102,7 @@ Startup (for configured FQDN)
 | `GET /api/{api_version}/orgs/{slug}` | `GET /orgs/{slug}` | Org detail page |
 | `GET /api/{api_version}/server/about` | `GET /server/about` | About page |
 
-### Vanity URLs (OPTIONAL - project-specific, requires multi-user support)
+### Vanity URLs (OPTIONAL - Requires PART 34/35)
 
 **For apps with public user/org profiles, support short vanity URLs at root level.**
 
@@ -20321,12 +22118,15 @@ This is OPTIONAL and only applies to apps where user/org profiles are a core fea
 **Route Priority (NON-NEGOTIABLE when implemented):**
 
 ```
-1. /api/{api_version}/*   → API routes (highest priority)
-2. /server/healthz        → Health check
-3. /static/*              → Static assets
-4. /server/*              → Server pages (docs, about, status)
-5. /{reserved}            → Reserved names (see below)
-6. /*                     → Project-specific routes (lowest priority)
+1. /api/{api_version}/*          → API routes (highest priority)
+2. /server/{admin_path}/*     → Admin panel (configurable path)
+3. /server/healthz           → Health check
+4. /static/*          → Static assets
+5. /users/*           → Explicit user routes
+6. /orgs/*            → Explicit org routes
+7. /{reserved}        → Reserved names (see below)
+8. /{username}        → User vanity URL (lowest priority)
+9. /{org_name}         → Org vanity URL (if no user match)
 ```
 
 **Reserved Names (MUST block from registration):**
@@ -20334,10 +22134,13 @@ This is OPTIONAL and only applies to apps where user/org profiles are a core fea
 ```go
 var reservedNames = []string{
     // System routes
-    "api", "server", "static", "assets", "healthz", "metrics",
-    "webhook", "webhooks",
+    "api", "server", "admin", "static", "assets", "healthz", "metrics",
+    "login", "logout", "register", "signup", "signin", "auth",
+    "oauth", "callback", "webhook", "webhooks",
 
     // Common paths
+    "users", "orgs", "organizations", "teams", "groups",
+    "settings", "profile", "account", "dashboard",
     "search", "explore", "discover", "trending",
     "help", "support", "docs", "documentation",
     "about", "contact", "terms", "privacy", "legal", "security",
@@ -20353,30 +22156,94 @@ var reservedNames = []string{
 
 **Resolution Logic:**
 
-Project-specific slug/short-code routes are registered last (lowest priority). The router resolves any `/{id}` style route after all explicit routes are matched.
+A single `/{slug}` route handles both users and orgs:
 
 ```go
-// Project-specific catch-all (lowest priority - registered last)
-// Only implement if the project needs slug/short-code routes
-r.Get("/{slug}", slugHandler)
-r.Get("/{slug}/{sub}", slugHandler)
+// Route: GET /{slug}
+// Route: GET /{slug}/{sub}
+// Route: GET /{slug}/{sub}/{item}
+
+func vanityHandler(w http.ResponseWriter, r *http.Request) {
+    slug := chi.URLParam(r, "slug")
+    sub := chi.URLParam(r, "sub")      // optional: repo, project, etc.
+    item := chi.URLParam(r, "item")    // optional: file, issue, etc.
+
+    routeType, id := resolveVanityURL(slug)
+
+    switch routeType {
+    case "user":
+        // /{username} → proxy to /api/{api_version}/users/{username}
+        // /{username}/{repo} → proxy to /api/{api_version}/users/{username}/repos/{repo}
+        proxyToUserAPI(w, r, id, sub, item)
+    case "org":
+        // /{org_name} → proxy to /api/{api_version}/orgs/{org_name}
+        // /{org_name}/{repo} → proxy to /api/{api_version}/orgs/{org_name}/repos/{repo}
+        proxyToOrgAPI(w, r, id, sub, item)
+    case "reserved":
+        http.Redirect(w, r, "/"+slug, http.StatusFound) // let normal router handle
+    default:
+        renderNotFound(w, r, slug) // "user/org not found" page
+    }
+}
+
+func resolveVanityURL(slug string) (routeType string, id string) {
+    // 1. Check reserved names first
+    if isReserved(slug) {
+        return "reserved", ""
+    }
+
+    // 2. Check if user exists
+    if user, err := db.GetUserByUsername(slug); err == nil {
+        return "user", user.ID
+    }
+
+    // 3. Check if org exists (if orgs enabled)
+    if org, err := db.GetOrgBySlug(slug); err == nil {
+        return "org", org.ID
+    }
+
+    // 4. Not found
+    return "notfound", ""
+}
 ```
+
+**Route Registration:**
+
+```go
+// Vanity routes (lowest priority - registered last)
+r.Get("/{slug}", vanityHandler)
+r.Get("/{slug}/{sub}", vanityHandler)
+r.Get("/{slug}/{sub}/{item}", vanityHandler)
+```
+
+**Custom Domain + Vanity URL (PART 36):**
+
+When custom domains are enabled, the vanity URL becomes the root:
+
+| Setup | URL | Shows |
+|-------|-----|-------|
+| Default | `example.com/johndoe` | John's profile |
+| Custom domain | `johndoe.example.com` | John's profile (at root `/`) |
+| Custom domain | `johndoe.example.com/links` | John's links page |
+| User's own domain | `john.me` | John's profile (PART 36) |
 
 **Examples by App Type:**
 
 | App Type | `/{slug}` Shows | Sub-routes |
 |----------|-----------------|------------|
-| **Pastebin clone** | Paste by ID | - |
-| **URL shortener** | Redirect to target | - |
-| **Joke app** | Joke by ID | - |
+| **Linktree clone** | User's link page | `/{user}/analytics` |
+| **GitHub/Gitea clone** | User/org profile + repos | `/{user}/{repo}`, `/{org}/{repo}` |
+| **Twitter clone** | User's profile + posts | `/{user}/status/{id}` |
+| **Pastebin clone** | Paste by ID | `/{paste_id}` |
+| **URL shortener** | Redirect to target | `/{short_code}` |
 
 **Implementation Notes:**
 
-1. **Slug validation**: Define in `IDEA.md` for each project (format depends on resource type)
-2. **Reserved names**: Always check `isReserved(slug)` before lookup
-3. **Case handling**: Normalize to lowercase; redirect if case differs
+1. **Username/org validation**: Must match `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$` (lowercase, alphanumeric, hyphens, 2-39 chars)
+2. **Global uniqueness**: Usernames and org slugs share the SAME namespace. A name cannot exist as both user AND org. Check both tables before registration.
+3. **Case insensitive**: `/JohnDoe` → `/johndoe` (redirect or serve)
 4. **Trailing slash**: See "URL Normalization Middleware" below
-5. **404 handling**: Unknown slugs show a "not found" page, not a generic 404
+5. **404 handling**: Unknown slugs show "user not found" page, not generic 404
 
 ### URL Normalization Middleware
 
@@ -20539,23 +22406,24 @@ func detectClientType(r *http.Request) string {
 
 1. **HTML Forms** (browser users):
    ```html
-   <form action="/items" method="POST">...</form>
-   <form action="/items/123" method="POST">
+   <form action="/users" method="POST">...</form>
+   <form action="/users/123" method="POST">
      <input type="hidden" name="_method" value="PUT">
    </form>
    ```
 
 2. **API Endpoints** (programmatic):
    ```bash
-   curl -q -LSsf -X POST /api/{api_version}/items -d '{"name":"test"}'
-   curl -q -LSsf -X PATCH /api/{api_version}/items/123 -d '{"name":"updated"}'
-   curl -q -LSsf -X DELETE /api/{api_version}/items/123
+   curl -q -LSsf -X POST /api/{api_version}/server/auth/register -d '{"username":"test","email":"test@example.com"}'
+   curl -q -LSsf -X PATCH /api/{api_version}/users -d '{"email":"new@test.com"}'  # Current user
+   curl -q -LSsf -X PATCH /api/{api_version}/server/{admin_path}/config/users/123 -d '{"email":"new@test.com"}'  # Admin
+   curl -q -LSsf -X DELETE /api/{api_version}/server/{admin_path}/config/users/123  # Admin
    ```
 
 3. **Frontend Direct** (CLI/scripting):
    ```bash
-   curl -q -LSsf -X POST /items -d 'name=test'  # Form-encoded
-   curl -q -LSsf /items/123                      # Returns text (auto-detected)
+   curl -q -LSsf -X POST /server/auth/register -d 'username=test&email=test@example.com'  # Form-encoded
+   curl -q -LSsf /{username}  # Returns text (auto-detected) - public profile
    ```
 
 **Rule:** CRUD must work for browsers (HTML forms), APIs (JSON), and CLI (text/form-encoded).
@@ -21729,27 +23597,60 @@ dismissAllToasts();
 </div>
 ```
 
-### Theme Toggle
+### Profile Icon
 
-**Theme toggle button in header. No user accounts; no profile dropdown.**
+**User profile dropdown accessible via avatar/icon in header. Follows GitHub/GitLab patterns.**
 
-**Theme Toggle Behavior:**
+**Profile Icon Behavior:**
 
 | Feature | Description |
 |---------|-------------|
 | **Position** | Header, right side, last item |
-| **Options** | Dark / Light / Auto (follows OS preference) |
-| **Persistence** | `localStorage` key `theme` |
-| **Keyboard** | Enter/Space cycles modes |
+| **Icon** | User avatar (if uploaded) or default avatar |
+| **Size** | 32x32px, circular |
+| **Click** | Opens dropdown menu below icon |
+| **Keyboard** | Enter/Space opens dropdown, Escape closes |
+
+**Dropdown Menu Items:**
+
+| Item | Link | Description |
+|------|------|-------------|
+| **Username** | - | Display current username (not clickable, header) |
+| **Profile** | `/users` | View/edit profile |
+| **Settings** | `/users/settings` | Account settings |
+| **Security** | `/users/security` | Password, 2FA, sessions |
+| **API Tokens** | `/users/tokens` | Manage API tokens |
+| *(divider)* | - | - |
+| **Theme** | - | Theme toggle (Dark/Light/Auto) |
+| *(divider)* | - | - |
+| **Help** | `/server/help` | Help documentation |
+| **Sign out** | `/server/auth/logout` | Log out |
 
 **HTML Structure:**
 ```html
-<div class="theme-toggle" aria-label="Theme toggle">
-  <button class="theme-button" aria-label="Switch theme">
-    <svg class="icon-dark"><!-- moon --></svg>
-    <svg class="icon-light"><!-- sun --></svg>
-    <svg class="icon-auto"><!-- circle-half --></svg>
+<div class="profile-menu" aria-label="User menu">
+  <button class="profile-button" aria-haspopup="true" aria-expanded="false">
+    <img src="/users/avatar" alt="Username" class="avatar">
+    <svg class="dropdown-arrow"><!-- chevron --></svg>
   </button>
+  <div class="profile-dropdown" role="menu" hidden>
+    <div class="dropdown-header">
+      <span class="username">johndoe</span>
+    </div>
+    <a href="/users" class="dropdown-item" role="menuitem">Profile</a>
+    <a href="/users/settings" class="dropdown-item" role="menuitem">Settings</a>
+    <a href="/users/security" class="dropdown-item" role="menuitem">Security</a>
+    <a href="/users/tokens" class="dropdown-item" role="menuitem">API Tokens</a>
+    <div class="dropdown-divider" role="separator"></div>
+    <div class="dropdown-item theme-toggle">
+      Theme: <button>Dark</button> | <button>Light</button> | <button>Auto</button>
+    </div>
+    <div class="dropdown-divider" role="separator"></div>
+    <a href="/server/help" class="dropdown-item" role="menuitem">Help</a>
+    <form action="/server/auth/logout" method="POST">
+      <button type="submit" class="dropdown-item logout" role="menuitem">Sign out</button>
+    </form>
+  </div>
 </div>
 ```
 
@@ -21826,7 +23727,7 @@ dismissAllToasts();
 }
 ```
 
-- See PART 17: EMAIL & NOTIFICATIONS for full notification specification
+- See PART 18: EMAIL & NOTIFICATIONS for full notification specification
 
 ### Empty States
 
@@ -22317,7 +24218,10 @@ self.addEventListener('notificationclick', event => {
 });
 ```
 
-**Push notification settings** are configured via `server.notifications` config keys.
+**Admin Panel Settings (`/server/{admin_path}/config/notifications`):**
+- Enable/disable push notifications
+- VAPID key generation
+- Test push functionality
 
 ### Background Sync
 
@@ -22717,7 +24621,7 @@ Example:
   start_url: "/app/dashboard"
 
   ✅ Controlled: /app/*, /app/settings, /app/users/123
-  ❌ Not controlled: /server/*, /api/*
+  ❌ Not controlled: /server/auth/*, /api/*, /server/{admin_path}/*
 ```
 
 **Tracking PWA launches:**
@@ -23362,11 +25266,11 @@ See **JavaScript Rules** section below for `app.js` structure.
 ```
 src/server/template/
 ├── layout/
-│   ├── public.tmpl         # Public-facing layout (/, /server/*, project routes)
-│   └── admin.tmpl          # Admin layout (reserved for future use)
+│   ├── public.tmpl         # Public-facing layout (/, /server/auth/*, /server/*)
+│   └── admin.tmpl          # Admin panel layout (/server/{admin_path}/*)
 ├── partial/
 │   ├── public/
-│   │   ├── header.tmpl     # Public header (logo, nav, theme toggle)
+│   │   ├── header.tmpl     # Public header (logo, nav, login)
 │   │   ├── nav.tmpl        # Public navigation
 │   │   └── footer.tmpl     # Public footer (about, privacy, etc.)
 │   ├── admin/
@@ -23434,8 +25338,8 @@ src/server/template/
 
 | Layout | Routes | Design Philosophy |
 |--------|--------|-------------------|
-| `public.tmpl` | `/`, `/server/*`, project routes | Clean, marketing-friendly, top navigation |
-| `admin.tmpl` | (reserved for future use) | Dashboard-style, sidebar navigation, data-dense |
+| `public.tmpl` | `/`, `/server/auth/*`, `/server/*`, `/users/*` | Clean, marketing-friendly, top navigation |
+| `admin.tmpl` | `/server/{admin_path}/*` | Dashboard-style, sidebar navigation, data-dense |
 
 ### Public Layout (`public.tmpl`)
 
@@ -23443,7 +25347,7 @@ src/server/template/
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  [Logo]              Home  API  Docs                [Theme]     │  ← Header + Top Nav
+│  [Logo]              Home  API  Docs                [Login]     │  ← Header + Top Nav
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │                                                                 │
@@ -23468,9 +25372,9 @@ src/server/template/
 | Rule | Description |
 |------|-------------|
 | **App-focused** | Navigation reflects the application's features and purpose |
-| **NO admin links** | NEVER link to server administration from public pages |
-| **NO admin hints** | Do not advertise that an admin API exists from public pages |
-| **Direct access only** | Server administration is via the config file or CLI only |
+| **NO admin links** | NEVER link to `/server/{admin_path}` from public pages |
+| **NO admin hints** | Do not advertise that an admin panel exists |
+| **Direct access only** | Admin panel accessed by navigating directly to `{fqdn}/server/{admin_path}` |
 
 **Public nav contains (project-specific):**
 - Home (`/`)
@@ -23482,7 +25386,7 @@ src/server/template/
 - ❌ Admin link
 - ❌ Dashboard link (unless user dashboard)
 - ❌ Settings link to admin settings
-- ❌ Any hint of server administration routes
+- ❌ Any hint of `/server/{admin_path}/*` routes
 
 ### Admin Layout (`admin.tmpl`)
 
@@ -23872,11 +25776,28 @@ Mobile:
 <header class="header">
   <a href="/" class="site-brand">{project_name}</a>
 
-  <!-- Theme toggle (always visible, far right) -->
-  <div class="header-actions">
-    <button class="theme-button" aria-label="Switch theme" title="Toggle theme">
-      <svg class="icon-theme"><!-- theme icon --></svg>
-    </button>
+  <!-- User icon (always visible, far right) -->
+  <div class="user-menu">
+    {{ if .User }}
+      <!-- Logged in: user icon dropdown -->
+      <div class="dropdown">
+        <button class="dropdown-toggle user-icon" aria-label="User menu">
+          <svg>...</svg>
+        </button>
+        <div class="dropdown-menu">
+          <span class="dropdown-header">{{ .User.Username }}</span>
+          <a href="/users">Profile</a>
+          <a href="/users/settings">Settings</a>
+          <hr />
+          <a href="/server/auth/logout">Logout</a>
+        </div>
+      </div>
+    {{ else }}
+      <!-- Logged out: login icon -->
+      <a href="/server/auth/login" class="user-icon" aria-label="Login">
+        <svg>...</svg>
+      </a>
+    {{ end }}
   </div>
 </header>
 
@@ -24167,8 +26088,8 @@ var staticFS embed.FS
 **External Data Rules:**
 - Security-related data that needs frequent updates is NEVER embedded
 - Downloaded automatically on first run if not present
-- Updated automatically via built-in scheduler (see PART 18: SCHEDULER)
-- All scheduler tasks configurable via API
+- Updated automatically via built-in scheduler (see PART 19: SCHEDULER)
+- All scheduler tasks configurable via admin panel
 - Graceful degradation if download fails (continues without data)
 - SSL certificates only generated/managed when running on ports `80,443`
 
@@ -24274,7 +26195,7 @@ var staticFS embed.FS
 - **BOTH light AND dark themes MUST be easy to read**
 - **NO color conflicts** - nothing should be invisible or unreadable in either theme
 - **Sufficient contrast ratio** - minimum WCAG AA compliance (4.5:1) in both themes
-- **Theme applies everywhere** - WebUI, Swagger, GraphQL, etc.
+- **Theme applies everywhere** - WebUI, admin panel, Swagger, GraphQL, etc.
 - **Theme switching MUST work seamlessly** without page reload
 - **All interactive elements MUST be clearly visible** in both themes
 - **Syntax highlighting MUST adapt** to theme (use appropriate colors for each theme)
@@ -24344,7 +26265,7 @@ var ThemePaletteLight = ThemePalette{
 | **Windows** | Registry `AppsUseLightTheme` | 0 = dark, 1 = light |
 | **Terminal** | `COLORFGBG` env or fallback to dark | Terminal-specific |
 
-**See PART 32 for CLI/TUI/GUI implementation details.**
+**See PART 33 for CLI/TUI/GUI implementation details.**
 
 **Theme Detection Flow:**
 ```
@@ -24523,16 +26444,16 @@ server:
 - Tags with invalid characters (potential XSS)
 - Tags exceeding max length
 
-**SEO Configuration (config file):**
+**Admin Panel (/server/{admin_path}/config/seo):**
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Google Verification | `seo.google_verification` | Google Search Console code |
-| Bing Verification | `seo.bing_verification` | Bing Webmaster code |
-| Yandex Verification | `seo.yandex_verification` | Yandex Webmaster code |
-| Custom Tags | `seo.custom_tags` | Additional verification tags |
+| Element | Type | Description |
+|---------|------|-------------|
+| Google Verification | Text input | Google Search Console code |
+| Bing Verification | Text input | Bing Webmaster code |
+| Yandex Verification | Text input | Yandex Webmaster code |
+| Custom Tags | Key-value list | Additional verification tags |
 
-**Validation:** Server validates codes on startup and logs errors for invalid formats.
+**Validation on Save:** Admin panel MUST validate codes on save and show errors for invalid formats.
 
 ### Static Files
 
@@ -24575,12 +26496,14 @@ server:
 | Public pages | Always | 0.8 | weekly |
 | Public documentation pages (project-defined, if any) | Dynamic | 0.8 | weekly |
 | API docs (`/server/docs/swagger`, `/server/docs/graphql`) | Always | 0.7 | weekly |
-| Project-specific public resources | Dynamic | 0.6 | weekly |
-| Admin pages | **NEVER** | - | - |
+| User profiles (if public) | Dynamic | 0.6 | weekly |
+| Admin pages (`/server/{admin_path}/*`) | **NEVER** | - | - |
+| Auth pages (`/server/auth/*`) | **NEVER** | - | - |
 | API endpoints (`/api/*`) | **NEVER** | - | - |
 
 **Dynamic Content:**
-- Project resource pages: Include only if public/published
+- User profiles: Include only if `privacy.profile_public: true`
+- Organization pages: Include only if public
 - Custom domain pages: Include with their custom domain URL
 
 **Sitemap Configuration:**
@@ -24599,19 +26522,19 @@ server:
 - Split into multiple sitemap files: `/sitemap-1.xml`, `/sitemap-2.xml`, etc.
 - Each sitemap file max 50,000 URLs
 
-### Branding Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/branding)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Title | `branding.title` | Application display name |
-| Tagline | `branding.tagline` | Short slogan |
-| Description | `branding.description` | Longer description for SEO |
-| Keywords | `branding.keywords` | SEO keywords (comma-separated) |
-| Author | `branding.author` | Author/organization |
-| OG Image | `branding.og_image` | Social sharing image |
-| Twitter Handle | `branding.twitter_handle` | @handle |
-| Favicon | `branding.favicon` | Custom favicon |
-| Logo | `branding.logo` | Custom logo (header) |
+| Element | Type | Description |
+|---------|------|-------------|
+| Title | Text input | Application display name |
+| Tagline | Text input | Short slogan |
+| Description | Textarea | Longer description for SEO |
+| Keywords | Tag input | SEO keywords (comma-separated) |
+| Author | Text input | Author/organization |
+| OG Image | File upload / URL | Social sharing image |
+| Twitter Handle | Text input | @handle |
+| Favicon | File upload / URL | Custom favicon |
+| Logo | File upload / URL | Custom logo (header) |
 
 ### Image Sources
 
@@ -24619,7 +26542,7 @@ server:
 
 | Source | Format | Example |
 |--------|--------|---------|
-| Local file | File path | Set `branding.logo_path` in config to an absolute file path |
+| Local file | File upload | Upload via admin panel |
 | Remote URL | URL input | `https://example.com/logo.png` |
 | Embedded default | - | Built-in fallback |
 
@@ -24868,17 +26791,20 @@ messages:
     # User can dismiss
 ```
 
-### Announcements Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/announcements)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Enable announcements | `announcements.enabled` | Turn announcements on/off |
-| Type | `announcements[].type` | warning, info, error, success |
-| Title | `announcements[].title` | Short title |
-| Message | `announcements[].message` | Full message content |
-| Start date | `announcements[].start` | When to start showing (ISO 8601) |
-| End date | `announcements[].end` | When to stop showing (ISO 8601) |
-| Dismissible | `announcements[].dismissible` | Allow users to dismiss |
+| Element | Type | Description |
+|---------|------|-------------|
+| Enable announcements | Toggle | Turn announcements on/off |
+| Announcement list | Table | All announcements |
+| Add announcement | Button | Create new announcement |
+| Type | Dropdown | warning, info, error, success |
+| Title | Text input | Short title |
+| Message | Textarea | Full message content |
+| Start date | Datetime picker | When to start showing |
+| End date | Datetime picker | When to stop showing |
+| Dismissible | Toggle | Allow users to dismiss |
+| Delete | Button | Remove announcement |
 
 ## CORS
 
@@ -24923,12 +26849,14 @@ web:
 | Production | `*` | Allow all origins by default (configure if needed) |
 | Development | `*` | Allow all origins |
 
-### Web Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/web)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| CORS Origins | `web.cors` | Comma-separated list of allowed origins |
-| Root `/healthz` alias | `web.healthz.root.enabled` | Enables `/healthz` alias for compatibility with tools that require it |
+| Element | Type | Description |
+|---------|------|-------------|
+| CORS Origins | Text input | Comma-separated list of allowed origins |
+| Allow All | Toggle | Quick toggle for `*` (all origins) |
+| Root `/healthz` alias | Toggle | Enables `server.healthz.root.enabled` for compatibility with tools that require `/healthz` |
+| Preview | Read-only | Shows resulting CORS headers |
 
 ## CSRF Protection
 
@@ -24978,8 +26906,9 @@ web:
     header_name: X-CSRF-Token
     secure: auto                 # auto | true | false. "auto" sets Secure when proto is https.
     # Endpoints exempt from CSRF (operator-declared). Glob patterns supported.
-    # Common exemptions: webhook receivers, external callbacks.
+    # Common exemptions: OAuth callbacks, webhook receivers.
     exempt_paths:
+      - /api/{api_version}/server/auth/oidc/*/callback
       - /api/{api_version}/webhooks/*
 ```
 
@@ -25140,10 +27069,10 @@ func ValidateFooterHTML(html string) (string, error) {
 <form action="/steal"><input type="text"></form>
 ```
 
-### Sanitization Preview (API Response)
+### Admin Panel Preview
 
-When admin submits `custom_html` via API, the response includes:
-1. **Raw input** - What was submitted
+When admin edits `custom_html`, show:
+1. **Raw input** - What they typed
 2. **Sanitized output** - What will actually render
 3. **Warning** - If content was modified by sanitizer
 
@@ -25194,7 +27123,7 @@ When admin submits `custom_html` via API, the response includes:
 </footer>
 ```
 
-### Default Admin Footer
+### Default Admin Footer (Admin Panel)
 
 **Location:** `partial/admin/footer.tmpl`
 
@@ -25203,7 +27132,7 @@ When admin submits `custom_html` via API, the response includes:
   <div class="admin-footer-content">
     <!-- Version info -->
     <span class="admin-footer-version">
-      <a href="/server/info">{project_name} {projectversion}</a>
+      <a href="/server/{admin_path}/config/info">{project_name} {projectversion}</a>
     </span>
 
     <span class="admin-footer-separator">•</span>
@@ -25282,7 +27211,7 @@ When admin submits `custom_html` via API, the response includes:
 
 | Element | Description |
 |---------|-------------|
-| Version | Links to `/server/info` - shows project name and version |
+| Version | Links to `/server/{admin_path}/config/info` - shows project name and version |
 | Docs | External link to ReadTheDocs documentation |
 | Status | Server health indicator (green/yellow/red) with status text |
 
@@ -25295,15 +27224,17 @@ When admin submits `custom_html` via API, the response includes:
 | **Status indicator** | Real-time server health from `/server/healthz` |
 | **Same position rules** | Bottom of page, scrolls with content, centered |
 
-### Footer Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/footer)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Custom branding HTML | `web.footer.custom_html` | HTML above application footer (sanitized) |
+| Element | Type | Description |
+|---------|------|-------------|
+| Custom branding HTML | Textarea | HTML above application footer (sanitized) |
+| Sanitized preview | Code block | Shows sanitized output |
+| Rendered preview | Preview pane | Shows rendered footer |
 
-**Related configuration:**
-- Analytics tracking: `analytics` section (PART 12: Analytics Tracking)
-- Privacy & consent: `privacy` section (PART 12: Privacy & Consent)
+**Related admin pages:**
+- Analytics tracking: `/server/{admin_path}/config/tracking` (PART 12: Analytics Tracking)
+- Privacy & consent: `/server/{admin_path}/config/privacy` (PART 12: Privacy & Consent)
 
 ## Cookie Consent Banner
 
@@ -25311,7 +27242,7 @@ When admin submits `custom_html` via API, the response includes:
 
 **Configuration:** `server.privacy.consent` (see PART 12: Privacy & Consent)
 
-**Configuration:** `server.privacy` section in config file
+**Admin panel:** `/server/{admin_path}/config/privacy`
 
 ### Banner Layout
 
@@ -25387,7 +27318,7 @@ message := cfg.Privacy.GetConsentMessage()  // Returns appropriate message based
 ```html
 <!-- Cookie Consent Banner - ALWAYS shown until user responds (we use cookies) -->
 <!-- {message} is dynamically selected based on server.privacy.data.sold -->
-<div id="cookie-consent" class="cookie-banner" data-sold="{data_sold}" style="display: none;">
+<div id="cookie-consent" class="cookie-banner cookie-banner--hidden" data-sold="{data_sold}">
   <div class="cookie-banner-content">
     <span class="cookie-message">
       {message} - <a href="{policy_url}" class="policy-link">{policy_text}</a>
@@ -25415,7 +27346,7 @@ const defaultConsent = {
 
   // No consent yet - show banner
   if (!stored && banner) {
-    banner.style.display = 'block';
+    banner.classList.remove('cookie-banner--hidden');
   }
 
   // Has consent - apply settings
@@ -25426,7 +27357,7 @@ const defaultConsent = {
     } catch (e) {
       // Legacy format or corrupted - show banner again
       localStorage.removeItem('cookieConsent');
-      if (banner) banner.style.display = 'block';
+      if (banner) banner.classList.remove('cookie-banner--hidden');
     }
   }
 })();
@@ -25472,7 +27403,7 @@ function savePreferences() {
 
 function saveAndApplyConsent(consent) {
   localStorage.setItem('cookieConsent', JSON.stringify(consent));
-  document.getElementById('cookie-consent').style.display = 'none';
+  document.getElementById('cookie-consent').classList.add('cookie-banner--hidden');
   applyConsent(consent);
 }
 
@@ -25540,6 +27471,10 @@ initCCPA();
 
 <style>
 /* Cookie Consent Banner - matches reference design */
+.cookie-banner--hidden {
+  display: none;
+}
+
 .cookie-banner {
   position: fixed;
   bottom: 0;
@@ -26023,7 +27958,7 @@ func trackingScript(r *http.Request) template.HTML {
   "cookies": {
     "essential": {
       "enabled": true,
-      "description": "Required for the site to function. Includes security tokens (CSRF) and site preferences."
+      "description": "Required for the site to function. Includes session management, security tokens (CSRF), and authentication."
     },
     "preferences": {
       "enabled": true,
@@ -26090,20 +28025,26 @@ func trackingScript(r *http.Request) template.HTML {
 
 **Note:** The `tracking` and `third_party.services` fields are populated based on `server.tracking` config. If no tracking is configured, they remain empty.
 
-**Privacy Configuration (config file):**
+**Admin Panel (`/server/{admin_path}/config/privacy`):**
 
-| Section | Config Keys |
-|---------|-------------|
-| **Data Policies** | `privacy.data.sold` (default: false), `privacy.data.stored_on_server` |
-| **Consent Banner** | `privacy.consent.message`, `privacy.consent.message_if_sold`, `privacy.consent.policy_link` |
-| **Cookie Descriptions** | `privacy.cookies.essential`, `privacy.cookies.preferences`, `privacy.cookies.analytics` |
-| **Data Collection** | `privacy.data_collection` (Markdown) |
-| **Data Usage** | `privacy.data_usage`, `privacy.data_usage_if_sold` (Markdown) |
-| **Data Security** | `privacy.data_security` (Markdown) |
-| **Data Retention** | `privacy.retention.period`, `privacy.retention.export`, `privacy.retention.deletion` |
-| **Third Parties** | `privacy.third_parties[]` (name, purpose, policy_url) |
+| Tab | Fields |
+|-----|--------|
+| **Data Policies** | **`data.sold` toggle** (default: off), stored_on_server (read-only: true), sharing conditions |
+| **Consent Banner** | Message (not-sold), message_if_sold (sold), policy link, button labels, position |
+| **Cookie Descriptions** | Essential, Preferences, Analytics (base + suffix for both sold/not-sold) |
+| **Data Collection** | Markdown editor for data collection section |
+| **Data Usage** | Markdown editor for `data_usage` (not-sold), `data_usage_if_sold` (sold) |
+| **Data Security** | Markdown editor for data security section |
+| **Data Retention** | Retention period text, export toggle, deletion toggle |
+| **Third Parties** | Add/edit/remove services (name, purpose, policy URL) |
+| **Preview** | Live preview of privacy page (toggle to see sold/not-sold versions) |
 
-**Default content provided, fully customizable via config file.**
+**Important Admin UI Note:**
+- When `data.sold` is toggled ON, show a **warning** explaining CCPA implications
+- The `message_if_sold` and `data_usage_if_sold` fields are only editable when `data.sold = true`
+- Preview tab should allow toggling between "Data NOT Sold" and "Data Sold" views
+
+**Default content provided, fully customizable via admin panel.**
 
 ### /server/contact
 
@@ -26266,7 +28207,7 @@ curl -H "Accept: application/xml" https://jokes.example.com/api/v1/joke</code></
 | Changes | How terms may be updated |
 | Governing law | Jurisdiction |
 
-**Default template provided, customizable via API.**
+**Default template provided, customizable via admin panel.**
 
 ### Configuration
 
@@ -26307,15 +28248,30 @@ server:
       content: ""
 ```
 
-### Pages Configuration (config file)
+### Admin Panel (/server/{admin_path}/config/pages)
 
-| Page | Config Keys |
-|------|-------------|
-| **About Page** | `pages.about.content` (Markdown) |
-| **Privacy Policy** | `pages.privacy.content` (Markdown) |
-| **Contact Page** | `pages.contact.enabled`, `pages.contact.recipient_email`, `pages.contact.captcha_type`, `pages.contact.success_message` |
-| **Help Page** | `pages.help.content` (Markdown) |
-| **Terms of Service** | `pages.terms.content` (Markdown) |
+| Element | Type | Description |
+|---------|------|-------------|
+| **About Page** | | |
+| Content | Markdown editor | Additional about page content |
+| Preview | Button | Preview about page |
+| **Privacy Policy** | | |
+| Content | Markdown editor | Privacy policy content |
+| Reset to default | Button | Restore default template |
+| Preview | Button | Preview privacy page |
+| **Contact Page** | | |
+| Enable contact form | Toggle | Enable/disable contact form |
+| Recipient email | Text input | Email to receive messages |
+| Captcha type | Dropdown | recaptcha, hcaptcha, simple |
+| Success message | Textarea | Message shown after submission |
+| Test form | Button | Send test message |
+| **Help Page** | | |
+| Content | Markdown editor | Help/documentation content |
+| Preview | Button | Preview help page |
+| **Terms of Service** | | |
+| Content | Markdown editor | Terms of service content |
+| Reset to default | Button | Restore default template |
+| Preview | Button | Preview terms page |
 
 ### /server/ API Endpoints
 
@@ -26362,17 +28318,2453 @@ server:
 ---
 
 
-# PART 17: EMAIL & NOTIFICATIONS
+# PART 17: ADMIN PANEL
+
+**ALL projects MUST have a full admin panel.**
+
+## Admin Panel Isolation
+
+**The admin panel is completely isolated from the public site.**
+
+**Note:** `/server/admin` is the default admin root. `{admin_path}` is configurable via `server.admin_path`. See "Configurable Admin Path" section below.
+
+| Rule | Description |
+|------|-------------|
+| **NEVER link to admin path** | No links to `/server/{admin_path}` on ANY public routes (`/**`) |
+| **Intentional access only** | Users must manually type admin path in browser |
+| **Separate authentication** | Admin account is ONLY valid for `/server/{admin_path}/**` routes |
+| **No admin mentions** | Don't advertise admin panel existence anywhere |
+| **Separate session** | Admin session is separate from user sessions |
+
+### User Types
+
+| User Type | Valid Routes | Authentication |
+|-----------|--------------|----------------|
+| **Admin** | `/server/{admin_path}/**` ONLY | Admin credentials (username/password) |
+| **Guest/Anon** | `/**` (except `/server/{admin_path}`) | None |
+| **Normal User** | `/**` (except `/server/{admin_path}`) | User account (if multi-user enabled) |
+
+**Admin credentials are stored in `users.db` (admins table), NOT in config file.**
+
+### Testing Admin Routes
+
+**Admin authentication MUST be tested, not bypassed:**
+
+| Testing Approach | Use For | Method |
+|------------------|---------|--------|
+| **Proper testing** | Automated tests, beta testing, CI/CD | Use setup token → create admin → test login |
+| **Manual dev only** | Quick UI exploration while coding | Use `--debug` flag (bypasses auth) |
+
+**Automated tests MUST:**
+1. Verify unauthenticated requests are blocked
+2. Use setup token to create admin account
+3. Test login with valid credentials
+4. Verify admin routes work with session
+5. Verify invalid credentials are rejected
+
+**See PART 29: TESTING & DEVELOPMENT for complete admin authentication testing examples.**
+
+### Why Isolated?
+
+- Security: Admin panel not discoverable
+- Separation: Admin functions separate from user functions
+- Simplicity: No confusion between admin and user roles
+- Protection: Reduces attack surface
+
+## Admin Route Hierarchy
+
+**All admin routes follow a strict hierarchy. Routes MUST NOT conflict.**
+
+### Route Structure
+
+```
+/server/{admin_path}/                          # Admin root (dashboard)
+/server/{admin_path}/{admin_username}/         # Admin's own account root
+/server/{admin_path}/{admin_username}/profile  # Admin's own profile
+/server/{admin_path}/{admin_username}/preferences   # Admin's own preferences/settings
+/server/{admin_path}/{admin_username}/notifications # Admin's own notifications
+/server/{admin_path}/config/                   # Server management (EVERYTHING ELSE)
+/server/{admin_path}/config/setup              # Initial setup wizard
+/server/{admin_path}/config/settings           # Server settings
+/server/{admin_path}/config/ssl                # SSL/TLS configuration
+/server/{admin_path}/config/email              # Email configuration
+/server/{admin_path}/config/scheduler          # Scheduled tasks
+/server/{admin_path}/config/logs               # Server logs
+/server/{admin_path}/config/logs/audit         # Audit logs
+/server/{admin_path}/config/backup             # Backup/restore
+/server/{admin_path}/config/updates            # Update management
+/server/{admin_path}/config/info               # Server information
+/server/{admin_path}/config/metrics            # Metrics dashboard
+/server/{admin_path}/config/network/           # Network settings
+/server/{admin_path}/config/network/tor        # Tor configuration
+/server/{admin_path}/config/network/geoip      # GeoIP settings
+/server/{admin_path}/config/security/          # Security settings
+/server/{admin_path}/config/security/auth      # Authentication config and provider overview
+/server/{admin_path}/config/security/auth/oidc # OIDC provider management
+/server/{admin_path}/config/security/auth/ldap # LDAP provider management
+/server/{admin_path}/config/security/tokens    # API token management
+/server/{admin_path}/config/security/firewall  # Firewall rules
+/server/{admin_path}/config/users/             # User management (if multi-user)
+/server/{admin_path}/config/orgs/              # Org management (if orgs enabled)
+/server/{admin_path}/config/cluster/           # Cluster management (if clustering)
+/server/{admin_path}/config/agents/            # Agent management (if agents)
+```
+
+### Route Hierarchy Rules
+
+| Rule | Description |
+|------|-------------|
+| **`/server/{admin_path}/` root** | Dashboard ONLY |
+| **`/server/{admin_path}/{admin_username}/*`** | Admin's OWN account/profile/preferences/notifications only |
+| **`/server/{admin_path}/config/*`** | ALL server management goes here |
+| **No other direct children** | ONLY `{admin_username}` and `config` under `/server/{admin_path}/` |
+
+### What Goes Where
+
+| Route | Purpose | Example |
+|-------|---------|---------|
+| `/server/{admin_path}/` | Dashboard overview | System status, quick stats |
+| `/server/{admin_path}/{admin_username}/profile` | Admin's personal account | Change own password, 2FA |
+| `/server/{admin_path}/{admin_username}/preferences` | Admin's UI preferences | Theme, language, timezone |
+| `/server/{admin_path}/config/*` | **EVERYTHING server-related** | Config, users, logs, etc. |
+
+### INVALID Routes (NEVER DO THIS)
+
+```
+# WRONG - Server management at admin root level
+/server/{admin_path}/settings          # ✗ WRONG - use /server/{admin_path}/config/settings
+/server/{admin_path}/users             # ✗ WRONG - use /server/{admin_path}/config/users
+/server/{admin_path}/logs              # ✗ WRONG - use /server/{admin_path}/config/logs
+/server/{admin_path}/security          # ✗ WRONG - use /server/{admin_path}/config/security
+/server/{admin_path}/email             # ✗ WRONG - use /server/{admin_path}/config/email
+/server/{admin_path}/tor               # ✗ WRONG - use /server/{admin_path}/config/network/tor
+/server/{admin_path}/tokens            # ✗ WRONG - use /server/{admin_path}/config/security/tokens
+/server/{admin_path}/agents            # ✗ WRONG - use /server/{admin_path}/config/agents
+/server/{admin_path}/cluster           # ✗ WRONG - use /server/{admin_path}/config/cluster
+
+# CORRECT
+/server/{admin_path}/{admin_username}/profile      # ✓ Admin's own profile
+/server/{admin_path}/{admin_username}/preferences  # ✓ Admin's own preferences
+/server/{admin_path}/config/settings   # ✓ Server settings
+/server/{admin_path}/config/users      # ✓ User management
+```
+
+### API Route Hierarchy (Same Pattern)
+
+```
+/api/{api_version}/server/{admin_path}/                         # Admin API root
+/api/{api_version}/server/{admin_path}/{admin_username}/profile       # Admin's own profile
+/api/{api_version}/server/{admin_path}/{admin_username}/preferences   # Admin's own preferences
+/api/{api_version}/server/{admin_path}/{admin_username}/notifications # Admin's own notifications
+/api/{api_version}/server/{admin_path}/config/                  # Server management API
+/api/{api_version}/server/{admin_path}/config/setup             # Setup flow
+/api/{api_version}/server/{admin_path}/config/settings          # Server settings
+/api/{api_version}/server/{admin_path}/config/users             # User management
+/api/{api_version}/server/{admin_path}/config/agents            # Agent management
+```
+
+### Route Conflict Prevention
+
+**New routes MUST be checked against existing routes:**
+
+```go
+// Admin route hierarchy validation
+var validAdminRootPaths = map[string]bool{
+    "":       true,  // Dashboard (/server/{admin_path}/)
+    "config": true,  // Server management (has sub-routes)
+}
+
+func validateAdminRoute(path string) error {
+    // Extract first segment after /server/{admin_path}/
+    parts := strings.Split(strings.Trim(path, "/"), "/")
+    if len(parts) == 0 {
+        return nil // Root path is OK
+    }
+
+    firstSegment := parts[0]
+    if validAdminRootPaths[firstSegment] {
+        return nil
+    }
+
+    // Otherwise the first segment must be the current admin's username.
+    if firstSegment == currentAdminUsername {
+        return nil
+    }
+
+    return fmt.Errorf("invalid admin route: /%s/* - use /server/{admin_path}/{admin_username}/* for admin self routes or /server/{admin_path}/config/* for server management", firstSegment)
+}
+```
+
+### Why This Structure?
+
+1. **Clear separation**: Admin's personal settings vs server management
+2. **No conflicts**: Only `config` and `{admin_username}` live under the admin root
+3. **Scalability**: All new server features go under `/server/*`
+4. **Predictability**: Developers know where to add new routes
+5. **Security**: Easy to audit - fixed namespace under `/server`
+
+## Configurable Admin Path
+
+**The default `/server/admin` admin root can be changed for security (obscurity).**
+
+### Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `server.admin_path` | `admin` | Path segment for admin panel (no leading slash) |
+
+**When changed, ALL admin routes update:**
+- `/server/admin/**` → `/server/{admin_path}/**`
+- `/api/{api_version}/server/admin/**` → `/api/{api_version}/server/{admin_path}/**`
+
+### Validation Rules
+
+| Rule | Action |
+|------|--------|
+| **Cannot conflict with existing routes** | Error and revert to `admin` |
+| **Reserved paths blocked** | `api`, `static`, `assets`, `health`, `version`, etc. |
+| **Valid characters only** | `[a-z0-9-]` (lowercase, numbers, hyphens) |
+| **Min/max length** | 2-32 characters |
+| **No leading/trailing hyphens** | `my-admin` ✓, `-admin-` ✗ |
+
+**Path Normalization:** See PART 5 "Path Normalization" for global path cleanup rules that apply to `admin_path` and all other configurable paths.
+
+### Route Conflict Detection
+
+```go
+// Check if new admin path conflicts with existing routes
+func validateAdminPath(newPath string, router *mux.Router) error {
+    // Normalize first
+    newPath = normalizePath(newPath)
+    // 1. Check reserved paths
+    reserved := []string{
+        "api", "health", "healthz", "metrics", "version", ".well-known",
+        "about", "privacy", "contact", "help", "terms",
+        "docs", "auth", "security",
+        "static", "assets",
+    }
+    for _, r := range reserved {
+        if newPath == r {
+            return fmt.Errorf("'%s' is a reserved path", newPath)
+        }
+    }
+
+    // 2. Check existing routes
+    existingRoutes := getRegisteredRoutes(router)
+    for _, route := range existingRoutes {
+        if strings.HasPrefix(route, "/"+newPath) {
+            return fmt.Errorf("'%s' conflicts with existing route: %s", newPath, route)
+        }
+    }
+
+    return nil
+}
+```
+
+### WebUI Change Flow
+
+**When admin path changed via WebUI (`/server/{admin_path}/config/settings`):**
+
+```
+1. User submits new admin path
+2. Server validates (no conflicts, valid format)
+3. If invalid → Show error, keep current path
+4. If valid:
+   a. Save to config
+   b. Return success with new path
+   c. Frontend shows "Reloading..." overlay
+   d. Server triggers graceful reload
+   e. After reload, frontend redirects to new path
+```
+
+**Frontend JavaScript:**
+```javascript
+async function changeAdminPath(newPath) {
+    const response = await fetch(`/api/{api_version}/server/{admin_path}/config/settings`, {
+        method: 'PATCH',
+        body: JSON.stringify({ admin_path: newPath })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        // Show reload overlay
+        showOverlay("Applying changes...");
+        // Wait for server reload
+        await waitForServerReady();
+        // Redirect to new admin path
+        window.location.href = `/server/${data.new_admin_path}`;
+    } else {
+        showError(await response.json());
+    }
+}
+```
+
+### Internal Systems Update
+
+**All internal systems MUST use the configured admin path:**
+
+| System | Update Required |
+|--------|-----------------|
+| **Swagger/OpenAPI** | Base path for admin endpoints |
+| **GraphQL** | Admin schema endpoint path |
+| **WebSocket** | Admin notification channels |
+| **CORS** | Allowed origins for admin path |
+| **CSP** | Content Security Policy paths |
+| **Session cookies** | Cookie path attribute |
+| **Audit logs** | Log correct paths |
+| **Error pages** | Login redirect URLs |
+
+**Implementation:**
+```go
+// Global admin path accessor
+func AdminPath() string {
+    return config.Get().Server.AdminPath // default: "admin"
+}
+
+// Global API version accessor
+func APIVersion() string {
+    return config.Get().Server.APIVersion // default: "v1"
+}
+
+// API base path helper
+func APIBasePath() string {
+    return "/api/" + APIVersion() // e.g., "/api/{api_version}"
+}
+
+// Use in route registration
+func RegisterAdminRoutes(r *mux.Router) {
+    adminPath := AdminPath()
+    apiBase := APIBasePath()
+
+    admin := r.PathPrefix("/" + adminPath).Subrouter()
+    // ... register routes
+
+    api := r.PathPrefix(apiBase + "/" + adminPath).Subrouter()
+    // ... register API routes
+}
+
+// Use in templates
+{{ .AdminPath }}   // Available in all templates
+{{ .APIVersion }}  // Available in all templates
+{{ .APIBasePath }} // e.g., "/api/{api_version}"
+```
+
+### Restart vs Reload
+
+| Change Type | Action | Downtime |
+|-------------|--------|----------|
+| **Admin path** | Graceful reload | None (routes re-registered) |
+| **Port change** | Full restart | Brief (~1-2s) |
+
+## Design Principles
+
+| Principle | Description |
+|-----------|-------------|
+| Server Admin Focus | Designed for server administration, not end-users |
+| Pretty | Clean, modern, professional design |
+| Intuitive | Self-explanatory, no manual needed |
+| Easy Navigation | Logical grouping, breadcrumbs, search |
+| Frontend Rules | Dark theme (default), light/dark/auto themes, responsive, accessible |
+| No JS Alerts | Custom modals, toasts, confirmations |
+| Real-time Feedback | Show save status, validation errors inline |
+| Mobile-Friendly | Works on all screen sizes |
+| Keyboard Shortcuts | Power users can navigate quickly |
+
+## Admin Panel Layout
+
+### Overall Structure
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ HEADER                                                                   │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ Logo/Title          Search...              [Status] [User] [Logout] │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+├──────────────┬──────────────────────────────────────────────────────────┤
+│   SIDEBAR    │                    MAIN CONTENT                          │
+│              │                                                          │
+│  Dashboard   │  ┌─────────────────────────────────────────────────────┐ │
+│              │  │ Breadcrumb: Dashboard > Server > Settings           │ │
+│  Server ▼    │  └─────────────────────────────────────────────────────┘ │
+│   Settings   │                                                          │
+│   SSL/TLS    │  ┌─────────────────────────────────────────────────────┐ │
+│   Scheduler  │  │                                                     │ │
+│   Logs       │  │              PAGE CONTENT                           │ │
+│              │  │                                                     │ │
+│  Security ▼  │  │                                                     │ │
+│   Auth       │  │                                                     │ │
+│   Tokens     │  │                                                     │ │
+│   Firewall   │  │                                                     │ │
+│              │  │                                                     │ │
+│  Network ▼   │  │                                                     │ │
+│   Tor        │  │                                                     │ │
+│   GeoIP      │  │                                                     │ │
+│              │  └─────────────────────────────────────────────────────┘ │
+│  Users ▼     │                                                          │
+│  (if multi)  │  ┌─────────────────────────────────────────────────────┐ │
+│              │  │ FOOTER: Version | Docs | Status                     │ │
+│  Cluster ▼   │  └─────────────────────────────────────────────────────┘ │
+│  (if enabled)│                                                          │
+│              │                                                          │
+└──────────────┴──────────────────────────────────────────────────────────┘
+```
+
+### Header
+
+| Element | Position | Description |
+|---------|----------|-------------|
+| Logo/Title | Left | Project name, clickable → dashboard |
+| Search | Center | Global search (settings, logs, etc.) |
+| Status Indicator | Right | ● Green (OK), ● Yellow (Warning), ● Red (Error) |
+| Admin Name | Right | Current admin username |
+| Logout | Right | Always visible, one-click logout |
+
+### Sidebar Navigation
+
+**Collapsible sidebar with grouped sections.**
+
+```
+📊 Dashboard
+
+📦 Server
+   ├── Settings
+   ├── Branding
+   ├── SSL/TLS
+   ├── Scheduler
+   ├── Email
+   ├── Logs
+   ├── Backup
+   ├── Maintenance
+   ├── Updates
+   └── Info
+
+🔒 Security
+   ├── Authentication
+   ├── API Tokens
+   ├── Rate Limiting
+   └── Firewall
+
+🌐 Network
+   ├── Tor
+   ├── GeoIP
+   └── Blocklists
+
+👥 Users (if multi-user)
+   ├── User List
+   ├── Invites
+   └── Roles
+
+🔗 Cluster (if enabled)
+   ├── Nodes
+   ├── Add Node
+   └── Settings
+
+❓ Help
+   └── Documentation
+```
+
+### Sidebar Behavior
+
+| Feature | Description |
+|---------|-------------|
+| Collapsible | Click section header to expand/collapse |
+| Active indicator | Highlight current page |
+| Collapse all | Double-click header to collapse sidebar |
+| Remember state | Persist expanded/collapsed state |
+| Icons | Each section has icon for quick recognition |
+| Mobile | Hamburger menu, slide-out drawer |
+
+## /server/{admin_path} (Web Interface)
+
+### Authentication
+
+| Feature | Description |
+|---------|-------------|
+| Login page | `/server/{admin_path}` (when not logged in) |
+| Login form | Username/password, centered card |
+| Session | Cookie-based (30 days default, configurable) |
+| CSRF | Protection on all forms |
+| Remember Me | Option available (extends to 90 days) |
+| Logout | Always visible in header |
+| MFA | TOTP support (optional, configurable) |
+
+## Server Admin Accounts
+
+**Server admins are ADMINISTRATIVE ACCOUNTS for managing the application. They are NOT regular users.**
+
+### Server Admin vs Regular Users
+
+| Aspect | Server Admin | Regular User (PART 34) |
+|--------|--------------|------------------------|
+| **Purpose** | Manage server, configuration, other users | Use the application features |
+| **Scope** | Server-wide administration | Own account and data only |
+| **Storage** | `admins` table | `users` table |
+| **Required** | **YES - all projects** | **OPTIONAL** (Multi-User feature) |
+| **Login** | `/server/auth/login` → `/server/{admin_path}/*` | `/server/auth/login` → `/users/*` |
+| **Access** | Admin panel (`/server/{admin_path}/*`) | User routes (`/users/*`) |
+| **Created by** | Setup wizard, existing admin, or OIDC/LDAP | Registration or admin invitation |
+
+**Important:** Server Admins and regular users are completely separate account types stored in different database tables. A Server Admin is NOT a "privileged user" - they are a different kind of account entirely.
+
+### Server Admin Behavior
+
+| Route | Server Admin Access |
+|-------|---------------------|
+| `/server/{admin_path}/*` | Full access |
+| `/users/*` | NO - treated as guest (redirect to `/server/{admin_path}`) |
+| `/server/auth/login` | Login page |
+| `/server/auth/logout` | Logout |
+| Public routes (`/`, `/server/*`, etc.) | Guest view (no user-specific content) |
+
+**Admin credentials are stored in `users.db` (`admins` table), NOT in config file.**
+
+## First Run & Setup Wizard
+
+**IMPORTANT: App works perfectly with sane defaults before setup.** Setup wizard is optional and allows customization. Server is fully functional immediately on first run.
+
+### First Run Experience
+
+**On first run, the application:**
+
+1. Creates default `server.yml` with sane defaults
+2. Creates empty `server.db` database
+3. Auto-detects and configures SMTP (if available)
+4. Selects random available port (64xxx range)
+5. Generates one-time setup token
+6. Displays startup information in console
+7. **Starts serving immediately** - fully functional
+
+**Console Output (First Run):**
+
+```
+╭───────────────────────────────────────────────────────────╮
+│  🚀 {PROJECT_NAME} · 📦 {projectversion}                   │
+├───────────────────────────────────────────────────────────┤
+│  🔧 Running in mode: {app_mode}                           │
+├───────────────────────────────────────────────────────────┤
+│  🌐 HTTP:  {proto}://{fqdn}:{port}                        │
+├───────────────────────────────────────────────────────────┤
+│  📡 Listening on {proto}://{address}:{port}               │
+│  ✅ Server started on {startup_datetime}                  │
+╰───────────────────────────────────────────────────────────╯
+
+┌───────────────────────────────────────────────────────────┐
+│  🔑 SETUP REQUIRED                                        │
+├───────────────────────────────────────────────────────────┤
+│  Setup Token: {setup_token}                               │
+│                                                           │
+│  Go to {proto}://{fqdn}/server/{admin_path}/config/setup         │
+│  and enter this token to complete setup.                  │
+│                                                           │
+│  This token will only be shown ONCE.                      │
+└───────────────────────────────────────────────────────────┘
+
+[INFO] Server started successfully
+[INFO] Listening on {address}:{port}
+```
+
+### App Usability Before Setup
+
+**The app is FULLY FUNCTIONAL before completing the setup wizard.**
+
+**This does NOT relax security.** Pre-setup public surfaces still follow the same public-endpoint, sanitization, rate-limit, TLS, auth, and secret-handling rules as the fully configured app.
+
+| Feature | Available Before Setup? |
+|---------|------------------------|
+| Public API endpoints | ✓ Yes |
+| Public web pages | ✓ Yes |
+| Health checks (`/server/healthz`) | ✓ Yes |
+| OpenAPI docs (`/server/docs/swagger`) | ✓ Yes |
+| GraphQL (if applicable) | ✓ Yes |
+| Admin panel (`/server/{admin_path}`) | ✓ Yes (requires setup token) |
+| Email features | ✓ Yes (if SMTP auto-detected) |
+| Scheduled tasks | ✓ Yes (with defaults) |
+
+**What Setup Wizard Provides:**
+- Custom admin username/password (instead of generated)
+- Customize app name/branding
+- Review HTTPS/certificate configuration if customization is needed, and enable optional features like multi-user - Note: Tor is auto-enabled if binary found, not configurable
+- Receive API token for programmatic access
+
+### Setup Flow
+
+On first run, a one-time setup token is generated and displayed in console. Admin setup follows this flow:
+
+| Step | Action |
+|------|--------|
+| 1 | Server generates one-time setup token (displayed in console ONCE) |
+| 2 | User navigates to `/server/{admin_path}` |
+| 3 | User enters setup token |
+| 4 | Redirect to `/server/{admin_path}/config/setup` (setup wizard) |
+
+**Setup Wizard Steps (`/server/{admin_path}/config/setup`):**
+
+**Step 1: Create Admin Account**
+| Field | Default | Notes |
+|-------|---------|-------|
+| Username | `administrator` | Changeable (username blocklist does NOT apply to admin) |
+| Password | Random (generated) | User MUST copy, OR can enter custom + confirm |
+
+**Step 2: API Token**
+| Action | Notes |
+|--------|-------|
+| Auto-generate API token | User MUST copy (shown once) |
+| Token is tied to admin account | Used for API access |
+
+**Step 3: Server Configuration**
+| Setting | Description |
+|---------|-------------|
+| App name | Display name for the application |
+| Domain/FQDN | Primary domain (if known) |
+| Mode | Production / Development |
+| Timezone | Server timezone |
+
+**Step 4: Security Settings**
+| Setting | Default | Recommended | Description |
+|---------|---------|-------------|-------------|
+| Backup encryption password | (none) | **SET ONE** | Encrypts all backups (AES-256-GCM) |
+| Enable 2FA for this admin | No | Yes | Adds TOTP to admin account |
+
+**Step 5: Optional Services**
+| Setting | Description |
+|---------|-------------|
+| Configure HTTPS / certificate source | Review or customize the default secure HTTPS path if needed |
+| Enable Multi-User | Enable Regular User accounts (PART 34) |
+
+**Step 6: Complete**
+| Action | Notes |
+|--------|-------|
+| Save configuration | Write to `server.yml` |
+| Mark setup complete | Setup token invalidated |
+| Redirect to `/server/{admin_path}` | Logged in as admin |
+
+**Setup Token Rules:**
+- Generated on first run ONLY
+- Displayed in console ONCE (never stored in plain text)
+- Single use - invalidated after setup complete
+- If lost, must reset database to regenerate
+- Format: 32 hexadecimal characters (128-bit random)
+
+## Multiple Server Admins
+
+**Server Admins CAN add additional Server Admins.**
+
+| Method | Description |
+|--------|-------------|
+| **Manual creation** | Primary admin invites additional admin accounts via `/server/{admin_path}/config/admins` |
+| **OIDC/LDAP group mapping** | Map external identity provider groups to Server Admin role |
+
+### Admin Hierarchy
+
+| Admin Type | Created By | Can Create Admins? | Can Delete Admins? |
+|------------|------------|--------------------|--------------------|
+| **Primary Admin** | Setup wizard | Yes | Yes (except self) |
+| **Additional Admins** | Primary or other admin | Yes | Yes (except self and primary) |
+| **OIDC/LDAP Admins** | Group mapping | Yes | Yes (except primary) |
+
+**Rules:**
+- Primary admin cannot be deleted (only via `--maintenance setup`)
+- All admins have equal permissions (except deletion hierarchy)
+- OIDC/LDAP admin access is automatic based on group membership
+- Removing user from external group removes admin access on next login
+- All admin actions are audited with admin username
+
+### Admin Invite Flow
+
+```
+Admin Panel (/server/{admin_path}/config/admins)
+┌─────────────────────────────────────────────────────────────┐
+│  Server Administrators                                      │
+├─────────────────────────────────────────────────────────────┤
+│  Your Account: administrator                                │
+│  Total Admins: 2                                            │
+│  Currently Online: administrator, backup-admin              │
+│                                                             │
+│  [+ Invite New Admin]                                       │
+└─────────────────────────────────────────────────────────────┘
+
+Admin clicks "Invite New Admin"
+         ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Invite New Server Admin                                    │
+├─────────────────────────────────────────────────────────────┤
+│  Username: [                    ]                           │
+│                                                             │
+│  Invite expires in: [24 hours ▼]                            │
+│                                                             │
+│  [Cancel]  [Generate Invite]                                │
+└─────────────────────────────────────────────────────────────┘
+
+         ↓ (Invite generated)
+
+┌─────────────────────────────────────────────────────────────┐
+│  ✅ Admin Invite Created                                     │
+├─────────────────────────────────────────────────────────────┤
+│  Username: backup-admin                                     │
+│                                                             │
+│  Invite URL (share with new admin):                         │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ https://app.example.com/server/auth/invite/server/abc123...│    │
+│  └─────────────────────────────────────────────────────┘    │
+│  [Copy URL]                                                 │
+│                                                             │
+│  ⚠️  This link will only work ONCE and expires in 24 hours. │
+│  The new admin will set their own password on first use.    │
+│                                                             │
+│  [Done]                                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Invite Rules:**
+- Invite link is single-use (invalidated after first use or expiry)
+- Default expiry: 24 hours (configurable: 1h, 6h, 24h, 48h, 7d)
+- New admin can set their own username (username blocklist ignored for admins)
+- New admin sets their own password and optional 2FA
+- API token generated and shown once
+- Invite creation logged to audit log
+
+### OIDC/LDAP Admin Sync
+
+**When a user authenticates via OIDC/LDAP and belongs to a mapped admin group:**
+
+1. User authenticates with OIDC/LDAP provider
+2. Server retrieves user's group memberships
+3. If user is in `admin_groups` → create/update local admin record
+4. Admin credentials synced to local database
+5. On next login, even if OIDC/LDAP is down, local credentials work
+
+**Local Sync Fields (`admins` table):**
+| Field | Description |
+|-------|-------------|
+| `username` | Final local admin username (claim-derived, admin-chosen on first login, or from the previously linked local admin record) |
+| `password` | Argon2id hash (synced or set locally) |
+| `source` | `local`, `oidc:{provider}`, `ldap:{provider}` |
+| `external_id` | Provider's user ID |
+| `groups` | JSON array of cached group memberships |
+| `last_sync` | Last successful sync timestamp |
+
+**Fallback Behavior:**
+| Scenario | Behavior |
+|----------|----------|
+| OIDC/LDAP available | Authenticate with provider, sync to local |
+| OIDC/LDAP unavailable | Use cached local credentials |
+| User removed from admin group | Next successful OIDC/LDAP login revokes admin |
+| Provider permanently down | Local credentials continue to work |
+
+**Matching rule:** for OIDC/LDAP-backed admins, the stable identity key is `external_id` + provider source, not mutable username/email.
+
+## Server Admin Security
+
+**ALL security settings that apply to the primary Server Admin ALSO apply to additional Server Admins.**
+
+| Security Feature | Applies To | Required/Recommended |
+|------------------|------------|---------------------|
+| Password complexity requirements | All Server Admins | REQUIRED |
+| TOTP 2FA support | All Server Admins | REQUIRED (usage recommended) |
+| Passkey/WebAuthn support | All Server Admins | REQUIRED (usage recommended) |
+| Recovery keys (when MFA enabled) | All Server Admins | REQUIRED |
+| Session timeout | All Server Admins | REQUIRED |
+| API token security | All Server Admins | REQUIRED |
+| Audit logging | All Server Admins | REQUIRED |
+| Rate limiting | All Server Admins | REQUIRED |
+| IP restrictions (if configured) | All Server Admins | OPTIONAL |
+
+**MFA for Server Admins:**
+- Every project MUST support TOTP and Passkeys for Server Admins
+- MFA is optional but STRONGLY recommended - admin chooses to enable
+- This applies even to simple apps without regular users (e.g., `jokes`, `airports`)
+- Admin panel shows clear prompts encouraging MFA setup
+
+**No exceptions.** Additional admins do not get weaker security than the Primary Admin.
+
+### Server Admin Account Security Details
+
+**Server admins have access to the same account security features as regular users (when Multi-User is enabled).**
+
+#### Passkeys/WebAuthn
+
+| Feature | Description |
+|---------|-------------|
+| **Registration** | Admin can register multiple passkeys at `/server/{admin_path}/{admin_username}/profile/security` |
+| **Login** | Passkey can be used as primary login or as 2FA |
+| **Device-bound** | Each passkey tied to specific device/authenticator |
+| **Naming** | Admin names each passkey for identification |
+| **Revocation** | Admin can revoke individual passkeys |
+| **Backup** | Recovery keys provided when first passkey registered |
+
+#### TOTP Two-Factor Authentication
+
+| Feature | Description |
+|---------|-------------|
+| **Setup** | QR code + manual entry key at `/server/{admin_path}/{admin_username}/profile/security` |
+| **Apps supported** | Any TOTP app (Google Authenticator, Authy, 1Password, etc.) |
+| **Backup codes** | 10 one-time recovery codes generated on setup |
+| **Regenerate** | Can regenerate backup codes (invalidates old ones) |
+| **Disable** | Requires current TOTP code or recovery key to disable |
+
+#### Account Email vs Notification Email
+
+**Server admins can configure separate email addresses for security vs general notifications.**
+
+| Email Type | Purpose | Required | Examples |
+|------------|---------|----------|----------|
+| **Account Email** | Security-critical communications | YES | Password reset, 2FA recovery, security alerts, login from new device, session terminated |
+| **Notification Email** | General notifications (non-security) | NO (defaults to account email) | System updates, backup completed, scheduled task failures, certificate expiry warnings |
+
+**Rules:**
+- Account email is set during setup (required)
+- Notification email is optional (defaults to account email if not set)
+- Both emails must be verified before use
+- Account email changes require current password + 2FA (if enabled)
+- Notification email changes only require current session
+- **All email features require working SMTP** - if SMTP unavailable, no emails sent
+
+**Admin Profile Email Settings:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Email Settings                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Account Email (security notifications):                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ admin@example.com                            [Edit] │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  Used for: password reset, 2FA recovery, security alerts    │
+│                                                             │
+│  Notification Email (general notifications):                │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ alerts@example.com                           [Edit] │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  Used for: system updates, backup status, task failures    │
+│  [ ] Use account email for all notifications                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Scoped Notification Preferences
+
+**Server admins can enable/disable specific notification categories.**
+
+| Category | Default | Description |
+|----------|---------|-------------|
+| **Security Alerts** | ON (locked) | Cannot disable - login from new device, password changed, 2FA changed |
+| **Session Notifications** | ON | Session started from new location, session terminated |
+| **System Status** | ON | Server errors, high resource usage, service degradation |
+| **Backup Status** | ON | Backup completed, backup failed |
+| **Certificate Alerts** | ON | SSL certificate expiring, renewal status |
+| **Scheduled Tasks** | OFF | Task completed, task failed |
+| **Updates Available** | ON | New version available |
+
+**Notification Preferences UI:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Notification Preferences                                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Security (cannot be disabled):                             │
+│  [✓] Security alerts (login, password, 2FA changes)        │
+│                                                             │
+│  Account:                                                   │
+│  [✓] Session notifications                                  │
+│                                                             │
+│  System:                                                    │
+│  [✓] System status alerts                                   │
+│  [✓] Backup status                                          │
+│  [✓] Certificate alerts                                     │
+│  [ ] Scheduled task notifications                           │
+│  [✓] Update notifications                                   │
+│                                                             │
+│  Delivery: [Email ▼]  (requires SMTP)                       │
+│                                                             │
+│  [Save Preferences]                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**SMTP Requirement:**
+- All email notifications require working SMTP configuration
+- If SMTP unavailable, notifications shown in admin panel only (no email)
+- SMTP status shown in notification preferences
+- See PART 18: EMAIL & NOTIFICATIONS for SMTP configuration
+
+#### Admin Appearance Settings (`/server/{admin_path}/{admin_username}/preferences`)
+
+**Server admins can customize their admin panel appearance.**
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `theme` | Select | `dark` | Theme (dark/light/auto) |
+| `font_size` | Select | `medium` | Font size (small/medium/large) |
+| `reduce_motion` | Toggle | Off | Reduce animations |
+| `date_format` | Select | `YYYY-MM-DD` | Date display format |
+| `time_format` | Select | `24h` | Time display format (12h/24h) |
+
+**Admin Appearance Settings UI:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Appearance Settings                                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Theme                                                      │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐                       │
+│  │  🌙     │ │  ☀️     │ │  💻     │                       │
+│  │ Dark    │ │ Light   │ │ Auto    │                       │
+│  └─────────┘ └─────────┘ └─────────┘ ↑ Default: Dark       │
+│                                                             │
+│  Font Size                                                  │
+│  ○ Small                                                    │
+│  ● Medium (default)                                         │
+│  ○ Large                                                    │
+│                                                             │
+│  Accessibility                                              │
+│  [OFF] Reduce motion                                        │
+│        Minimize animations and transitions.                 │
+│                                                             │
+│  Date & Time                                                │
+│  Date Format: [YYYY-MM-DD ▼]                               │
+│  Time Format: [24h ▼]                                       │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Admin theme applies to:**
+- Admin panel (`/server/{admin_path}/*`)
+- Admin-accessible Swagger UI
+- Admin-accessible GraphiQL
+
+**Note:** Admin theme preference is independent of the site-wide default theme. The site default is dark, but each admin can choose their own preference.
+
+## Server Admin Privacy
+
+**Server Admins CANNOT see other Server Admin accounts, similar to user privacy.**
+
+| What Admin CAN See | What Admin CANNOT See |
+|--------------------|----------------------|
+| Own account details | Other admin usernames |
+| Own API token (regenerate) | Other admin emails |
+| Own 2FA status | Other admin passwords |
+| Own session history | Other admin API tokens |
+| Total admin count (number only) | Other admin 2FA secrets |
+| | Other admin session data |
+
+**Admin Panel (`/server/{admin_path}/config/admins`):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Server Administrators                                      │
+├─────────────────────────────────────────────────────────────┤
+│  Your Account: administrator                                │
+│  Total Admins: 3                                            │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  [Invite New Admin]                                 │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  Note: For security, you cannot view other admin accounts.  │
+│  Each admin manages their own credentials independently.    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Why This Restriction?**
+- **Separation of trust**: Compromised admin cannot enumerate other admins
+- **Privacy**: Admin credentials are personal, not shared
+- **Security**: Prevents admin-to-admin attacks
+- **Audit integrity**: Each admin accountable for own actions only
+
+**What Admins CAN Do With Other Admins:**
+| Action | Allowed? | Notes |
+|--------|----------|-------|
+| Know total count | ✓ | Number only, no details |
+| See who is logged in | ✓ | Username only (e.g., "administrator logged in") |
+| Add new admin (invite) | ✓ | Creates invite, credentials shown once to new admin |
+| Remove admin (non-primary) | ✓ | By username only (must know it) |
+| View other admin details | ✗ | Privacy by design |
+| Reset other admin password | ✗ | Each admin manages own credentials |
+| Disable other admin 2FA | ✗ | Use `--maintenance setup` for recovery |
+
+### Admin Session Visibility
+
+**Admins can see which other admins are currently logged in (username only).**
+
+```
+Admin Panel Header:
+┌─────────────────────────────────────────────────────────────┐
+│  {app_name} Admin    │  🟢 2 admins online  │  🔔  │  [You] │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ (click to expand)
+                       ┌──────────────────┐
+                       │  Admins Online   │
+                       ├──────────────────┤
+                       │  🟢 administrator │
+                       │  🟢 backup-admin  │
+                       └──────────────────┘
+```
+
+**What IS Shown:** Username of logged-in admins, online status, total count
+
+**What is NOT Shown:** IP address, session duration, last activity, device/browser info
+
+### Admin Recovery
+
+**Additional admins (non-primary) who lose access:**
+
+| Scenario | Recovery Method |
+|----------|-----------------|
+| Forgot password | Use own recovery keys OR contact Primary Admin |
+| Lost 2FA + recovery keys | Contact Primary Admin to delete account, re-invite |
+| OIDC/LDAP admin locked out | Fix in identity provider, or Primary Admin removes mapping |
+
+**Primary admin CANNOT:**
+- Reset other admin's password directly
+- View other admin's credentials
+- Disable other admin's 2FA directly
+
+**Primary admin CAN:**
+- Delete the additional admin account entirely
+- Re-invite them (they set up fresh credentials)
+
+### Login Page (`/server/{admin_path}`)
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│         ┌───────────────────┐           │
+│         │   {Project Name}  │           │
+│         │   Admin Panel     │           │
+│         ├───────────────────┤           │
+│         │                   │           │
+│         │  Username: [____] │           │
+│         │  Password: [____] │           │
+│         │                   │           │
+│         │  [ ] Remember me  │           │
+│         │                   │           │
+│         │    [  Login  ]    │           │
+│         │                   │           │
+│         └───────────────────┘           │
+│                                         │
+│              {projectversion}           │
+└─────────────────────────────────────────┘
+```
+
+**Login page rules:**
+- Centered card on dark background
+- Project name/logo at top
+- No links to public site
+- Version number at bottom (small)
+- No "Forgot password" (admin resets via CLI if needed)
+
+### Dashboard (`/server/{admin_path}`)
+
+**Overview of server status and system resources at a glance.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Dashboard                                                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │   STATUS     │  │   UPTIME     │  │   REQUESTS   │  │   ERRORS     │ │
+│  │   ● Online   │  │   5d 12h 3m  │  │   12,345     │  │   23         │ │
+│  │              │  │              │  │   (24h)      │  │   (24h)      │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘ │
+│                                                                         │
+│  ┌─────────────────────────────────┐  ┌─────────────────────────────┐   │
+│  │ SYSTEM RESOURCES                │  │ QUICK ACTIONS               │   │
+│  │                                 │  │                             │   │
+│  │ CPU:    [████████░░] 78%        │  │ [Restart Server]            │   │
+│  │ Memory: [██████░░░░] 62%        │  │ [Clear Cache]               │   │
+│  │ Disk:   [████░░░░░░] 45%        │  │ [Create Backup]             │   │
+│  │                                 │  │ [View Logs]                 │   │
+│  └─────────────────────────────────┘  └─────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────┐  ┌─────────────────────────────┐   │
+│  │ RECENT ACTIVITY                 │  │ SCHEDULED TASKS             │   │
+│  │                                 │  │                             │   │
+│  │ 10:30 Config updated            │  │ SSL Renewal    in 23 days   │   │
+│  │ 10:15 Admin login               │  │ GeoIP Update   in 2 days    │   │
+│  │ 09:45 Backup completed          │  │ Auto Backup    in 5 hours   │   │
+│  │ 09:00 SSL renewed               │  │ Session Clean  in 45 min    │   │
+│  └─────────────────────────────────┘  └─────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ ALERTS / WARNINGS                                                │    │
+│  │                                                                  │    │
+│  │ ⚠️  SSL certificate expires in 23 days                          │    │
+│  │ ⚠️  Disk usage above 80% threshold                              │    │
+│  │ ℹ️  Update available: v1.2.4                                    │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Dashboard Widgets
+
+| Widget | Content |
+|--------|---------|
+| Status | Online/Maintenance/Error indicator |
+| Uptime | Time since last restart |
+| Requests | Request count (24h) |
+| Errors | Error count (24h) |
+| System Resources | CPU, Memory, Disk usage bars |
+| Quick Actions | Common admin tasks |
+| Recent Activity | Last 5-10 audit log entries |
+| Scheduled Tasks | Next scheduled tasks |
+| Alerts | Warnings and notifications |
+
+### Required Admin Pages
+
+| Route | Page | Description |
+|-------|------|-------------|
+| `/server/{admin_path}` | Login | Login form (if not authenticated) |
+| `/server/{admin_path}` | Dashboard | Overview, stats, quick actions |
+| `/server/{admin_path}/config/settings` | Server Settings | Port, mode, FQDN, etc. |
+| `/server/{admin_path}/config/branding` | Branding | Title, logo, favicon, colors |
+| `/server/{admin_path}/config/ssl` | SSL/TLS | Certificates, Let's Encrypt |
+| `/server/{admin_path}/config/scheduler` | Scheduler | View/edit scheduled tasks |
+| `/server/{admin_path}/config/email` | Email | SMTP settings, templates |
+| `/server/{admin_path}/config/logs` | Logs | View access, error, audit logs |
+| `/server/{admin_path}/config/security/auth` | Authentication | Password, MFA, sessions, OIDC/LDAP provider overview |
+| `/server/{admin_path}/config/security/tokens` | API Tokens | Generate, revoke tokens |
+| `/server/{admin_path}/config/security/ratelimit` | Rate Limiting | Configure rate limits |
+| `/server/{admin_path}/config/security/firewall` | Firewall | IP allow/block lists |
+| `/server/{admin_path}/config/security/allowlist` | Allowlist | Trusted IPs (bypass blocklist/ratelimit/geoip) |
+| `/server/{admin_path}/config/network/tor` | Tor | View .onion address, status (auto-enabled if installed) |
+| `/server/{admin_path}/config/network/geoip` | GeoIP | Country blocking, database updates |
+| `/server/{admin_path}/config/network/blocklists` | Blocklists | IP/domain blocklists |
+| `/server/{admin_path}/config/moderation/users` | Users | User moderation (if multi-user) |
+| `/server/{admin_path}/config/users/invites` | Invites | Invite codes (if multi-user) |
+| `/server/{admin_path}/config/backup` | Backup | Create/restore backups |
+| `/server/{admin_path}/config/maintenance` | Maintenance | Maintenance mode |
+| `/server/{admin_path}/config/updates` | Updates | Check/apply updates |
+| `/server/{admin_path}/config/info` | Server Info | Version, environment, deps |
+| `/server/{admin_path}/config/cluster/nodes` | Nodes | Cluster node management |
+| `/server/{admin_path}/config/cluster/add` | Add Node | Generate join token |
+| `/server/{admin_path}/help` | Help | Documentation links |
+
+### Settings Page Layout
+
+**Standard layout for all settings pages.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Server Settings                                              [Save All] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  General                                                                │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  Port                                                                   │
+│  [64580        ]  ⓘ The port the server listens on                     │
+│                   ⚠️ Requires restart                                   │
+│                                                                         │
+│  Mode                                                                   │
+│  [Production ▼]   ⓘ Production enforces strict host validation         │
+│                                                                         │
+│  FQDN                                                                   │
+│  [api.example.com]  ⓘ Fully qualified domain name (auto-detected)      │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  Process                                                                │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  Daemonize                                                              │
+│  [○ Off]            ⓘ Detach from terminal on start (for manual start) │
+│                     ⚠️ Requires restart. Don't use with systemd/docker. │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  Advanced                                                    [Expand ▼] │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                                            [Cancel] [Save]      │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Form Elements
+
+| Element | Visual | Usage |
+|---------|--------|-------|
+| **Toggle** | `[● On]` / `[○ Off]` | Boolean on/off (preferred for enable/disable) |
+| **Checkbox** | `[✓]` / `[ ]` | Boolean, multiple selections, opt-in features |
+| **Dropdown** | `[Value ▼]` | Selection from predefined list |
+| **Text** | `[value_____]` | Single-line string |
+| **Number** | `[123_______]` | Numeric values (port, limit, count) |
+| **Password** | `[••••••] 👁` | Secrets with show/hide toggle |
+| **Textarea** | Multi-line box | JSON, lists, long text |
+| **Tags** | `[tag1][tag2][+]` | Multiple values (IPs, keywords) |
+| **File** | `[Choose File]` | Upload (logos, certs) |
+| **Color** | `[#FF5733] 🎨` | Color picker |
+| **Duration** | `[5] [minutes ▼]` | Time with unit dropdown |
+| **Readonly** | `value (locked)` | Display only, not editable |
+
+### Form Behavior
+
+| Feature | Description |
+|---------|-------------|
+| Tooltips | ⓘ icon shows help on hover |
+| Validation | Real-time, inline error messages |
+| Unsaved indicator | Show when form has unsaved changes |
+| Save feedback | Toast notification on save |
+| Confirm dangerous | Modal for destructive actions |
+| Restart warning | ⚠️ icon if setting requires restart |
+| Default values | Show default in placeholder |
+| Live reload | No ⚠️ = changes apply immediately |
+
+### Server Settings Field Definitions
+
+**`/server/{admin_path}/config/settings` - All fields with control types:**
+
+#### General Section
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `port` | Number | `64580` | ⚠️ Yes | Server listen port |
+| `mode` | Dropdown | `production` | ⚠️ Yes | `production` / `development` |
+| `fqdn` | Text | (auto) | No | Fully qualified domain name |
+| `address` | Text | `[::]` | ⚠️ Yes | Listen address |
+
+#### Process Section
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `daemonize` | Toggle | Off | ⚠️ Yes | Detach from terminal on start |
+| `pidfile` | Toggle | On | ⚠️ Yes | Create PID file |
+
+#### Branding Section (`/server/{admin_path}/config/branding`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `title` | Text | `{project_name}` | No | App display name |
+| `tagline` | Text | (empty) | No | Short slogan |
+| `description` | Textarea | (empty) | No | SEO/about description |
+| `logo` | File | (none) | No | Logo image upload |
+| `favicon` | File | (none) | No | Favicon upload |
+| `theme` | Dropdown | `auto` | No | `auto` / `light` / `dark` |
+| `accent_color` | Color | `#007bff` | No | Primary accent color |
+
+#### SEO Section
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `keywords` | Tags | (empty) | No | Meta keywords |
+| `author` | Text | (empty) | No | Author/org name |
+| `og_image` | File | (none) | No | OpenGraph image |
+| `twitter_handle` | Text | (empty) | No | Twitter @handle |
+
+#### Security Section (`/server/{admin_path}/config/security`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `admin_path` | Text | `admin` | Reload | Custom admin panel path (see PART 17) |
+| `rate_limit.enabled` | Toggle | On | No | Enable rate limiting |
+| `rate_limit.requests` | Number | `0` | No | Requests per window (0 = project default) |
+| `rate_limit.window` | Duration | `1 minute` | No | Rate limit window |
+| `cors.enabled` | Toggle | On | No | Enable CORS |
+| `cors.origins` | Tags | `*` | No | Allowed origins |
+| `cors.methods` | Checkbox group | GET,POST,etc | No | Allowed methods |
+| `csp.enabled` | Toggle | On | No | Content Security Policy |
+| `hsts.enabled` | Toggle | On | No | HTTP Strict Transport Security |
+| `hsts.max_age` | Duration | `1 year` | No | HSTS max age |
+
+#### Account Lockout Section
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `soft_lock_attempts` | Number | `5` | No | Attempts before soft lock |
+| `soft_lock_duration` | Duration | `15 min` | No | Soft lock duration |
+| `hard_lock_attempts` | Number | `10` | No | Attempts before hard lock |
+| `hard_lock_duration` | Duration | `1 hour` | No | Hard lock duration |
+| `permanent_lock_attempts` | Number | `15` | No | Attempts before permanent lock |
+
+#### IP Blocking Section
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `ip_block.enabled` | Toggle | On | No | Enable IP blocking |
+| `ip_block.escalation` | Toggle | On | No | Escalating block durations |
+| `ip_block.first_duration` | Duration | `1 hour` | No | First block duration |
+| `ip_block.max_duration` | Duration | `7 days` | No | Maximum block duration |
+| `allowlist` | Tags | (empty) | No | Trusted IPs — bypass blocklists, rate limits, GeoIP (not auth) |
+| `blocklist` | Tags | (empty) | No | IPs always blocked |
+
+#### SSL/TLS Section (`/server/{admin_path}/config/ssl`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `ssl.enabled` | Toggle | Off | ⚠️ Yes | Enable HTTPS |
+| `ssl.cert` | File/Text | (auto) | ⚠️ Yes | Certificate path or upload |
+| `ssl.key` | File/Text | (auto) | ⚠️ Yes | Private key path or upload |
+| `ssl.min_version` | Dropdown | `TLS 1.2` | ⚠️ Yes | Minimum TLS version |
+| `ssl.letsencrypt.enabled` | Toggle | Off | No | Use Let's Encrypt |
+| `ssl.letsencrypt.email` | Text | (required) | No | Contact email |
+| `ssl.letsencrypt.staging` | Toggle | Off | No | Use LE staging server |
+| `ssl.letsencrypt.challenge` | Dropdown | `http-01` | No | Challenge type |
+
+#### Authentication Section (`/server/{admin_path}/config/security/auth`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `session.timeout` | Duration | `24 hours` | No | Session expiry |
+| `session.extend_on_activity` | Toggle | On | No | Extend on activity |
+| `mfa.enabled` | Toggle | Off | No | Require MFA for admins |
+| `mfa.methods` | Checkbox group | TOTP | No | Allowed MFA methods |
+| `password.min_length` | Number | `8` | No | Minimum password length |
+| `password.require_uppercase` | Toggle | On | No | Require uppercase |
+| `password.require_number` | Toggle | On | No | Require number |
+| `password.require_special` | Toggle | Off | No | Require special char |
+| `auth.oidc.enabled` | Toggle | Off | No | Enable OIDC login support |
+| `auth.oidc.providers` | Provider table | (empty) | No | Add/edit/remove/test OIDC providers |
+| `auth.ldap.enabled` | Toggle | Off | No | Enable LDAP login support |
+| `auth.ldap.providers` | Provider table | (empty) | No | Add/edit/remove/test LDAP providers |
+
+#### Backup Section (`/server/{admin_path}/config/backup`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `backup.enabled` | Toggle | On | No | Enable scheduled backups (backup_daily) |
+| `backup.hourly_enabled` | Toggle | Off | No | Enable hourly incremental (backup_hourly) |
+| `backup.schedule` | Text | `0 2 * * *` | No | Daily backup cron schedule |
+| `backup.retention.max_backups` | Number | `1` | No | Daily full backups to keep (≥1) |
+| `backup.retention.keep_weekly` | Number | `0` | No | Weekly backups (Sunday) - 0 = disabled |
+| `backup.retention.keep_monthly` | Number | `0` | No | Monthly backups (1st) - 0 = disabled |
+| `backup.retention.keep_yearly` | Number | `0` | No | Yearly backups (Jan 1st) - 0 = disabled |
+| `backup.encryption.enabled` | Toggle | Off | No | Encrypt backups |
+| `backup.encryption.password` | Password | (none) | No | Encryption password |
+
+#### Email/SMTP Section (`/server/{admin_path}/config/email`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `smtp.host` | Text | (autodetect) | No | SMTP server |
+| `smtp.port` | Number | `587` | No | SMTP port |
+| `smtp.username` | Text | (none) | No | SMTP username |
+| `smtp.password` | Password | (none) | No | SMTP password |
+| `smtp.tls` | Dropdown | `auto` | No | `auto`/`starttls`/`tls`/`none` |
+| `from.name` | Text | (app title) | No | Sender name |
+| `from.email` | Text | `no-reply@{fqdn}` | No | Sender email |
+| `[Test Connection]` | Button | - | - | Send test email |
+
+#### Notifications Section (`/server/{admin_path}/config/notifications`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `notifications.backup_success` | Toggle | Off | No | Notify on backup success |
+| `notifications.backup_failure` | Toggle | On | No | Notify on backup failure |
+| `notifications.ssl_expiring` | Toggle | On | No | Notify SSL expiring |
+| `notifications.ssl_expiring_days` | Number | `14` | No | Days before expiry |
+| `notifications.security_alerts` | Toggle | On | No | Security event alerts |
+| `notifications.update_available` | Toggle | On | No | New version available |
+
+#### Scheduler Section (`/server/{admin_path}/config/scheduler`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `scheduler.enabled` | Toggle | On | No | Enable scheduler |
+| Task rows with: | | | | |
+| - Task name | Readonly | - | - | Task identifier |
+| - Enabled | Toggle | varies | No | Enable/disable task |
+| - Schedule | Text | cron expr | No | Cron expression |
+| - Last run | Readonly | timestamp | - | Last execution |
+| - Next run | Readonly | timestamp | - | Next execution |
+| - `[Run Now]` | Button | - | - | Trigger immediately |
+
+#### URL Detection Section (`/server/{admin_path}/config/url`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `url_detection.learning` | Toggle | On | No | Learn domain patterns |
+| `url_detection.min_samples` | Number | `3` | No | Min samples for wildcard |
+| `url_detection.sample_window` | Duration | `5 min` | No | Sample time window |
+| `url_detection.log_changes` | Toggle | On | No | Log domain changes |
+| `url_detection.live_reload` | Toggle | On | No | Live reload on detection |
+| Detected domains | Readonly | - | - | Currently detected FQDNs |
+| Inferred wildcard | Readonly | - | - | `*.example.com` if detected |
+
+#### Tor Section (`/server/{admin_path}/config/tor`) - *if tor installed*
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `tor.enabled` | Toggle | (auto) | No | Enable hidden service |
+| `tor.onion_address` | Readonly | - | - | `.onion` address |
+| `tor.status` | Readonly | - | - | Running/Stopped |
+| `[Copy Address]` | Button | - | - | Copy onion to clipboard |
+
+#### GeoIP Section (`/server/{admin_path}/config/network/geoip`)
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `geoip.enabled` | Toggle | On | No | Enable GeoIP lookups |
+| `geoip.auto_update` | Toggle | On | No | Auto-update databases |
+| `geoip.update_schedule` | Text | `0 3 * * *` | No | Update cron schedule |
+| `geoip.deny_countries` | Tags | (empty) | No | Block these countries (ISO 3166-1 alpha-2) |
+| `geoip.allow_countries` | Tags | (empty) | No | Allow ONLY these countries (overrides deny) |
+| Database status | Readonly | - | - | Last update, size |
+
+#### Blocklists Section (`/server/{admin_path}/config/network/blocklists`)
+
+**Transmission-style IP/domain blocklist management. Download, parse, and enforce external blocklists from configurable URLs.**
+
+**Supported Formats:**
+
+| Format | Extension | Example | Description |
+|--------|-----------|---------|-------------|
+| **P2P (PeerGuardian)** | `.p2p`, `.txt` | `Description:1.2.3.0-1.2.3.255` | Range-based, most common |
+| **CIDR** | `.txt`, `.netset` | `1.2.3.0/24` | Standard CIDR notation, one per line |
+| **DAT (eMule)** | `.dat` | `001.002.003.000 - 001.002.003.255 , 100 , Description` | Legacy eMule format |
+| **Plain IP** | `.txt` | `1.2.3.4` | One IP per line |
+| **Compressed** | `.gz` | Any of above, gzipped | Auto-decompressed on download |
+
+**Comment lines** (starting with `#`) and blank lines are ignored in all formats.
+
+**Config:**
+
+```yaml
+server:
+  security:
+    blocklists:
+      # Master enable/disable for all blocklist enforcement
+      enabled: true
+
+      # Auto-update all enabled blocklists on schedule
+      auto_update: true
+
+      # Sources - list of blocklist URLs (custom URLs can be added)
+      sources:
+        - name: "firehol_level1"
+          url: "https://iplists.firehol.org/files/firehol_level1.netset"
+          format: cidr
+          enabled: true
+
+        - name: "spamhaus_drop"
+          url: "https://www.spamhaus.org/drop/drop.txt"
+          format: cidr
+          enabled: true
+
+        - name: "level1"
+          url: "https://www.iblocklist.com/lists/level1.gz"
+          format: auto  # auto-detect from content/extension (P2P, gzipped)
+          enabled: false
+
+        - name: "abuse_ch_urlhaus"
+          url: "https://urlhaus.abuse.ch/downloads/text/"
+          format: plain
+          enabled: false
+
+        - name: "dshield"
+          url: "https://www.dshield.org/block.txt"
+          format: cidr
+          enabled: false
+
+      # Where parsed blocklist data is stored
+      # Uses {data_dir}/security/blocklists/ directory
+      # Each source saved as {name}.txt (raw) + {name}.parsed (binary)
+
+      # Action when a blocked IP connects
+      # reject = return 403 Forbidden
+      # drop = close connection silently (no response)
+      action: reject
+
+      # Reject uses translated "errors.forbidden" message by default.
+      # Set custom reject_message to override (applies to ALL languages):
+      # reject_message: "Custom block message"
+
+      # Log blocked requests
+      log_blocked: true
+```
+
+**Data Model:**
+
+```go
+// BlocklistSource represents a configured blocklist URL
+type BlocklistSource struct {
+    Name        string    `yaml:"name" json:"name"`
+    URL         string    `yaml:"url" json:"url"`
+    Format      string    `yaml:"format" json:"format"`       // auto, p2p, cidr, dat, plain
+    Enabled     bool      `yaml:"enabled" json:"enabled"`
+    RuleCount   int       `json:"rule_count"`                  // number of IP ranges/CIDRs parsed
+    LastUpdated *time.Time `json:"last_updated,omitempty"`
+    LastError   string    `json:"last_error,omitempty"`
+    FileSize    int64     `json:"file_size"`                   // raw download size in bytes
+}
+
+// BlocklistStats provides aggregate statistics
+type BlocklistStats struct {
+    Enabled       bool   `json:"enabled"`
+    TotalSources  int    `json:"total_sources"`
+    ActiveSources int    `json:"active_sources"`
+    TotalRules    int    `json:"total_rules"`                  // total IP ranges across all lists
+    LastUpdated   *time.Time `json:"last_updated,omitempty"`   // most recent update
+    BlockedToday  int    `json:"blocked_today"`                // requests blocked in last 24h
+}
+```
+
+**Blocklist Parsing:**
+
+```go
+// ParseBlocklist auto-detects format and returns IP ranges
+func ParseBlocklist(reader io.Reader, format string) ([]netip.Prefix, error) {
+    // If .gz, wrap reader in gzip.NewReader first
+    // If format == "auto", detect from first non-comment line:
+    //   - Contains ":" before IP → P2P format (Description:Start-End)
+    //   - Contains "/" → CIDR format
+    //   - Contains " - " with commas → DAT format
+    //   - Otherwise → plain IP (convert to /32)
+    // Parse all lines, skip comments (#) and blanks
+    // Convert all formats to []netip.Prefix for uniform lookup
+}
+
+// BlocklistLookup uses a radix tree for O(log n) IP matching
+type BlocklistLookup struct {
+    tree *critbitgo.Net  // or similar prefix tree
+    size int             // total number of prefixes loaded
+}
+
+func (bl *BlocklistLookup) Contains(ip netip.Addr) bool
+func (bl *BlocklistLookup) Load(prefixes []netip.Prefix) error
+func (bl *BlocklistLookup) Count() int
+func (bl *BlocklistLookup) MatchedList(ip netip.Addr) string  // returns source name that matched
+```
+
+**BlocklistConfig:**
+
+```go
+type BlocklistConfig struct {
+    Enabled       bool   `yaml:"enabled" json:"enabled"`
+    AutoUpdate    bool   `yaml:"auto_update" json:"auto_update"`
+    Action        string `yaml:"action" json:"action"`                // "reject" or "drop"
+    RejectMessage string `yaml:"reject_message,omitempty" json:"reject_message,omitempty"` // overrides translated default
+    LogBlocked    bool   `yaml:"log_blocked" json:"log_blocked"`
+}
+```
+
+**AllowlistLookup:**
+
+```go
+// AllowlistLookup provides O(log n) IP lookup against allowlisted CIDRs
+type AllowlistLookup struct {
+    tree *critbitgo.Net
+    size int
+}
+
+func (al *AllowlistLookup) Contains(ip netip.Addr) bool
+func (al *AllowlistLookup) Load(entries []AllowlistEntry) error
+func (al *AllowlistLookup) Count() int
+func (al *AllowlistLookup) Match(ip netip.Addr) *AllowlistEntry  // returns matched entry or nil
+```
+
+**Middleware Integration:**
+
+```go
+// BlocklistMiddleware checks incoming IPs against loaded blocklists
+// Applied AFTER allowlist check (allowlisted IPs bypass blocklist)
+func BlocklistMiddleware(lookup *BlocklistLookup, cfg BlocklistConfig) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            ip := extractClientIP(r) // respects X-Forwarded-For / X-Real-IP if trusted proxy
+
+            if lookup.Contains(ip) {
+                if cfg.LogBlocked {
+                    securityLog.Warn("blocked by blocklist",
+                        "ip", ip, "path", r.URL.Path, "list", lookup.MatchedList(ip))
+                }
+                if cfg.Action == "drop" {
+                    hj, ok := w.(http.Hijacker)
+                    if ok {
+                        conn, _, _ := hj.Hijack()
+                        conn.Close()
+                        return
+                    }
+                }
+                msg := cfg.RejectMessage
+                if msg == "" {
+                    msg = t(r, "errors.forbidden")
+                }
+                http.Error(w, msg, http.StatusForbidden)
+                return
+            }
+
+            next.ServeHTTP(w, r)
+        })
+    }
+}
+```
+
+**Middleware Order (see PART 5 for canonical chain):**
+1. URL normalization
+2. Path security (traversal blocking)
+3. Security headers
+4. Allowlist check (set flag — bypasses blocklist/ratelimit/geoip, NOT auth)
+5. **Blocklist check** (reject before any processing)
+6. Rate limiting
+7. GeoIP country blocking
+8. Authentication
+9. Logging
+
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists` | GET | List all blocklist sources with stats |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists` | PATCH | Update blocklist settings (enabled, action, etc.) |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/sources` | POST | Add new blocklist source |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/sources/{name}` | PATCH | Update source (enable/disable, URL, format) |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/sources/{name}` | DELETE | Remove blocklist source |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/update` | POST | Trigger immediate update of all enabled sources |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/update/{name}` | POST | Trigger update of specific source |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/stats` | GET | Get aggregate blocklist statistics |
+| `/api/{api_version}/server/{admin_path}/config/network/blocklists/check/{ip}` | GET | Check if an IP is in any blocklist |
+
+**API Response Examples:**
+
+```json
+// GET /api/{api_version}/server/{admin_path}/config/network/blocklists
+{
+  "enabled": true,
+  "action": "reject",
+  "auto_update": true,
+  "total_rules": 482731,
+  "blocked_today": 147,
+  "sources": [
+    {
+      "name": "level1",
+      "url": "https://www.iblocklist.com/lists/level1.gz",
+      "format": "auto",
+      "enabled": true,
+      "rule_count": 398211,
+      "last_updated": "2026-04-17T04:00:12Z",
+      "last_error": "",
+      "file_size": 2847291
+    },
+    {
+      "name": "spamhaus_drop",
+      "url": "https://www.spamhaus.org/drop/drop.txt",
+      "format": "cidr",
+      "enabled": true,
+      "rule_count": 84520,
+      "last_updated": "2026-04-17T04:00:15Z",
+      "last_error": "",
+      "file_size": 12481
+    }
+  ]
+}
+
+// GET /api/{api_version}/server/{admin_path}/config/network/blocklists/check/1.2.3.4
+{
+  "ip": "1.2.3.4",
+  "blocked": true,
+  "matched_lists": ["level1", "spamhaus_drop"],
+  "matched_range": "1.2.0.0/16"
+}
+```
+
+**Admin UI:**
+
+**Note:** Wireframe shows English for documentation. Actual UI renders ALL text via `t()` translation keys (see `admin.blocklists_page.*` in translation files). User sees their selected language.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Blocklists                                                     [Save All] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│ ┌─ Status ──────────────────────────────────────────────────────────┐   │
+│ │ Blocklists:     [ON ▪ OFF]           Total rules: 482,731         │   │
+│ │ Auto-update:    [ON ▪ OFF]           Blocked today: 147           │   │
+│ │ Action:         [Reject ▼]           Last updated: 2 hours ago    │   │
+│ │                              [Update All Now]  [Check IP...]      │   │
+│ └───────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│ ┌─ Sources ─────────────────────────────────────────────────────────┐   │
+│ │                                                                    │   │
+│ │ ☑ level1                     398,211 rules    Updated 2h ago       │   │
+│ │   https://www.iblocklist.com/lists/level1.gz                       │   │
+│ │   Format: auto  Size: 2.7 MB                    [Update] [Remove]  │   │
+│ │                                                                    │   │
+│ │ ☑ spamhaus_drop               84,520 rules    Updated 2h ago       │   │
+│ │   https://www.spamhaus.org/drop/drop.txt                           │   │
+│ │   Format: cidr  Size: 12 KB                     [Update] [Remove]  │   │
+│ │                                                                    │   │
+│ │ ☐ dshield                          0 rules    Never updated        │   │
+│ │   https://www.dshield.org/block.txt                                │   │
+│ │   Format: cidr  (disabled)                      [Update] [Remove]  │   │
+│ │                                                                    │   │
+│ └───────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│ ┌─ Add Source ──────────────────────────────────────────────────────┐   │
+│ │ Name: [_______________]  URL: [________________________________]  │   │
+│ │ Format: [Auto ▼]                                       [Add]      │   │
+│ └───────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│ ┌─ IP Check ───────────────────────────────────────────────────────┐   │
+│ │ IP: [_______________]  [Check]                                    │   │
+│ │ Result: 1.2.3.4 → Blocked (level1, spamhaus_drop) 1.2.0.0/16     │   │
+│ └───────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Admin UI Settings:**
+
+| Setting | Control | Default | Restart | Description |
+|---------|---------|---------|---------|-------------|
+| `blocklists.enabled` | Toggle | On | No | Master enable/disable |
+| `blocklists.auto_update` | Toggle | On | No | Auto-update on schedule |
+| `blocklists.action` | Dropdown | `reject` | No | `reject` or `drop` |
+| `blocklists.reject_message` | Text | (uses translated `errors.forbidden`) | No | Custom 403 message (overrides translation) |
+| `blocklists.log_blocked` | Toggle | On | No | Log blocked requests |
+| Sources list | Dynamic list | (see config) | No | Add/remove/enable/disable sources |
+| Total rules | Readonly | - | - | Aggregate rule count |
+| Blocked today | Readonly | - | - | Requests blocked in 24h |
+| `[Update All Now]` | Button | - | - | Trigger immediate update |
+| `[Check IP]` | Button + Text | - | - | Test if IP is blocked |
+
+**Update Behavior:**
+
+1. Download from URL (follow redirects, timeout 60s)
+2. If `.gz` extension or `Content-Encoding: gzip`, decompress
+3. Auto-detect format if `format: auto` (examine first non-comment line)
+4. Parse all entries into `[]netip.Prefix`
+5. Save raw file to `{data_dir}/security/blocklists/{name}.txt`
+6. Build radix tree and swap atomically (no downtime during update)
+7. Update stats (rule_count, last_updated, file_size)
+8. Log result: `blocklist updated: {name} ({rule_count} rules, {duration})`
+
+**Error Handling:**
+
+| Error | Behavior |
+|-------|----------|
+| Download fails | Keep existing list, log error, retry per scheduler config |
+| Parse error (corrupt file) | Keep existing list, log error, set `last_error` |
+| Empty list after parse | Keep existing list, log warning (likely bad URL) |
+| Disk full | Log error, keep in-memory list |
+
+**Audit Events:**
+
+| Event | Description | Logged Data |
+|-------|-------------|-------------|
+| `blocklist.updated` | Blocklist source updated | name, rule_count, duration |
+| `blocklist.update_failed` | Update failed | name, error |
+| `blocklist.source_added` | New source added | name, url, added_by |
+| `blocklist.source_removed` | Source removed | name, removed_by |
+| `blocklist.enabled` | Blocklists enabled/disabled | enabled, changed_by |
+| `blocklist.ip_blocked` | Request blocked by blocklist | ip, path, matched_list, matched_range |
+
+**CLI Commands (via `{project_name}-cli --admin`):**
+
+```bash
+# Update all blocklists now
+{project_name}-cli --admin server blocklist update
+
+# Update specific source
+{project_name}-cli --admin server blocklist update --source level1
+
+# List sources with stats
+{project_name}-cli --admin server blocklist list
+
+# Check if an IP is blocked
+{project_name}-cli --admin server blocklist check 1.2.3.4
+
+# Add a new source
+{project_name}-cli --admin server blocklist add --name mylist --url https://example.com/list.gz
+
+# Remove a source
+{project_name}-cli --admin server blocklist remove --name mylist
+
+# Show aggregate stats
+{project_name}-cli --admin server blocklist stats
+```
+
+### Control Type Guidelines
+
+| When to use | Control |
+|-------------|---------|
+| Enable/disable feature | **Toggle** |
+| Yes/no with label | **Checkbox** |
+| Multiple options (2-5) | **Dropdown** |
+| Multiple options (5+) | **Searchable dropdown** |
+| Select multiple | **Checkbox group** or **Tags** |
+| Free text, short | **Text** |
+| Free text, long | **Textarea** |
+| Number with constraints | **Number** (with min/max) |
+| Secret value | **Password** |
+| Time period | **Duration** (number + unit dropdown) |
+| List of values | **Tags** |
+| File upload | **File** |
+| Read-only info | **Readonly** |
+| Trigger action | **Button** |
+
+### Log Viewer (`/server/{admin_path}/config/logs`)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Logs                                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  [Access ▼]  [Last 100 ▼]  [Search...        ]  [Auto-refresh: ON]     │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ 2025-01-15 10:30:45  GET  /api/{api_version}/server/healthz 200  12ms  192.168.1.1│    │
+│  │ 2025-01-15 10:30:44  POST /api/{api_version}/data    201  45ms  192.168.1.2│    │
+│  │ 2025-01-15 10:30:43  GET  /server/healthz        200  2ms   192.168.1.1│    │
+│  │ 2025-01-15 10:30:42  GET  /api/{api_version}/users   401  5ms   10.0.0.50  │    │
+│  │ ...                                                              │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                         │
+│  [< Prev]  Page 1 of 50  [Next >]           [Download] [Clear Logs]    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Log Types
+
+| Log | Description |
+|-----|-------------|
+| Access | HTTP request logs |
+| Error | Application errors |
+| Audit | Security/admin events |
+| Security | Auth failures, blocked IPs |
+| Debug | Debug output (dev mode) |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `g d` | Go to Dashboard |
+| `g s` | Go to Settings |
+| `g l` | Go to Logs |
+| `/` | Focus search |
+| `Esc` | Close modal/menu |
+| `Ctrl+S` | Save current form |
+| `?` | Show shortcuts help |
+
+## /server/{admin_path} Authentication Flow
+
+```
+User visits /server/{admin_path}
+       │
+       ▼
+Check for valid admin session
+       │
+       ├─► No session/expired
+       │   │
+       │   ▼
+       │   Show login form
+       │   │
+       │   ▼
+       │   User submits credentials
+       │   │
+       │   ▼
+       │   Validate against admins table
+       │   │
+       │   ├─► Invalid: Show error, log attempt
+       │   │
+       │   └─► Valid credentials
+       │       │
+       │       ▼
+       │       Check if 2FA enabled (TOTP or Passkey)
+       │       │
+       │       ├─► No 2FA: Create session, redirect to dashboard
+       │       │
+       │       └─► 2FA enabled
+       │           │
+       │           ▼
+       │           Show 2FA prompt (TOTP code or Passkey)
+       │           │
+       │           ├─► Invalid: Show error, allow retry
+       │           │
+       │           └─► Valid: Create session, redirect to dashboard
+       │
+       └─► Valid session
+           │
+           ▼
+           Show requested admin page
+```
+
+## Admin Session vs User Session
+
+| Aspect | Admin Session | User Session |
+|--------|---------------|--------------|
+| Cookie name | `admin_session` | `user_session` |
+| Valid routes | `/server/{admin_path}/**` only | `/**` except `/server/{admin_path}/**` |
+| Stored in | `server.db` (admin_sessions) | `users.db` (user_sessions) |
+| Credentials | `admins` table | `users` table |
+| Default duration | 30 days | 7 days |
+| MFA | Optional (TOTP) | Optional (TOTP) |
+
+### Scheduler Management (Admin Panel)
+
+The admin panel MUST include a scheduler section with:
+
+| Feature | Description |
+|---------|-------------|
+| **Task List** | View all scheduled tasks with status |
+| **Next Run** | Show next scheduled run time for each task |
+| **Last Run** | Show last run time and result (success/failure) |
+| **Run History** | View history of past runs with timestamps |
+| **Manual Trigger** | Button to manually run any task |
+| **Enable/Disable** | Toggle tasks on/off |
+| **Edit Schedule** | Modify task frequency (cron-style or preset) |
+| **Task Details** | View task configuration and logs |
+
+**Preset Schedules:**
+- `hourly` - Every hour
+- `daily` - Once per day (configurable time)
+- `weekly` - Once per week (configurable day/time)
+- `monthly` - Once per month (configurable day/time)
+- `custom` - Cron expression
+
+## /api/{api_version}/server/{admin_path} (REST API)
+
+### Authentication
+
+`Authorization: Bearer {token}`
+
+**These admin API routes are ALWAYS available, regardless of whether Multi-User (PART 34) is implemented.**
+
+### Admin - Server (`/api/{api_version}/server/{admin_path}/config/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/setup` | GET | Get setup status |
+| `/api/{api_version}/server/{admin_path}/config/setup/verify` | POST | Verify setup token |
+| `/api/{api_version}/server/{admin_path}/config/setup/account` | POST | Create admin account (Step 1) |
+| `/api/{api_version}/server/{admin_path}/config/setup/token` | POST | Generate API token (Step 2) |
+| `/api/{api_version}/server/{admin_path}/config/setup/config` | POST | Save server config (Step 3) |
+| `/api/{api_version}/server/{admin_path}/config/setup/security` | POST | Security settings (Step 4) |
+| `/api/{api_version}/server/{admin_path}/config/setup/services` | POST | Configure services (Step 5) |
+| `/api/{api_version}/server/{admin_path}/config/setup/complete` | POST | Complete setup wizard (Step 6) |
+| `/api/{api_version}/server/{admin_path}/config/settings` | GET | Get server settings |
+| `/api/{api_version}/server/{admin_path}/config/settings` | PATCH | Update server settings |
+| `/api/{api_version}/server/{admin_path}/config/status` | GET | Server status (detailed) |
+| `/api/{api_version}/server/{admin_path}/config/stats` | GET | Statistics |
+| `/api/{api_version}/server/{admin_path}/config/restart` | POST | Restart server |
+
+### Admin - Server Admins (`/api/{api_version}/server/{admin_path}/config/admins/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/admins` | GET | List Server Admins |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}` | GET | Get admin details |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}` | DELETE | Delete admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}/disable` | POST | Disable admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}/enable` | POST | Enable admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/invite` | POST | Generate admin invite link |
+
+### Admin - Profile (`/api/{api_version}/server/{admin_path}/{admin_username}/profile/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile` | GET | Get admin profile |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile` | PATCH | Update admin profile |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/password` | POST | Change admin password |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/token` | GET | Get current API token (masked) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/token` | POST | Regenerate API token |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/preferences` | GET | Get admin preferences (theme, notifications) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/preferences` | PATCH | Update admin preferences |
+
+### Admin - Branding (`/api/{api_version}/server/{admin_path}/config/branding/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/branding` | GET | Get branding settings |
+| `/api/{api_version}/server/{admin_path}/config/branding` | PATCH | Update branding |
+
+### Admin - SSL (`/api/{api_version}/server/{admin_path}/config/ssl/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/ssl` | GET | Get SSL settings |
+| `/api/{api_version}/server/{admin_path}/config/ssl` | PATCH | Update SSL settings |
+| `/api/{api_version}/server/{admin_path}/config/ssl/renew` | POST | Force certificate renewal |
+
+### Admin - Tor (`/api/{api_version}/server/{admin_path}/config/tor/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/tor` | GET | Get Tor status |
+| `/api/{api_version}/server/{admin_path}/config/tor` | PATCH | Update Tor settings |
+| `/api/{api_version}/server/{admin_path}/config/tor/regenerate` | POST | Regenerate .onion address |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | GET | Get vanity generation status |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | POST | Start vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | DELETE | Cancel vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity/apply` | POST | Apply vanity address |
+| `/api/{api_version}/server/{admin_path}/config/tor/import` | POST | Import external keys |
+
+### Admin - Web (`/api/{api_version}/server/{admin_path}/config/web/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/web` | GET | Get web settings |
+| `/api/{api_version}/server/{admin_path}/config/web` | PATCH | Update web settings |
+| `/api/{api_version}/server/{admin_path}/config/web/robots` | GET | Get robots.txt config |
+| `/api/{api_version}/server/{admin_path}/config/web/robots` | PATCH | Update robots.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/robots/preview` | GET | Preview robots.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/security` | GET | Get security.txt config |
+| `/api/{api_version}/server/{admin_path}/config/web/security` | PATCH | Update security.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/security/preview` | GET | Preview security.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known` | GET | Get well-known namespace settings and supported entries |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known` | PATCH | Update optional well-known entry settings |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known/preview/{name}` | GET | Preview the exact rendered body for one well-known entry |
+
+**`/api/{api_version}/server/{admin_path}/config/web` includes `server.healthz.root.enabled` and well-known namespace status in its settings payload.**
+
+### Admin - Pages (`/api/{api_version}/server/{admin_path}/config/pages/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/pages` | GET | Get all page settings |
+| `/api/{api_version}/server/{admin_path}/config/pages/about` | GET | Get about page content |
+| `/api/{api_version}/server/{admin_path}/config/pages/about` | PATCH | Update about page |
+| `/api/{api_version}/server/{admin_path}/config/pages/privacy` | GET | Get privacy policy |
+| `/api/{api_version}/server/{admin_path}/config/pages/privacy` | PATCH | Update privacy policy |
+| `/api/{api_version}/server/{admin_path}/config/pages/contact` | GET | Get contact page settings |
+| `/api/{api_version}/server/{admin_path}/config/pages/contact` | PATCH | Update contact page |
+| `/api/{api_version}/server/{admin_path}/config/pages/help` | GET | Get help page content |
+| `/api/{api_version}/server/{admin_path}/config/pages/help` | PATCH | Update help page |
+
+### Admin - Email (`/api/{api_version}/server/{admin_path}/config/email/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/email` | GET | Get email settings |
+| `/api/{api_version}/server/{admin_path}/config/email` | PATCH | Update email settings |
+| `/api/{api_version}/server/{admin_path}/config/email/test` | POST | Send test email |
+| `/api/{api_version}/server/{admin_path}/config/email/templates` | GET | List email templates |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}` | GET | Get template |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}` | PUT | Update template |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}/reset` | POST | Reset to default |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}/preview` | POST | Preview template |
+
+### Admin - Scheduler (`/api/{api_version}/server/{admin_path}/config/scheduler/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/scheduler` | GET | List scheduled tasks |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | GET | Get task details |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | PATCH | Update task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/run` | POST | Run task now |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/enable` | POST | Enable task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/disable` | POST | Disable task |
+
+### Admin - Backup (`/api/{api_version}/server/{admin_path}/config/backup/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/backup` | GET | List backups |
+| `/api/{api_version}/server/{admin_path}/config/backup` | POST | Create backup |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}` | GET | Get backup details |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}` | DELETE | Delete backup |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}/download` | GET | Download backup file |
+| `/api/{api_version}/server/{admin_path}/config/backup/restore` | POST | Restore from backup |
+
+### Admin - Logs (`/api/{api_version}/server/{admin_path}/config/logs/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/logs` | GET | List log files |
+| `/api/{api_version}/server/{admin_path}/config/logs/{type}` | GET | Get log entries |
+| `/api/{api_version}/server/{admin_path}/config/logs/{type}/download` | GET | Download log file |
+
+## Agent Management (OPTIONAL - When Agent is Enabled)
+
+**Agent management routes are only available when the project includes an agent component.**
+
+**See PART 33 for full agent binary and setup details.**
+
+### Admin Panel (`/server/{admin_path}/config/agents`)
+
+**Main agent dashboard showing all registered agents:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  /server/{admin_path}/config/agents                                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Connected Agents                                              [+ Add Agent] │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  │ Name              │ Status    │ Connected     │ Last Seen    │ Health   │
+│  ├───────────────────┼───────────┼───────────────┼──────────────┼──────────│
+│  │ web-server-01     │ ● Online  │ 2h 15m        │ Just now     │ ✓ Good   │
+│  │ web-server-02     │ ● Online  │ 2h 14m        │ 5s ago       │ ✓ Good   │
+│  │ db-primary        │ ● Online  │ 5d 3h         │ 2s ago       │ ⚠ Warn   │
+│  │ db-replica        │ ○ Offline │ —             │ 3 days ago   │ ✗ Error  │
+│  │ cache-01          │ ● Online  │ 12h 30m       │ 1s ago       │ ✓ Good   │
+│  └───────────────────┴───────────┴───────────────┴──────────────┴──────────┘
+│                                                                             │
+│  Summary: 4 online, 1 offline                                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Table Columns:**
+| Column | Description |
+|--------|-------------|
+| **Name** | Agent hostname (link to detail page) |
+| **Status** | ● Online / ○ Offline |
+| **Connected** | Duration since agent connected (or — if offline) |
+| **Last Seen** | Time since last heartbeat/report |
+| **Health** | ✓ Good / ⚠ Warn / ✗ Error (based on agent metrics) |
+
+### Admin Panel (`/server/{admin_path}/config/agents/{name}`)
+
+**Detailed view of a single agent:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  /server/{admin_path}/config/agents/web-server-01                         [← Back to List] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  web-server-01                                             ● Online         │
+│  ───────────────────────────────────────────────────────────────────────    │
+│                                                                             │
+│  ┌─ System Info ─────────────────────────────────────────────────────────┐  │
+│  │                                                                       │  │
+│  │  Hostname:    web-server-01                                           │  │
+│  │  OS:          Linux (Ubuntu 22.04)                                    │  │
+│  │  Arch:        amd64                                                   │  │
+│  │  Agent Ver:   1.0.0                                                   │  │
+│  │  Uptime:      45 days, 3 hours                                        │  │
+│  │  Tags:        production, web-tier, us-east-1                         │  │
+│  │                                                                       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─ Connection ──────────────────────────────────────────────────────────┐  │
+│  │                                                                       │  │
+│  │  Status:      ● Connected                                             │  │
+│  │  Connected:   2h 15m ago                                              │  │
+│  │  Last Report: Just now (every 60s)                                    │  │
+│  │  IP Address:  192.168.1.100                                           │  │
+│  │                                                                       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─ System Metrics ──────────────────────────────────────────────────────┐  │
+│  │                                                                       │  │
+│  │  CPU:     ████████░░░░░░░░░░░░  42%                                   │  │
+│  │  Memory:  ██████████████░░░░░░  72% (5.8GB / 8GB)                     │  │
+│  │  Disk:    ████████████░░░░░░░░  62% (124GB / 200GB)                   │  │
+│  │  Network: ↓ 1.2 MB/s  ↑ 450 KB/s                                      │  │
+│  │  Load:    2.45 / 4.12 / 3.87                                          │  │
+│  │                                                                       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─ Actions ─────────────────────────────────────────────────────────────┐  │
+│  │                                                                       │  │
+│  │  [Refresh Now]  [View Logs]  [Edit Tags]  [Regenerate Token]          │  │
+│  │                                                                       │  │
+│  │  [Remove Agent]  ← Requires confirmation                              │  │
+│  │                                                                       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Admin Panel (`/server/{admin_path}/config/agents/add`)
+
+**Simple agent registration page:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  /server/{admin_path}/config/agents/add                                   [← Back to List] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Add New Agent                                                              │
+│  ───────────────────────────────────────────────────────────────────────    │
+│                                                                             │
+│  Agent Name (optional):                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                                                                     │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  Leave blank to use hostname. Equivalent to: hostname -s                    │
+│                                                                             │
+│  Tags (optional):                                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ production, web-tier                                                │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  Comma-separated. Used for filtering and grouping.                          │
+│                                                                             │
+│  Token Expiry:                                                              │
+│  ○ 1 hour                                                                   │
+│  ● 24 hours (recommended)                                                   │
+│  ○ 7 days                                                                   │
+│  ○ Never expires                                                            │
+│                                                                             │
+│  [Generate Agent Token]                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+         ↓ (Token generated)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✅ Agent Token Generated                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Run this command on the target machine:                                       │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ curl -q -LSsf https://app.example.com/install-agent | sh -s -- \    │    │
+│  │   --server https://app.example.com \                                │    │
+│  │   --token adm_agt_abc123def456ghi789jkl012mno345pqr678              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  [Copy to Clipboard]                                                        │
+│                                                                             │
+│  Or manually:                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ projectname-agent --server https://app.example.com \                │    │
+│  │   --token adm_agt_abc123def456ghi789jkl012mno345pqr678              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  [Copy to Clipboard]                                                        │
+│                                                                             │
+│  ⚠️  Token expires in 24 hours and can only be used once.                   │
+│                                                                             │
+│  [Done]                                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Server generates the complete command string:**
+```go
+func GenerateAgentConnectionCommand(serverURL, token string) string {
+    return fmt.Sprintf("projectname-agent --server %s --token %s", serverURL, token)
+}
+```
+
+**Agent Name Default:**
+```go
+// Go equivalent of hostname -s
+func getDefaultAgentName() string {
+    hostname, err := os.Hostname()
+    if err != nil {
+        return "unknown"
+    }
+    // hostname -s returns short hostname (before first dot)
+    if idx := strings.Index(hostname, "."); idx > 0 {
+        return hostname[:idx]
+    }
+    return hostname
+}
+```
+
+### Agent Connection Notifications
+
+**When an agent connects, server WebUI shows real-time notification:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🔔 Notification                                                      [×]   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ✅ web-server-01 has connected                                             │
+│  Agent is now sending data to server for admin scope                        │
+│                                                                             │
+│  [View Agent]  [Dismiss]                                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Notification content by scope:**
+
+| Scope | Notification Message |
+|-------|---------------------|
+| Admin | "{name} has connected. Agent is now sending data to server for admin scope" |
+| User | "{name} has connected. Agent is now sending data for user {username}" |
+| Org | "{name} has connected. Agent is now sending data for org {org_name}" |
+
+**Notification triggers:**
+- Agent first connection (registration complete)
+- Agent reconnection after disconnect
+- Agent status change (online/offline)
+
+### Admin Panel (`/server/{admin_path}/config/agents/remove`)
+
+**Agent removal page with confirmation:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  /server/{admin_path}/config/agents/remove                                [← Back to List] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Remove Agent                                                               │
+│  ───────────────────────────────────────────────────────────────────────    │
+│                                                                             │
+│  Select agent to remove:                                                    │
+│                                                                             │
+│  ┌───────────────────┬───────────┬──────────────────────────────────────┐   │
+│  │ Name              │ Status    │ Last Seen                            │   │
+│  ├───────────────────┼───────────┼──────────────────────────────────────┤   │
+│  │ ○ web-server-01   │ ● Online  │ Just now                             │   │
+│  │ ○ web-server-02   │ ● Online  │ 5s ago                               │   │
+│  │ ○ db-primary      │ ● Online  │ 2s ago                               │   │
+│  │ ○ db-replica      │ ○ Offline │ 3 days ago                           │   │
+│  │ ○ cache-01        │ ● Online  │ 1s ago                               │   │
+│  └───────────────────┴───────────┴──────────────────────────────────────┘   │
+│                                                                             │
+│  [Remove Selected]                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+         ↓ (Agent selected, click Remove)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  ⚠️  Remove Agent                                                           │
+│                                                                             │
+│  Are you sure you want to remove agent "db-replica"?                        │
+│                                                                             │
+│  This will:                                                                 │
+│  • Revoke the agent's authentication token                                  │
+│  • Remove the agent from the dashboard                                      │
+│  • Delete all historical metrics for this agent                             │
+│                                                                             │
+│  The agent binary on the remote machine will NOT be uninstalled.               │
+│  You must manually run: projectname-agent --service uninstall               │
+│                                                                             │
+│              [No, Cancel]        [Yes, Remove Agent]                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Scoped Agents API
+
+**Agents can belong to admin, user, or org scope. Same API pattern, different routes.**
+
+| Scope | Base Route | Owner Token | Agent Token |
+|-------|------------|-------------|-------------|
+| Admin | `/api/{api_version}/server/{admin_path}/config/agents/` | `adm_` | `adm_agt_` |
+| User | `/api/{api_version}/users/agents/` | `usr_` | `usr_agt_` |
+| Org | `/api/{api_version}/orgs/{slug}/agents/` | `org_` | `org_agt_` |
+
+**Same endpoints for all scopes (replace `{base}` with scope route above):**
+
+| Endpoint | Method | Token | Description |
+|----------|--------|-------|-------------|
+| `{base}` | GET | Owner | List agents |
+| `{base}` | POST | Owner | Create agent token |
+| `{base}/{name}` | GET | Owner | Get agent details |
+| `{base}/{name}` | PATCH | Owner | Update agent (tags, name) |
+| `{base}/{name}` | DELETE | Owner | Remove agent |
+| `{base}/{name}/token` | POST | Owner | Regenerate agent token |
+| `{base}/{name}/metrics` | GET | Owner | Get agent metrics history |
+| `{base}/register` | POST | Agent | Agent self-registration (one-time) |
+| `{base}/heartbeat` | POST | Agent | Agent health check / keepalive |
+| `{base}/report` | POST | Agent | Submit collected data (project-specific) |
+
+**Token Access:**
+- Owner tokens (`adm_`, `usr_`, `org_`): Full agent management (CRUD, view metrics)
+- Agent tokens (`adm_agt_`, `usr_agt_`, `org_agt_`): Limited to register, heartbeat, report (own data only)
+
+**Examples:**
+```
+# Admin agent (server infrastructure)
+POST /api/{api_version}/server/{admin_path}/config/agents/register
+Authorization: Bearer adm_agt_abc123...
+
+# User agent (personal SaaS monitoring)
+POST /api/{api_version}/users/agents/register
+Authorization: Bearer usr_agt_xyz789...
+
+# Org agent (organization resources)
+POST /api/{api_version}/orgs/acme-corp/agents/register
+Authorization: Bearer org_agt_def456...
+```
+
+**Agent Data Views (Project-Specific):**
+
+Agent data can be exposed via project-specific routes for different audiences:
+
+| Route | Description | Example |
+|-------|-------------|---------|
+| `/server/{admin_path}/config/agents/*` | Admin management UI | Full control |
+| `/users/agents/*` | User's agent dashboard | Personal agents |
+| `/orgs/{slug}/agents/*` | Org agent dashboard | Org agents |
+| `/{custom}/status` | Public status page | Status dashboard |
+
+Define project-specific data views in IDEA.md.
+
+### Agent Database Schema
+
+```sql
+-- agents table (supports all scopes)
+CREATE TABLE agents (
+    id TEXT PRIMARY KEY,                    -- UUID
+    name TEXT NOT NULL,                     -- hostname or custom name
+
+    -- Scope (which owner)
+    scope TEXT NOT NULL,                    -- 'admin', 'user', 'org'
+    owner_id TEXT,                          -- NULL for admin, user_id for user, org_id for org
+    token_prefix TEXT NOT NULL,             -- 'adm_agt_', 'usr_agt_', 'org_agt_'
+    token_hash TEXT NOT NULL,               -- SHA-256 hash of full token
+
+    -- System info (from agent)
+    hostname TEXT,
+    os TEXT,                                -- linux, windows, darwin
+    arch TEXT,                              -- amd64, arm64
+    version TEXT,                           -- Agent version
+
+    -- Tags
+    tags TEXT,                              -- JSON array: ["prod", "web"]
+
+    -- Connection tracking
+    status TEXT DEFAULT 'pending',          -- pending, online, offline
+    ip_address TEXT,
+    connected_at TIMESTAMP,
+    last_seen_at TIMESTAMP,
+
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(scope, owner_id, name)           -- Name unique within scope+owner
+);
+
+CREATE INDEX idx_agents_scope_owner ON agents(scope, owner_id);
+
+-- agent_metrics table (for historical data)
+CREATE TABLE agent_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+
+    -- Metrics
+    cpu_percent REAL,
+    memory_percent REAL,
+    memory_used_bytes INTEGER,
+    memory_total_bytes INTEGER,
+    disk_percent REAL,
+    disk_used_bytes INTEGER,
+    disk_total_bytes INTEGER,
+    network_rx_bytes INTEGER,
+    network_tx_bytes INTEGER,
+    load_1 REAL,
+    load_5 REAL,
+    load_15 REAL,
+
+    -- Custom metrics (JSON)
+    custom_metrics TEXT,
+
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_agent_metrics_agent_time ON agent_metrics(agent_id, recorded_at);
+```
+
+---
+
+
+# PART 18: EMAIL & NOTIFICATIONS
 
 ## Overview
 
 **ALL projects MUST have customizable email templates.**
 
-Email templates allow operators to customize ALL notification messages (system alerts, scheduler reports, backup status, etc.). Default templates with sane defaults are embedded in the binary; custom templates are stored in `{config_dir}/template/email/`.
+Email templates allow Server Admins to customize ALL notification messages, including account-related emails (password reset, email verification, login alerts, etc.). Default templates with sane defaults are embedded in the binary; custom templates are stored in `{config_dir}/template/email/`.
 
 **Key Points:**
-- ALL email templates are fully customizable
-- No account-related emails (no users, no password resets, no verification flows)
+- ALL email templates are fully customizable via the admin panel
+- Account emails (password reset, verification, security alerts) follow the same customization pattern as server notification emails
 - Each template has sensible defaults that work out-of-the-box
 - Changes take effect immediately (live reload)
 
@@ -26469,6 +30861,10 @@ server:
 
 | Feature | Behavior |
 |---------|----------|
+| Password reset | Feature hidden/disabled, show "Contact administrator" |
+| Email verification | Skipped entirely (emails auto-verified) |
+| Login alerts | Not sent, not attempted, not logged |
+| Welcome email | Not sent, not attempted |
 | Security alerts | Not sent, not attempted |
 | All notifications | Not sent, not attempted |
 
@@ -26484,24 +30880,39 @@ server:
 - ✓ Hide email-dependent UI elements when SMTP unavailable
 - ✓ Show clear message: "Email features require SMTP configuration"
 
-**API Behavior:**
-- If SMTP not configured, `GET /api/{api_version}/server/config/settings` returns `email.configured: false`
-- Email-dependent features disabled until SMTP configured
-- `POST /api/{api_version}/server/config/email/test` validates SMTP actually works before enabling email features
+**Admin Panel:**
+- If SMTP not configured, show banner: "⚠️ SMTP not configured. Email features disabled. [Configure SMTP](/server/{admin_path}/config/email)"
+- Email-dependent features (password reset link, etc.) hidden until SMTP configured
+- Test email button validates SMTP actually works before enabling email features
 
 ## Default Templates
 
-**Note:** Templates are defined for all functionality but are ONLY used when SMTP is configured. When SMTP is not configured, all email features are hidden/disabled.
+**Note:** Templates are defined for all functionality but are ONLY used when SMTP is configured. When SMTP is not configured:
+- Templates exist but are never rendered or sent
+- `email_verify` template is not used - email addresses are auto-verified
+- All email-dependent features are hidden/disabled
 
 | Template | Purpose | Account Email? |
 |----------|---------|:--------------:|
-| `security_alert` | Security event (rate limit, IP block, abuse) | ✗ |
+| `welcome` | New user registration / admin setup | ✓ |
+| `password_reset` | Password reset request | ✓ |
+| `email_verify` | Email address verification | ✓ |
+| `login_alert` | New login detected | ✓ |
+| `security_alert` | Security event (failed logins, etc.) | ✓ |
+| `mfa_reminder` | Gentle prompt to enable MFA (periodic) | ✓ |
+| `2fa_enabled` | 2FA activated on account | ✓ |
+| `2fa_disabled` | 2FA removed from account | ✓ |
+| `password_changed` | Password was changed | ✓ |
 | `backup_complete` | Backup finished successfully | ✗ |
 | `backup_failed` | Backup error | ✗ |
 | `ssl_expiring` | Certificate expiration warning | ✗ |
 | `ssl_renewed` | Certificate renewed successfully | ✗ |
 | `scheduler_error` | Scheduled task failed | ✗ |
+| `breach_notification` | Data breach notification to affected users | ✓ |
+| `breach_admin_alert` | Breach detected alert to Server Admins | ✗ |
 | `test` | Test email | ✗ |
+
+**Account Email (✓):** Must follow Account Email Requirements (visible link, disclaimer, etc.)
 
 ## Sane Defaults
 
@@ -26509,23 +30920,53 @@ server:
 
 | Template | Default Subject | Default Behavior |
 |----------|-----------------|------------------|
-| `security_alert` | `Security Alert - {app_name}` | Generic alert for security events (rate limit exceeded, IP blocked) |
+| `welcome` | `Welcome to {app_name}` | Sent to new users on registration (if enabled) and to admin on first setup |
+| `password_reset` | `Password Reset Request - {app_name}` | 24-hour expiry, includes IP address |
+| `email_verify` | `Verify Your Email - {app_name}` | 48-hour expiry |
+| `login_alert` | `New Login Detected - {app_name}` | Includes IP, location (if GeoIP enabled), device |
+| `security_alert` | `Security Alert - {app_name}` | Generic alert for various security events |
+| `mfa_reminder` | `Secure Your Account - {app_name}` | Periodic reminder, includes setup link, dismissable |
+| `2fa_enabled` | `Two-Factor Authentication Enabled - {app_name}` | Confirmation of 2FA activation |
+| `2fa_disabled` | `Two-Factor Authentication Disabled - {app_name}` | Warning about 2FA removal |
+| `password_changed` | `Your Password Was Changed - {app_name}` | Confirmation of password change |
 | `backup_complete` | `Backup Complete - {app_name}` | Includes filename and size |
 | `backup_failed` | `Backup Failed - {app_name}` | Includes error message |
 | `ssl_expiring` | `SSL Certificate Expiring - {app_name}` | Sent 30, 14, 7, 3, 1 days before expiry |
 | `ssl_renewed` | `SSL Certificate Renewed - {app_name}` | Confirmation of renewal |
 | `scheduler_error` | `Scheduled Task Failed - {app_name}` | Includes task name and error |
+| `breach_notification` | `Important Security Notice - {app_name}` | Compliance-aware, includes breach details, recommended actions |
+| `breach_admin_alert` | `[{severity}] Security Breach Detected - {app_name}` | Immediate alert, includes detection details, action required |
 | `test` | `Test Email - {app_name}` | Simple test message |
 
 **Default Sender:**
 - From Name: `{app_name}` (defaults to binary name if not set)
 - From Address: `no-reply@{fqdn}` (defaults to `no-reply@localhost` if FQDN not set)
-- Reply-To: `{notification_reply_to}` (if set in `server.notifications.email.reply_to`, otherwise omitted)
+- Reply-To: `{admin_email}` (if set, otherwise omitted)
 
-**SMTP Check Before Sending:**
+**Default Expiry Times:**
+| Link Type | Default Expiry | Configurable? |
+|-----------|----------------|---------------|
+| Password reset | 24 hours | Yes |
+| Email verification | 48 hours | Yes |
+| Account recovery | 1 hour | Yes |
+| Setup token | 24 hours | No (security) |
+
+**MFA Reminder Schedule:**
+| Recipient | First Reminder | Repeat | Stop When |
+|-----------|----------------|--------|-----------|
+| Server admin | 7 days after first login | Every 6 months | MFA enabled or dismissed permanently |
+| Regular user | 7 days after registration | Every 6 months | MFA enabled or dismissed permanently |
+
+- Reminders shown in-app (dismissable banner) - always works
+- Email reminders only sent if SMTP is working (check `server.notifications.email.enabled`)
+- User/admin can permanently dismiss reminders in settings
+- Never more than one reminder per 6-month period
+- Include one-click "Set up now" and "Don't remind me" links
+
+**SMTP Check for Email Reminders:**
 ```go
-// Check if email notifications can be sent
-func canSendEmail() bool {
+// Check if email reminders can be sent
+func canSendEmailReminder() bool {
     cfg := config.Get()
     return cfg.Server.Notifications.Email.Enabled &&
            cfg.Server.Notifications.Email.SMTP.Host != ""
@@ -26569,19 +31010,212 @@ Time: {timestamp}
 | `{onion_address}` | Tor .onion address only (e.g., `abc...xyz.onion`) |
 | `{i2p_url}` | I2P full URL (e.g., `http://abc...xyz.b32.i2p`) |
 | `{i2p_address}` | I2P address only (e.g., `abc...xyz.b32.i2p`) |
-| `{notification_reply_to}` | Reply-To address from `server.notifications.email.reply_to` |
+| `{admin_email}` | Admin email address |
+| `{recipient_email}` | Email address this message is being sent to |
+| `{recipient_username}` | Username of the account (if applicable) |
 | `{timestamp}` | Current date/time |
 | `{year}` | Current year |
 
-## Server Email Requirements
+## Account Email Requirements
 
-**ALL server notification emails MUST include:**
+**ALL account-related emails MUST include:**
 
 | Requirement | Description |
 |-------------|-------------|
 | **Why sent** | Clear explanation of why this email was sent |
+| **Who it's for** | The recipient email address (visible in body) |
 | **App identity** | App name AND full FQDN |
-| **Visible link** | Plaintext URL where applicable |
+| **Visible link** | Plaintext URL (not just a button) - users can copy/paste |
+| **Disclaimer** | "If you did not request this, ignore this message" (where applicable) |
+| **No action if unsolicited** | Never include links that delete/modify without prior auth |
+
+**Account-related emails include:**
+- Welcome (user registration)
+- Password reset
+- Email verification
+- Login alerts
+- Security alerts
+- 2FA changes
+- Account recovery
+
+### Example: User Welcome Email (Required Format)
+
+```
+Subject: Welcome to {app_name}
+---
+WELCOME TO {APP_NAME}
+
+This email was sent to: {recipient_email}
+From: {app_name} ({fqdn})
+
+Hello {recipient_username},
+
+Welcome to {app_name}! Your account has been created successfully.
+
+To get started, log in at:
+
+{login_url}
+
+You can manage your profile and settings at:
+
+{profile_url}
+
+────────────────────────────────────────────────────────────────────────
+GETTING STARTED
+
+- Complete your profile
+- Enable two-factor authentication for added security
+- Explore the features available to you
+
+If you have any questions, contact us at {admin_email}.
+────────────────────────────────────────────────────────────────────────
+
+--
+{app_name}
+{app_url}
+```
+
+### Example: Admin Welcome Email (Required Format)
+
+```
+Subject: Welcome to {app_name} - Admin Setup Complete
+---
+ADMIN SETUP COMPLETE
+
+This email was sent to: {recipient_email}
+From: {app_name} ({fqdn})
+
+Congratulations! Your {app_name} instance is now configured.
+
+Admin Panel: {admin_url}
+Username: {admin_username}
+
+────────────────────────────────────────────────────────────────────────
+IMPORTANT NEXT STEPS
+
+1. Log in to the admin panel and review your settings
+2. Configure SMTP for email notifications
+3. Enable SSL/TLS for secure connections
+4. Set up regular backups
+5. Enable two-factor authentication
+
+Keep your admin credentials secure. If you lose access, use:
+  {project_name} --maintenance setup
+────────────────────────────────────────────────────────────────────────
+
+--
+{app_name}
+{app_url}
+```
+
+### Example: Password Reset Email (Required Format)
+
+```
+Subject: Password Reset Request - {app_name}
+---
+PASSWORD RESET REQUEST
+
+This email was sent to: {recipient_email}
+From: {app_name} ({fqdn})
+Requested at: {timestamp}
+Request IP: {ip}
+
+Someone requested a password reset for the account associated with this
+email address on {app_name} ({fqdn}).
+
+To reset your password, visit the following link:
+
+{reset_link}
+
+This link expires in {expires}.
+
+────────────────────────────────────────────────────────────────────────
+⚠️  DID NOT REQUEST THIS?
+
+If you did not request a password reset, you can safely ignore this email.
+Your password will not be changed unless you click the link above.
+
+No action is required on your part.
+────────────────────────────────────────────────────────────────────────
+
+--
+{app_name}
+{app_url}
+```
+
+### Example: Email Verification (Required Format)
+
+```
+Subject: Verify Your Email - {app_name}
+---
+EMAIL VERIFICATION
+
+This email was sent to: {recipient_email}
+From: {app_name} ({fqdn})
+Sent at: {timestamp}
+
+You (or someone) requested to add this email address to an account on
+{app_name} ({fqdn}).
+
+To verify this email address, visit the following link:
+
+{verify_link}
+
+This link expires in {expires}.
+
+────────────────────────────────────────────────────────────────────────
+⚠️  DID NOT REQUEST THIS?
+
+If you did not request to add this email to an account, you can safely
+ignore this email. No account will be created or linked.
+
+No action is required on your part.
+────────────────────────────────────────────────────────────────────────
+
+--
+{app_name}
+{app_url}
+```
+
+### Example: Login Alert (Required Format)
+
+```
+Subject: New Login Detected - {app_name}
+---
+NEW LOGIN DETECTED
+
+This alert was sent to: {recipient_email}
+Account: {recipient_username}
+From: {app_name} ({fqdn})
+
+A new login was detected on your account:
+
+  Time:     {time}
+  IP:       {ip}
+  Location: {location}
+  Device:   {device}
+
+If this was you, no action is required.
+
+────────────────────────────────────────────────────────────────────────
+⚠️  NOT YOU?
+
+If you did not log in, your account may be compromised. Take action:
+
+1. Change your password immediately:
+   {app_url}/server/auth/password/forgot
+
+2. Review your active sessions:
+   {app_url}/settings/sessions
+
+3. Enable 2FA if not already enabled:
+   {app_url}/settings/security
+────────────────────────────────────────────────────────────────────────
+
+--
+{app_name}
+{app_url}
+```
 
 ### Example: Security Alert (Required Format)
 
@@ -26590,6 +31224,8 @@ Subject: Security Alert - {app_name}
 ---
 SECURITY ALERT
 
+This alert was sent to: {recipient_email}
+Account: {recipient_username}
 From: {app_name} ({fqdn})
 Time: {timestamp}
 
@@ -26600,8 +31236,18 @@ Details:
   {details}
 
 ────────────────────────────────────────────────────────────────────────
-{app_name}
-{app_url}
+⚠️  RECOMMENDED ACTIONS
+
+If this activity was not you:
+
+1. Change your password immediately:
+   {app_url}/server/auth/password/forgot
+
+2. Review account activity:
+   {app_url}/settings/security
+
+3. Contact support if needed:
+   {admin_email}
 ────────────────────────────────────────────────────────────────────────
 
 --
@@ -26609,54 +31255,328 @@ Details:
 {app_url}
 ```
 
-### Example: Backup Complete (Required Format)
+### Example: 2FA Disabled Alert (Required Format)
 
 ```
-Subject: Backup Complete - {app_name}
+Subject: Two-Factor Authentication Disabled - {app_name}
 ---
-BACKUP COMPLETE
+2FA DISABLED
 
+This alert was sent to: {recipient_email}
+Account: {recipient_username}
 From: {app_name} ({fqdn})
 Time: {timestamp}
 
-Your backup completed successfully.
+Two-factor authentication has been disabled on your account.
 
-Filename: {filename}
-Size: {size}
+Method used: {method}
+  (password, recovery key, or admin action)
+
+────────────────────────────────────────────────────────────────────────
+⚠️  DID NOT DO THIS?
+
+If you did not disable 2FA, your account may be compromised:
+
+1. Change your password immediately:
+   {app_url}/server/auth/password/forgot
+
+2. Re-enable 2FA:
+   {app_url}/settings/security
+
+3. Contact support:
+   {admin_email}
+────────────────────────────────────────────────────────────────────────
 
 --
 {app_name}
 {app_url}
 ```
 
-### Example: Scheduler Error (Required Format)
+### Example: Password Changed Alert (Required Format)
 
 ```
-Subject: Scheduled Task Failed - {app_name}
+Subject: Your Password Was Changed - {app_name}
 ---
-SCHEDULED TASK FAILED
+PASSWORD CHANGED
 
+This alert was sent to: {recipient_email}
+Account: {recipient_username}
 From: {app_name} ({fqdn})
 Time: {timestamp}
 
-The scheduled task "{task_name}" failed.
+The password for your account was successfully changed.
 
-Error: {error}
-Next run: {next_run}
+Method: {method}
+IP Address: {ip}
+
+If you made this change, no action is required.
+
+────────────────────────────────────────────────────────────────────────
+⚠️  DID NOT CHANGE YOUR PASSWORD?
+
+If you did not change your password, your account may be compromised:
+
+1. Reset your password immediately:
+   {app_url}/server/auth/password/forgot
+
+2. Review your account security:
+   {app_url}/settings/security
+
+3. Contact support:
+   {admin_email}
+────────────────────────────────────────────────────────────────────────
 
 --
 {app_name}
+{app_url}
+```
+
+### Example: Breach Notification (Required Format)
+
+```
+Subject: Important Security Notice - {app_name}
+---
+IMPORTANT SECURITY NOTICE
+
+This notice was sent to: {recipient_email}
+Account: {recipient_username}
+From: {app_name} ({fqdn})
+Date: {timestamp}
+Reference: {breach_id}
+
+We are writing to inform you of a security incident that may have affected
+your account on {app_name}.
+
+────────────────────────────────────────────────────────────────────────
+WHAT HAPPENED
+
+{breach_summary}
+
+Date discovered: {breach_date}
+Incident type: {breach_type}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+WHAT INFORMATION WAS INVOLVED
+
+The following categories of data may have been affected:
+
+{affected_data}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+WHAT WE ARE DOING
+
+We take the security of your information seriously. Upon discovering this
+incident, we immediately:
+
+- Secured affected systems and contained the incident
+- Launched a comprehensive investigation
+- Notified relevant authorities as required by law
+- Enhanced our security measures to prevent future incidents
+
+{notification_deadline}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+WHAT YOU SHOULD DO
+
+We recommend you take the following steps to protect your account:
+
+{recommended_actions}
+
+1. Change your password immediately:
+   {app_url}/server/auth/password/forgot
+
+2. Review your account activity:
+   {app_url}/users/security
+
+3. Enable two-factor authentication if not already enabled:
+   {app_url}/users/security/2fa
+
+4. Monitor your accounts for any suspicious activity
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+CONTACT INFORMATION
+
+If you have questions or need assistance:
+
+Email: {contact_email}
+{contact_phone}
+{dpo_contact}
+
+Reference this ID in all communications: {breach_id}
+────────────────────────────────────────────────────────────────────────
+
+{regulatory_notice}
+
+We sincerely apologize for any concern or inconvenience this may cause.
+We remain committed to protecting your information and will continue to
+take steps to enhance our security measures.
+
+--
+{app_name}
+{app_url}
+```
+
+**Compliance-Specific Regulatory Notices:**
+
+The `{regulatory_notice}` variable is automatically populated based on enabled compliance standards:
+
+| Compliance | Regulatory Notice Content |
+|------------|---------------------------|
+| GDPR | "This notification is provided in accordance with Article 34 of the General Data Protection Regulation (GDPR). You have the right to lodge a complaint with your local data protection authority." |
+| HIPAA | "This notification is provided in accordance with the HIPAA Breach Notification Rule (45 CFR §§ 164.400-414). For questions about your health information rights, contact the HHS Office for Civil Rights." |
+| CCPA | "Under the California Consumer Privacy Act, you have the right to know what personal information was collected and to request deletion. Visit our privacy page for more information." |
+| LGPD | "Esta notificação é fornecida de acordo com a Lei Geral de Proteção de Dados (LGPD). Você tem o direito de apresentar reclamação à ANPD (Autoridade Nacional de Proteção de Dados)." |
+| PIPEDA | "This notification is provided in accordance with Canada's Personal Information Protection and Electronic Documents Act (PIPEDA). You may contact the Office of the Privacy Commissioner of Canada." |
+| APPI | "This notification is provided in accordance with Japan's Act on the Protection of Personal Information. You may contact the Personal Information Protection Commission." |
+| PDPA | "This notification is provided in accordance with Singapore's Personal Data Protection Act. You may contact the Personal Data Protection Commission." |
+
+**When Multiple Standards Apply:** All applicable regulatory notices are included, with the most restrictive notification timeline met.
+
+### Example: Breach Admin Alert (Required Format)
+
+```
+Subject: [{severity}] Security Breach Detected - {app_name}
+---
+🚨 SECURITY BREACH DETECTED
+
+Server: {app_name} ({fqdn})
+Time: {timestamp}
+Breach ID: {breach_id}
+
+────────────────────────────────────────────────────────────────────────
+SEVERITY: {severity}
+TYPE: {breach_type}
+DETECTION: {detection_method}
+────────────────────────────────────────────────────────────────────────
+
+SUMMARY:
+{breach_summary}
+
+────────────────────────────────────────────────────────────────────────
+DETAILS
+
+Detection trigger: {trigger}
+Source IP: {source_ip}
+Affected scope: {affected_scope}
+Estimated affected users: {affected_users}
+Affected data categories: {affected_data}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+AUTO-ACTIONS TAKEN
+
+{auto_actions}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+COMPLIANCE REQUIREMENTS
+
+{compliance_requirements}
+
+Notification deadline: {notify_deadline}
+────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────
+IMMEDIATE ACTION REQUIRED
+
+1. Review breach details:
+   {admin_url}/compliance/breaches/{breach_id}
+
+2. Start investigation (if not auto-started):
+   {admin_url}/compliance/breaches/{breach_id}/investigate
+
+3. Assess containment status
+
+4. Prepare user notifications if required
+────────────────────────────────────────────────────────────────────────
+
+This is an automated security alert from {app_name}.
+Do not reply to this email.
+
+--
+{app_name} Security System
 {app_url}
 ```
 
 ## Template-Specific Variables
 
+**Note:** Account-related templates (marked ✓ above) also have access to `{recipient_email}`, `{recipient_username}`, and `{fqdn}` from global variables.
+
+### welcome
+
+**Two variants:** Admin welcome (first setup) and User welcome (registration).
+
+**Admin Welcome Variables:**
+| Variable | Description |
+|----------|-------------|
+| `{admin_url}` | Admin panel URL |
+| `{admin_username}` | Initial admin username |
+
+**User Welcome Variables:**
+| Variable | Description |
+|----------|-------------|
+| `{recipient_username}` | New user's username |
+| `{recipient_email}` | New user's email address |
+| `{login_url}` | Login page URL |
+| `{profile_url}` | User profile URL |
+
+**When Sent:**
+| Scenario | Template Used | Recipient |
+|----------|---------------|-----------|
+| First admin setup | Admin welcome | Server admin email |
+| User registration (if enabled) | User welcome | New user's email |
+| Admin creates user | User welcome | New user's email |
+| User invited via invite code | User welcome | Invited user's email |
+
+### password_reset
+| Variable | Description |
+|----------|-------------|
+| `{reset_link}` | Password reset URL (full URL, visible in email) |
+| `{expires}` | Link expiration time (e.g., "24 hours") |
+| `{ip}` | Requesting IP address |
+
+### email_verify
+| Variable | Description |
+|----------|-------------|
+| `{verify_link}` | Email verification URL (full URL, visible in email) |
+| `{expires}` | Link expiration time |
+
+### login_alert
+| Variable | Description |
+|----------|-------------|
+| `{ip}` | Login IP address |
+| `{location}` | GeoIP location (if available) |
+| `{device}` | User agent / device info |
+| `{time}` | Login time |
+
 ### security_alert
 | Variable | Description |
 |----------|-------------|
-| `{event}` | Security event type (e.g., "Rate limit exceeded", "IP blocked") |
+| `{event}` | Security event type |
 | `{ip}` | Source IP address |
 | `{details}` | Event details |
+
+### 2fa_enabled
+| Variable | Description |
+|----------|-------------|
+| `{method}` | 2FA method enabled (TOTP, WebAuthn, etc.) |
+| `{ip}` | IP address where 2FA was enabled |
+
+### 2fa_disabled
+| Variable | Description |
+|----------|-------------|
+| `{method}` | How 2FA was disabled (password, recovery key, admin) |
+| `{ip}` | IP address where 2FA was disabled |
+
+### password_changed
+| Variable | Description |
+|----------|-------------|
+| `{ip}` | IP address where password was changed |
+| `{method}` | How changed (direct, reset link, admin reset) |
 
 ### backup_complete / backup_failed
 | Variable | Description |
@@ -26680,9 +31600,58 @@ Next run: {next_run}
 | `{error}` | Error message |
 | `{next_run}` | Next scheduled run |
 
-## Email Template Configuration
+### breach_notification
 
-Templates are stored as files on disk. Override any built-in template by placing a file in the configured template directory. Use `POST /api/{api_version}/server/config/email/test` to send a test email and verify configuration.
+**Compliance-Aware Template:** This template automatically adjusts content based on enabled compliance standards.
+
+| Variable | Description |
+|----------|-------------|
+| `{breach_id}` | Unique breach identifier for reference |
+| `{breach_date}` | Date/time breach was discovered |
+| `{breach_type}` | Type of breach (unauthorized access, data exposure, etc.) |
+| `{affected_data}` | Categories of data potentially affected |
+| `{breach_summary}` | Brief description of what happened |
+| `{recommended_actions}` | List of recommended user actions |
+| `{contact_email}` | Contact email for breach inquiries |
+| `{contact_phone}` | Contact phone (if configured) |
+| `{dpo_contact}` | Data Protection Officer contact (GDPR/LGPD) |
+| `{regulatory_notice}` | Compliance-specific regulatory text (auto-generated) |
+| `{notification_deadline}` | Compliance deadline met (e.g., "within 72 hours") |
+
+### breach_admin_alert
+
+**Sent to all Server Admins immediately when a breach is detected (automated or manual).**
+
+| Variable | Description |
+|----------|-------------|
+| `{breach_id}` | Unique breach identifier |
+| `{severity}` | Severity level (CRITICAL, HIGH, MEDIUM, LOW) |
+| `{breach_type}` | Type of breach |
+| `{breach_summary}` | Brief description |
+| `{detection_method}` | How detected (automated/manual/external) |
+| `{trigger}` | Specific detection trigger (e.g., "brute_force", "anomaly") |
+| `{source_ip}` | Source IP address (if applicable) |
+| `{affected_scope}` | Scope description (single user, multiple users, system-wide) |
+| `{affected_users}` | Estimated number of affected users |
+| `{affected_data}` | Data categories potentially affected |
+| `{auto_actions}` | List of automated actions taken |
+| `{compliance_requirements}` | Applicable compliance standards and their requirements |
+| `{notify_deadline}` | Deadline for user notification (based on strictest standard) |
+| `{admin_url}` | Admin panel URL |
+
+## Admin Panel (/server/{admin_path}/config/email/templates)
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Template list | Table | All templates with status (default/custom) |
+| Edit button | Button | Open template editor |
+| Subject field | Text input | Editable subject line |
+| Body editor | Textarea | Template body with syntax highlighting |
+| Variable reference | Sidebar | Available variables for selected template |
+| Preview button | Button | Render template with sample data |
+| Send Test | Button | Send test email to specific address |
+| Save button | Button | Save custom template |
+| Reset to default | Button | Delete custom, restore embedded (confirmation required) |
 
 **Editor Features:**
 - Syntax highlighting for `{variables}`
@@ -26700,13 +31669,18 @@ Templates are stored as files on disk. Override any built-in template by placing
 | `{app_name}` | Current app name from config |
 | `{app_url}` | Current app URL |
 | `{fqdn}` | Current FQDN |
+| `{recipient_email}` | `user@example.com` |
+| `{recipient_username}` | `sampleuser` |
+| `{reset_link}` | `https://{fqdn}/server/auth/reset/sample123...` |
+| `{verify_link}` | `https://{fqdn}/server/auth/verify/sample123...` |
+| `{expires}` | `24 hours` |
 | `{ip}` | `192.168.1.100` |
 | `{timestamp}` | Current timestamp |
-| `{notification_reply_to}` | Reply-To address from `server.notifications.email.reply_to` |
+| `{admin_email}` | Admin email from config |
 
 ### Send Test Email
 
-**Dialog:** Email input (defaults to `server.notifications.email.reply_to`), warning that it sends real email with sample data, Cancel/Send Test buttons.
+**Dialog:** Email input (defaults to admin email), warning that it sends real email with sample data, Cancel/Send Test buttons.
 
 **Rules:** Requires SMTP, uses sample data, subject prefixed `[TEST]`, logged to audit log.
 
@@ -26719,7 +31693,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 | Check | Error Message |
 |-------|---------------|
 | Unknown variable | `Unknown variable: {foo}. Did you mean {fqdn}?` |
-| Unknown variable in template | `Unknown variable: {foo}` |
+| Missing required variable | `Account emails must include {recipient_email}` |
 | Empty subject | `Subject cannot be empty` |
 | Empty body | `Body cannot be empty` |
 | Invalid syntax | `Invalid template syntax at line 5` |
@@ -26727,7 +31701,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 **Warnings (non-blocking):**
 - Using deprecated variables
 - Very long subject line (>78 chars)
-- Missing recommended sections (e.g., contact info in security alerts)
+- Missing recommended sections (e.g., disclaimer for account emails)
 
 ## Notification Systems
 
@@ -26740,7 +31714,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 
 ## WebUI Notification System
 
-**The WebUI has a built-in notification system. Toast and banner notifications are ALWAYS available regardless of SMTP configuration.**
+**The WebUI has a built-in notification system for both Server Admins and users. This is ALWAYS available regardless of SMTP configuration.**
 
 ### How It Works
 
@@ -26753,7 +31727,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 
 ### Notification Center
 
-**Notification center accessible via bell icon in the header.**
+**Both Server Admins and users have a notification center accessible via bell icon in the header.**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -26771,6 +31745,10 @@ Templates are stored as files on disk. Override any built-in template by placing
                               │  ✅ Backup completed           │
                               │     backup_2025-01-15.tar.gz   │
                               │     5 hours ago                │
+                              ├────────────────────────────────┤
+                              │  ⚠️ Login from new location    │
+                              │     192.168.1.100 (New York)   │
+                              │     Yesterday                  │
                               ├────────────────────────────────┤
                               │  [Mark all read]  [Clear all]  │
                               └────────────────────────────────┘
@@ -26803,14 +31781,14 @@ Templates are stored as files on disk. Override any built-in template by placing
 | Backup complete | ✓ | | ✓ |
 | SSL expiring soon | | ✓ | ✓ |
 | Update available | | ✓ | ✓ |
+| Login from new IP | ✓ | | ✓ |
+| Password changed | ✓ | | ✓ |
 | SMTP not configured | | ✓ | |
 | Scheduler task failed | ✓ | | ✓ |
-| Rate limit hit | ✓ | | ✓ |
-| IP blocked | ✓ | | ✓ |
 
 ## Server Admin Notifications
 
-**Notifications shown to Server Admins.**
+**Notifications shown to Server Admins in `/server/{admin_path}/*` routes.**
 
 | Event | Toast | Banner | Center | Description |
 |-------|:-----:|:------:|:------:|-------------|
@@ -26825,13 +31803,32 @@ Templates are stored as files on disk. Override any built-in template by placing
 | SSL renewal failed | ✓ | ✓ | ✓ | Critical - needs attention |
 | Update available | | ✓ | ✓ | New version available |
 | Scheduler task failed | ✓ | | ✓ | Task error |
-| Rate limit exceeded | | | ✓ | Abuse detection notice |
+| New admin login | | | ✓ | Another admin logged in |
 | SMTP not configured | | ✓ | | Persistent warning |
 | Database connection issue | | ✓ | ✓ | Critical warning |
 | Disk space low | | ✓ | ✓ | System warning |
 | GeoIP database outdated | | | ✓ | Update needed |
 | Tor address ready | ✓ | | | Onion address generated |
 
+## User Notifications (Multi-User Mode)
+
+**Notifications shown to regular users in `/users/*` routes.**
+
+| Event | Toast | Banner | Center | Description |
+|-------|:-----:|:------:|:------:|-------------|
+| Profile updated | ✓ | | | Settings saved |
+| Password changed | ✓ | | ✓ | Security confirmation |
+| Email verified | ✓ | | ✓ | Verification complete |
+| 2FA enabled | ✓ | | ✓ | Security confirmation |
+| 2FA disabled | ✓ | | ✓ | Security warning |
+| Login from new IP | | | ✓ | Security notice |
+| Login from new device | | | ✓ | Security notice |
+| Session expired | ✓ | | | Re-login required |
+| API token created | ✓ | | ✓ | Token generated |
+| API token revoked | ✓ | | ✓ | Token deleted |
+| Account suspended | | ✓ | | Admin action notice |
+| Password reset required | | ✓ | | Admin-initiated reset |
+| Recovery keys running low | | | ✓ | Only 1-2 keys left |
 
 ## Notification vs Email Decision Matrix
 
@@ -26848,14 +31845,19 @@ Templates are stored as files on disk. Override any built-in template by placing
 | SSL expiring (7+ days) | ✓ | ✗ | Warning, not urgent |
 | SSL expiring (<3 days) | ✓ | ✓ | Urgent - needs action |
 | SSL renewed | ✓ | ✗ | Informational |
-| Rate limit exceeded | ✓ | ✗ | Informational |
-| IP blocked | ✓ | Optional | Abuse detection |
+| Login from new IP | ✓ | ✓ | Security - permanent record |
 | Security alert | ✓ | ✓ | Critical - needs record |
 | Scheduler task failed | ✓ | ✓ | Needs attention when away |
 | Scheduler task success | ✗ | ✗ | No notification needed |
-| Tor address regenerated | ✓ | ✗ | Operator initiated |
+| Password changed | ✓ | ✓ | Security - confirmation |
+| Token regenerated | ✓ | ✓ | Security - confirmation |
+| 2FA enabled/disabled | ✓ | ✓ | Security - confirmation |
+| Tor address regenerated | ✓ | ✗ | User initiated |
 | Update available | ✓ | Optional | Informational |
 | Update installed | ✓ | ✓ | Important change record |
+| Welcome (new user) | ✓ | ✓ | Onboarding |
+| Email verification | ✗ | ✓ | Requires email link |
+| Password reset | ✗ | ✓ | Requires email link |
 
 ### Decision Logic
 
@@ -26898,7 +31900,7 @@ Templates are stored as files on disk. Override any built-in template by placing
   "type": "warning",
   "title": "SSL Certificate Expiring",
   "message": "Certificate expires in 3 days",
-  "link": "/server/config/ssl",
+  "link": "/server/{admin_path}/config/ssl",
   "read": false,
   "created_at": "2025-01-15T10:30:00Z"
 }
@@ -26919,7 +31921,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 
 **Both Server Admins and users can configure their notification preferences.**
 
-### Admin Notification Preferences
+### Admin Notification Preferences (`/server/{admin_path}/{admin_username}/notifications`)
 
 | Category | Events | Default | Can Disable? |
 |----------|--------|---------|--------------|
@@ -26932,7 +31934,7 @@ Templates are stored as files on disk. Override any built-in template by placing
 **Security notifications cannot be disabled** - these are critical for account security.
 
 ```
-Admin Notification Preferences
+Admin Notification Preferences (/server/{admin_path}/{admin_username}/notifications)
 ┌─────────────────────────────────────────────────────────────┐
 │  Notification Preferences                                   │
 ├─────────────────────────────────────────────────────────────┤
@@ -27063,8 +32065,11 @@ server:
         backup_failed: true
         ssl_expiring: true
         ssl_renewed: false
+        login_alert: true
         security_alert: true
         scheduler_error: true
+        password_changed: true
+        token_regenerated: true
         update_available: false
         update_installed: true
 ```
@@ -27072,7 +32077,7 @@ server:
 ---
 
 
-# PART 18: SCHEDULER
+# PART 19: SCHEDULER
 
 ## Built-in Scheduler
 
@@ -27106,7 +32111,7 @@ server:
 
 | Reason | Explanation |
 |--------|-------------|
-| **Single source of truth** | All schedules visible via API |
+| **Single source of truth** | All schedules visible in admin panel |
 | **Cluster aware** | External cron doesn't know about cluster nodes |
 | **State tracking** | Tracks last run, next run, success/failure |
 | **Catch-up logic** | Runs missed tasks on restart |
@@ -27123,8 +32128,9 @@ server:
 The application has a built-in scheduler that handles backups.
 
 To configure backup schedule:
-1. Set `backup.schedule` in the config file
-2. The built-in scheduler will run it automatically
+1. Go to Admin Panel → Server → Backup
+2. Set schedule to your preferred time
+3. The built-in scheduler will run it automatically
 
 External schedulers (cron, Task Scheduler, etc.) are not supported
 because the built-in scheduler provides:
@@ -27400,9 +32406,15 @@ Execute task
 | `retry_delay` | 5m | Delay between retries |
 | `backoff` | exponential | Delay multiplier (5m, 10m, 20m) |
 
-### Scheduler Status
+### Admin Panel (/server/{admin_path}/config/scheduler)
 
-The scheduler status is available via the server status API. Task execution can be triggered or toggled via CLI commands.
+| Section | Contents |
+|---------|----------|
+| **Task List** | All tasks with status, next run, last run |
+| **Task Detail** | Full history, logs, configuration |
+| **Run Now** | Button to trigger immediate execution |
+| **Enable/Disable** | Toggle for tasks (admin can enable/disable backup) |
+| **History** | Last 100 executions per task |
 
 **Admin UI - Scheduler Overview:**
 
@@ -27501,13 +32513,13 @@ The scheduler status is available via the server status API. Task execution can 
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/{api_version}/server/config/scheduler` | GET | List all tasks |
-| `/api/{api_version}/server/config/scheduler/{id}` | GET | Get task details |
-| `/api/{api_version}/server/config/scheduler/{id}` | PATCH | Update task settings |
-| `/api/{api_version}/server/config/scheduler/{id}/run` | POST | Run task immediately |
-| `/api/{api_version}/server/config/scheduler/{id}/enable` | POST | Enable task |
-| `/api/{api_version}/server/config/scheduler/{id}/disable` | POST | Disable task |
-| `/api/{api_version}/server/config/scheduler/{id}/history` | GET | Get execution history |
+| `/api/{api_version}/server/{admin_path}/config/scheduler` | GET | List all tasks |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | GET | Get task details |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | PATCH | Update task settings |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/run` | POST | Run task immediately |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/enable` | POST | Enable task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/disable` | POST | Disable task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/history` | GET | Get execution history |
 
 ### Shutdown Behavior
 
@@ -27550,7 +32562,7 @@ Shutdown complete
 ---
 
 
-# PART 19: GEOIP
+# PART 20: GEOIP
 
 ## Overview
 
@@ -27568,7 +32580,7 @@ server:
     # Directory for downloaded MMDB files
     dir: "{data_dir}/security/geoip"
 
-    # Update schedule (handled by scheduler, see PART 18)
+    # Update schedule (handled by scheduler, see PART 19)
     # Default: weekly on Sunday 03:00
 
     # Country blocking - ISO 3166-1 alpha-2 codes (e.g., CN, RU, KP)
@@ -27615,18 +32627,20 @@ All databases from [sapics/ip-location-db](https://github.com/sapics/ip-location
 | City | `city`, `country_code`, `state1`, `state2`, `postcode`, `latitude`, `longitude`, `timezone` |
 | WHOIS | `registrant_org`, `asn`, `country_code` (combined lookup) |
 
-## GeoIP Configuration (config file)
+## Admin Panel (/server/{admin_path}/config/network/geoip)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Enable GeoIP | `geoip.enabled` | Turn GeoIP on/off |
-| Country mode | `geoip.country_mode` | `none`, `deny` (blocklist), `allow` (allowlist-only) |
-| Deny countries | `geoip.deny_countries` | ISO 3166-1 alpha-2 codes to block (when mode=deny) |
-| Allow countries | `geoip.allow_countries` | ISO 3166-1 alpha-2 codes to allow exclusively (when mode=allow) |
-| ASN database | `geoip.databases.asn` | Enable ASN lookups |
-| Country database | `geoip.databases.country` | Enable country lookups |
-| City database | `geoip.databases.city` | Enable city lookups |
-| WHOIS database | `geoip.databases.whois` | Enable WHOIS lookups |
+| Element | Type | Description |
+|---------|------|-------------|
+| Enable GeoIP | Toggle | Turn GeoIP on/off |
+| Country mode | Dropdown | `none`, `deny` (blocklist), `allow` (allowlist-only) |
+| Deny countries | Tag input | ISO 3166-1 alpha-2 codes to block (when mode=deny) |
+| Allow countries | Tag input | ISO 3166-1 alpha-2 codes to allow exclusively (when mode=allow) |
+| ASN database | Toggle | Enable ASN lookups |
+| Country database | Toggle | Enable country lookups |
+| City database | Toggle | Enable city lookups |
+| WHOIS database | Toggle | Enable WHOIS lookups |
+| Last update | Read-only | When databases were last updated |
+| Update now | Button | Force immediate update |
 
 **Country Blocking Behavior:**
 
@@ -27647,7 +32661,7 @@ All databases from [sapics/ip-location-db](https://github.com/sapics/ip-location
 ---
 
 
-# PART 20: METRICS
+# PART 21: METRICS
 
 ## Overview
 
@@ -27657,7 +32671,7 @@ All databases from [sapics/ip-location-db](https://github.com/sapics/ip-location
 |---------|-------------|
 | Format | Prometheus text exposition format |
 | Endpoint | `/metrics` (configurable) |
-| Authentication | None (restrict by IP/network or firewall rule) |
+| Authentication | Optional bearer token |
 | Library | `github.com/prometheus/client_golang` |
 
 ## Access Control
@@ -27804,7 +32818,7 @@ server:
 | Category | When to Include |
 |----------|-----------------|
 | **Cache metrics** | If using cache (Redis, in-memory) |
-| **Scheduler metrics** | If using background scheduler (PART 18) |
+| **Scheduler metrics** | If using background scheduler (PART 19) |
 | **System metrics** | If `include_system: true` in config |
 | **Runtime metrics** | If `include_runtime: true` in config |
 | **Business metrics** | App-specific (users, sessions, etc.) |
@@ -27885,9 +32899,9 @@ server:
 
 | Label | Values | Notes |
 |-------|--------|-------|
-| `cache` | `items`, `config`, `rate_limit`, etc. | Cache name/purpose |
+| `cache` | `sessions`, `users`, `config`, `tokens`, etc. | Cache name/purpose |
 
-### Scheduler Metrics (if using PART 18 scheduler)
+### Scheduler Metrics (if using PART 19 scheduler)
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
@@ -27909,12 +32923,27 @@ server:
 |--------|---------|
 | `scheduler_task_duration_seconds` | 0.1, 0.5, 1, 5, 10, 30, 60, 300, 600 |
 
-### Rate Limit Metrics (REQUIRED)
+### Authentication Metrics (REQUIRED)
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `rate_limit_hits_total` | Counter | `endpoint_class`, `ip` | Rate limit triggers |
-| `rate_limit_blocked_total` | Counter | `ip` | Requests blocked by rate limit |
+| `auth_attempts_total` | Counter | `method`, `status` | Total authentication attempts |
+| `auth_sessions_active` | Gauge | - | Number of active sessions |
+
+**Authentication label values:**
+
+| Label | Values | Notes |
+|-------|--------|-------|
+| `method` | `password`, `api_token`, `oidc`, `ldap`, `2fa` | Auth method used |
+| `status` | `success`, `failed`, `blocked` | Attempt result |
+
+### Business Metrics (if using PART 34 multi-user)
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `users_total` | Gauge | - | Total registered users |
+| `users_active` | Gauge | - | Users active in last 24 hours |
+| `api_tokens_active` | Gauge | - | Active API tokens |
 
 ### System Metrics (if `include_system: true`)
 
@@ -27948,7 +32977,7 @@ server:
 | `cluster_sync_lag_seconds` | Gauge | - | Replication lag from primary |
 | `cluster_elections_total` | Counter | - | Total primary elections |
 
-### Tor Metrics (if using PART 31 Tor)
+### Tor Metrics (if using PART 32 Tor)
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
@@ -28818,10 +33847,23 @@ import (
     "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// MetricsHandler returns the Prometheus metrics handler.
-// Restrict access by network/firewall rule — do not expose /metrics to the internet.
-func MetricsHandler() http.Handler {
-    return promhttp.Handler()
+// MetricsHandler returns the Prometheus metrics handler with optional auth
+func MetricsHandler(token string) http.Handler {
+    handler := promhttp.Handler()
+
+    if token == "" {
+        return handler
+    }
+
+    // Wrap with bearer token authentication
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        auth := r.Header.Get("Authorization")
+        if auth != "Bearer "+token {
+            http.Error(w, t(r, "errors.unauthorized"), http.StatusUnauthorized)
+            return
+        }
+        handler.ServeHTTP(w, r)
+    })
 }
 ```
 
@@ -29050,20 +34092,21 @@ groups:
 }
 ```
 
-## Metrics Configuration (config file)
+## Admin Panel (/server/{admin_path}/config/metrics)
 
-| Element | Config Key | Description |
-|---------|------------|-------------|
-| Enable metrics | `metrics.enabled` | Turn metrics on/off |
-| Endpoint | `metrics.path` | Metrics endpoint path (default: /metrics) |
-| Include system metrics | `metrics.system` | Include CPU/memory/disk |
-| Include runtime metrics | `metrics.runtime` | Include Go runtime stats |
-| Authentication token | `metrics.token` | Bearer token (empty = no auth) |
+| Element | Type | Description |
+|---------|------|-------------|
+| Enable metrics | Toggle | Turn metrics on/off |
+| Endpoint | Text input | Metrics endpoint path (default: /metrics) |
+| Include system metrics | Toggle | Include CPU/memory/disk |
+| Include runtime metrics | Toggle | Include Go runtime stats |
+| Authentication token | Text input | Bearer token (empty = no auth) |
+| Prometheus URL | Info | Display scrape URL for Prometheus config |
 
 ---
 
 
-# PART 21: BACKUP & RESTORE
+# PART 22: BACKUP & RESTORE
 
 ## Backup Command
 
@@ -29076,23 +34119,26 @@ groups:
 | Content | Included | Notes |
 |---------|----------|-------|
 | `server.yml` | ✓ Always | Configuration file |
-| `server.db` | ✓ Always | Main database (settings, rate limits, audit log) |
+| `server.db` | ✓ Always | Main database (admin credentials, settings) |
+| `users.db` | ✓ If exists | User database (multi-user mode) |
 | `{config_dir}/template/` | ✓ If exists | Custom email templates |
 | `{config_dir}/theme/` | ✓ If exists | Custom themes |
 | `{config_dir}/ssl/` | Optional | SSL certificates (flag: `--include-ssl`) |
 | `{data_dir}/` | Optional | Data files (flag: `--include-data`) |
 
-### What Is in server.db
+### Admin Credentials in Backup
 
-**The backup includes `server.db` which contains:**
+**Yes, admin credentials are included in the backup (`server.db`).**
 
-| Data | Notes |
-|------|-------|
-| Config key-value pairs | All runtime configuration |
-| Rate limit counters | Sliding window state |
-| Audit log entries | Config changes, security events |
-| Scheduler task definitions | Scheduled task state |
-| Backup metadata | History of backups |
+| Credential | Included | Format |
+|------------|----------|--------|
+| Admin username | ✓ | Plain text |
+| Admin password | ✓ | Hashed (Argon2id) |
+| Admin API token | ✓ | Hashed (SHA-256) |
+| Admin 2FA secret | ✓ | Encrypted |
+| Admin recovery keys | ✓ | Hashed |
+| Additional admin accounts | ✓ | Same as above |
+| OIDC/LDAP admin mappings | ✓ | Configuration only |
 
 ### Backup Format
 
@@ -29111,6 +34157,7 @@ groups:
   "contents": [
     "server.yml",
     "server.db",
+    "users.db",
     "template/",
     "ssl/"
   ],
@@ -29185,9 +34232,9 @@ When `server.compliance.enabled: true`:
 
 | Action | Location | Notes |
 |--------|----------|-------|
-| Set during initial config | `backup.encryption_password` in `server.yml` | Optional (unless compliance) |
-| Set later | `backup.encryption_password` in config file | Restart server to apply |
-| Change password | `backup.encryption_password` in config file | New backups use new password |
+| Set during setup | Setup wizard Step 4 | Optional (unless compliance) |
+| Set later | `/server/{admin_path}/config/backup` | Click "Set Encryption Password" |
+| Change password | `/server/{admin_path}/config/backup` | New backups use new password |
 | Remove encryption | Only if compliance disabled | Cannot remove if compliance enabled |
 
 **Important:**
@@ -29213,7 +34260,7 @@ When `server.compliance.enabled: true`:
 **API Backup with Encryption:**
 
 ```
-POST /api/{api_version}/server/config/backup
+POST /api/{api_version}/server/{admin_path}/config/backup
 Content-Type: application/json
 
 {
@@ -29238,7 +34285,7 @@ Content-Type: application/json
 
 Shown on:
 - First backup if encryption not configured
-- Server log on startup (dismissable after encryption is configured)
+- `/server/{admin_path}/config/backup` page (dismissable)
 
 ### Backup Retention
 
@@ -29303,7 +34350,7 @@ Every backup is verified **immediately after creation** - backups must be 100% w
 
 **All checks must pass. If ANY check fails:**
 - Delete the failed backup immediately
-- Write failure to audit log (level=error, include verification details)
+- Alert admin (WebUI notification + audit log)
 - Do NOT delete any existing backups
 - Retry backup on next scheduled run
 
@@ -29588,14 +34635,14 @@ Restoring...
 
 ```bash
 # Encrypted backup - password required
-POST /api/{api_version}/server/config/backup/restore
+POST /api/{api_version}/server/{admin_path}/config/backup/restore
 {
   "backup_file": "backup_2025-01-15.tar.gz.enc",
   "password": "backup-encryption-password"
 }
 
 # Unencrypted backup - no password
-POST /api/{api_version}/server/config/backup/restore
+POST /api/{api_version}/server/{admin_path}/config/backup/restore
 {
   "backup_file": "backup_2025-01-15.tar.gz"
 }
@@ -29633,8 +34680,13 @@ POST /api/{api_version}/server/config/backup/restore
 ┌─────────────────────────────────────────────────────────────┐
 │  🔑 RESTORE COMPLETE - RE-AUTHENTICATION REQUIRED           │
 ├─────────────────────────────────────────────────────────────┤
-│  Your existing password and settings have been preserved.   │
-│  Log in with your existing admin credentials to continue.   │
+│  Setup Token: a1b2c3d4e5f67890abcdef1234567890              │
+│                                                             │
+│  Go to {proto}://{fqdn}/server/{admin_path} and enter this token   │
+│  to verify you are the server administrator.                │
+│                                                             │
+│  Your existing password and settings will be preserved.     │
+│  This token will only be shown ONCE.                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -29651,11 +34703,14 @@ POST /api/{api_version}/server/config/backup/restore
 - All configuration
 - All user accounts
 
+**What Requires Re-Setup:**
+- Initial setup token verification (one-time)
+
 ### Additional Admins on Restore
 
 | Admin Type | Restore Behavior |
 |------------|------------------|
-| **Primary Admin** | Can log in with existing credentials after restore |
+| **Primary Admin** | Must re-authenticate with setup token |
 | **Additional Admins (local)** | Can log in immediately with existing credentials |
 | **OIDC/LDAP Admins** | Can log in if OIDC/LDAP provider accessible |
 
@@ -29665,7 +34720,7 @@ POST /api/{api_version}/server/config/backup/restore
 {project_name} --maintenance setup
 ```
 
-**Purpose:** Resets admin credentials. This is the ONLY way for a Server Admin to recover access if they have lost their password, API token, AND recovery keys.
+**Purpose:** Resets admin credentials and generates a new setup token. This is the ONLY way for a Server Admin to recover access if they have lost their password, API token, AND recovery keys.
 
 ### Setup Authorization
 
@@ -29675,7 +34730,8 @@ POST /api/{api_version}/server/config/backup/restore
 |-----------|--------------|
 | Database empty (first-run) | ✅ Allowed (initial setup) |
 | Running as root | ✅ Allowed (with confirmation) |
-| Random user | ❌ Denied |
+| Valid setup token provided | ✅ Allowed (one-time use) |
+| Random user, no token | ❌ Denied |
 
 ### What It Does
 
@@ -29683,6 +34739,7 @@ POST /api/{api_version}/server/config/backup/restore
 |--------|-------------|
 | **Clears admin password** | Admin password is set to null/empty |
 | **Clears admin API token** | Admin API token is invalidated |
+| **Generates new setup token** | One-time setup token displayed in console |
 | **Preserves everything else** | User accounts, data, configuration unchanged |
 
 ### What It Does NOT Do
@@ -29711,8 +34768,14 @@ POST /api/{api_version}/server/config/backup/restore
 # ├─────────────────────────────────────────────────────────────┤
 # │  Admin password and API token have been cleared.            │
 # │                                                             │
-# │  Edit server.yml to set new admin credentials, then         │
-# │  start the service: {project_name} --service start           │
+# │  Setup Token: a1b2c3d4e5f67890abcdef1234567890              │
+# │                                                             │
+# │  1. Start the service: {project_name} --service start        │
+# │  2. Go to: {proto}://{fqdn}/server/{admin_path}                    │
+# │  3. Enter the setup token above                             │
+# │  4. Create new admin account via setup wizard               │
+# │                                                             │
+# │  This token will only be shown ONCE.                        │
 # └─────────────────────────────────────────────────────────────┘
 
 # Start the service
@@ -29723,7 +34786,9 @@ POST /api/{api_version}/server/config/backup/restore
 
 | Consideration | Requirement |
 |---------------|-------------|
-| **Requires authorization** | Root (see Setup Authorization above) |
+| **Requires authorization** | Root, or valid setup token (see Setup Authorization above) |
+| **Console access required** | Setup token only displayed in terminal |
+| **One-time token** | Token expires after use or after 24 hours |
 | **Logged** | Action logged to audit log (if available) |
 | **Service should be stopped** | Recommended to stop service first |
 
@@ -29731,9 +34796,13 @@ POST /api/{api_version}/server/config/backup/restore
 
 | Scenario | Use `--maintenance setup` |
 |----------|---------------------------|
-| Config file is corrupt or missing | ✓ Yes |
-| Server needs re-initialization | ✓ Yes |
-| Routine config reset | ✗ No (edit `server.yml` directly) |
+| Admin forgot password | ✓ Yes |
+| Admin lost API token | ✓ Yes |
+| Admin lost recovery keys | ✓ Yes |
+| Admin locked out of 2FA | ✓ Yes (only if no recovery keys) |
+| User forgot password | ✗ No (use password reset) |
+| User locked out | ✗ No (admin can help via UI) |
+| Routine password change | ✗ No (use /server/{admin_path}/{admin_username}/profile) |
 
 ### Recovery Flow
 
@@ -29745,16 +34814,17 @@ POST /api/{api_version}/server/config/backup/restore
 │  Admin locked out (no password, no token, no recovery keys)     │
 │                           │                                     │
 │                           ▼                                     │
-│  Root runs: {project_name} --maintenance setup                   │
+│  Server admin runs: {project_name} --maintenance setup           │
 │                           │                                     │
 │                           ▼                                     │
-│  Admin credentials cleared                                      │
+│  Admin credentials cleared, new setup token generated           │
 │                           │                                     │
 │                           ▼                                     │
-│  Edit server.yml to set new admin credentials                   │
+│  Admin visits /server/{admin_path} and enters setup token       │
 │                           │                                     │
 │                           ▼                                     │
-│  Start the service: {project_name} --service start               │
+│  Setup wizard: Create new admin account                         │
+│  (username, password, API token, 2FA optional)                  │
 │                           │                                     │
 │                           ▼                                     │
 │  Admin access restored, new recovery keys issued                │
@@ -29765,7 +34835,7 @@ POST /api/{api_version}/server/config/backup/restore
 ---
 
 
-# PART 22: UPDATE COMMAND
+# PART 23: UPDATE COMMAND
 
 ## --update Command
 
@@ -30244,7 +35314,7 @@ func verifyChecksum(filePath, expectedHash string) error {
 
 
 
-# PART 23: PRIVILEGE ESCALATION & SERVICE
+# PART 24: PRIVILEGE ESCALATION & SERVICE
 
 ## Overview
 
@@ -30400,7 +35470,8 @@ Maintenance commands:
                     production    - Normal operation (default)
                     development   - Debug logging, dev endpoints
 
-  setup             Reset admin credentials (first-run or root only)
+  setup             Run interactive setup wizard
+                    Creates primary Server Admin, configures server
 
 Examples:
   {project_name} --maintenance backup
@@ -30470,21 +35541,193 @@ Current:
 
 ```bash
 $ {project_name}-cli --admin --help
-Admin CLI - manage server configuration, statistics, and blocklists.
+Admin CLI - manage users, organizations, and API tokens.
+
+AUTHENTICATION REQUIRED:
+  Admin token must be set and valid. Use one of:
+  1. Environment variable: {PROJECT_NAME}_TOKEN=adm_xxx...
+  2. Flag: --token adm_xxx...
+
+  Token must have admin scope (prefix: adm_). User tokens (usr_) will be rejected.
 
 Commands:
-  config                Server configuration (--admin config --help)
+  user                  User management (--admin user --help)
+    list                List all users
+    get <username>      Get user details
+    create <username>   Create new user (sends invite)
+    delete <username>   Delete user
+    suspend <username>  Suspend user
+    unsuspend <username> Unsuspend user
+    reset-password <username>  Send password reset email
+    disable-2fa <username>     Disable user's 2FA
+
+  org                   Organization management (--admin org --help)
+    list                List all organizations
+    get <orgname>       Get organization details
+    create <orgname>    Create new organization
+    delete <orgname>    Delete organization
+    members <orgname>   List organization members
+    add-member <orgname> <username>     Add member to org
+    remove-member <orgname> <username>  Remove member from org
+
+  token                 API token management (--admin token --help)
+    list                List all tokens
+    create <name>       Create new token
+    revoke <token_id>   Revoke token
+    info <token_id>     Get token details
+
+Global Flags:
+  --token TOKEN         API token for authentication
+  --format {table|json|yaml}  Output format (default: table)
+  --quiet               Suppress non-essential output
+
+Examples:
+  {project_name}-cli --admin user list
+  {project_name}-cli --admin user create newuser
+  {project_name}-cli --admin org create myorg
+  {project_name}-cli --admin token create "CI Token"
+```
+
+## CLI Admin User Help Output
+
+```bash
+$ {project_name}-cli --admin user --help
+User management commands:
+
+  list                  List all users
+    --limit N           Limit results (default: 100)
+    --offset N          Offset for pagination
+    --status STATUS     Filter by status (active|suspended|all)
+
+  get <username>        Get user details
+    --format FORMAT     Output format (table|json|yaml)
+
+  create <username>     Create new user
+                        Sends invite email, user sets own password
+    --email EMAIL       User's email address (required)
+    --role ROLE         User role (user|admin, default: user)
+
+  delete <username>     Delete user
+    --force             Skip confirmation prompt
+
+  suspend <username>    Suspend user account
+
+  unsuspend <username>  Unsuspend user account
+
+  reset-password <username>
+                        Send password reset email to user
+
+  disable-2fa <username>
+                        Disable two-factor authentication for user
+
+Examples:
+  {project_name}-cli --admin user list
+  {project_name}-cli --admin user list --status suspended
+  {project_name}-cli --admin user get johndoe
+  {project_name}-cli --admin user create johndoe --email john@example.com
+  {project_name}-cli --admin user suspend johndoe
+  {project_name}-cli --admin user reset-password johndoe
+```
+
+## CLI Admin Org Help Output
+
+```bash
+$ {project_name}-cli --admin org --help
+Organization management commands:
+
+  list                  List all organizations
+    --limit N           Limit results (default: 100)
+    --offset N          Offset for pagination
+
+  get <orgname>         Get organization details
+    --format FORMAT     Output format (table|json|yaml)
+
+  create <orgname>      Create new organization
+    --display-name NAME Display name
+    --description DESC  Organization description
+
+  delete <orgname>      Delete organization
+    --force             Skip confirmation prompt
+
+  members <orgname>     List organization members
+    --role ROLE         Filter by role (owner|admin|member)
+
+  add-member <orgname> <username>
+                        Add user to organization
+    --role ROLE         Member role (owner|admin|member, default: member)
+
+  remove-member <orgname> <username>
+                        Remove user from organization
+    --force             Skip confirmation prompt
+
+Examples:
+  {project_name}-cli --admin org list
+  {project_name}-cli --admin org create myorg --display-name "My Organization"
+  {project_name}-cli --admin org members myorg
+  {project_name}-cli --admin org add-member myorg johndoe --role admin
+```
+
+## CLI Admin Token Help Output
+
+```bash
+$ {project_name}-cli --admin token --help
+API token management commands:
+
+  list                  List all tokens
+    --limit N           Limit results (default: 100)
+    --user USERNAME     Filter by user
+
+  create <name>         Create new API token
+    --expires DURATION  Token expiration (e.g., 30d, 1y, never)
+    --scopes SCOPES     Comma-separated scopes (read,write,admin)
+
+  revoke <token_id>     Revoke token immediately
+    --force             Skip confirmation prompt
+
+  info <token_id>       Get token details
+    --format FORMAT     Output format (table|json|yaml)
+
+Examples:
+  {project_name}-cli --admin token list
+  {project_name}-cli --admin token create "CI Token" --expires 90d --scopes read,write
+  {project_name}-cli --admin token revoke tk_abc123
+  {project_name}-cli --admin token info tk_abc123
+```
+
+## CLI Admin Server Help Output
+
+```bash
+$ {project_name}-cli --admin server --help
+Server admin CLI - server configuration and management.
+
+AUTHENTICATION REQUIRED:
+  Server admin token must be set and valid. Use one of:
+  1. Environment variable: {PROJECT_NAME}_TOKEN=adm_xxx...
+  2. Flag: --token adm_xxx...
+
+  Token must have Server Admin scope (prefix: adm_). User tokens (usr_) and
+  org tokens (org_) will be rejected.
+
+Commands:
+  config                Server configuration (--admin server config --help)
     get [key]           Get config value(s)
     set <key> <value>   Set config value
     list                List all config keys
     reset <key>         Reset config to default
 
-  stats                 Server statistics (--admin stats --help)
+  admin                 Server admin management (--admin server admin --help)
+    list                List all server admins
+    invite <username>   Invite new server admin
+    remove <username>   Remove server admin
+    reset-password <username>  Send password reset
+
+  stats                 Server statistics (--admin server stats --help)
     overview            General server statistics
+    users               User statistics
     storage             Storage usage
     performance         Performance metrics
 
-  blocklist             IP/domain blocklist management (--admin blocklist --help)
+  blocklist             IP/domain blocklist management (--admin server blocklist --help)
     list                List all blocklist sources with stats
     update [--source NAME]  Update all or specific blocklist
     check <IP>          Check if IP is in any blocklist
@@ -30494,21 +35737,22 @@ Commands:
 
 Global Flags:
   --format {table|json|yaml}  Output format (default: table)
-  --quiet               Suppress non-essential output
 
 Examples:
-  {project_name}-cli --admin config list
-  {project_name}-cli --admin config get server.fqdn
-  {project_name}-cli --admin config set branding.title "My Server"
-  {project_name}-cli --admin stats overview
-  {project_name}-cli --admin blocklist list
-  {project_name}-cli --admin blocklist check 1.2.3.4
+  {project_name}-cli --admin server config list
+  {project_name}-cli --admin server config get registration.mode
+  {project_name}-cli --admin server config set registration.mode private
+  {project_name}-cli --admin server admin list
+  {project_name}-cli --admin server stats overview
+  {project_name}-cli --admin server blocklist list
+  {project_name}-cli --admin server blocklist update
+  {project_name}-cli --admin server blocklist check 1.2.3.4
 ```
 
-## CLI Admin Config Help Output
+## CLI Admin Server Config Help Output
 
 ```bash
-$ {project_name}-cli --admin config --help
+$ {project_name}-cli --admin server config --help
 Server configuration commands:
 
   get [key]             Get configuration value
@@ -30516,39 +35760,73 @@ Server configuration commands:
     --format FORMAT     Output format (table|json|yaml)
 
   set <key> <value>     Set configuration value
-                        Changes take effect immediately (config file reload)
+                        Changes take effect immediately
     --no-reload         Don't reload config after change
 
   list                  List all configuration keys
-    --category CAT      Filter by category (server|email|rate_limit|backup)
+    --category CAT      Filter by category (server|auth|registration|email)
 
   reset <key>           Reset configuration to default value
     --force             Skip confirmation prompt
 
 Common Configuration Keys:
-  server.fqdn               Server FQDN (fully qualified domain name)
-  branding.title            Server display title
-  branding.description      Server description
-  server.rate_limit.read.requests   Read endpoint rate limit (per minute)
-  server.rate_limit.write.requests  Write endpoint rate limit (per minute)
-  email.smtp_host           SMTP server hostname
-  email.from_address        From email address
+  server.fqdn           Server FQDN (fully qualified domain name)
+  branding.title        Server display title
+  branding.description  Server description
+  registration.mode     Registration mode (public|private|disabled)
+  auth.session_timeout  Session timeout duration
+  email.smtp_host       SMTP server hostname
+  email.from_address    From email address
 
 Examples:
-  {project_name}-cli --admin config list
-  {project_name}-cli --admin config get server.fqdn
-  {project_name}-cli --admin config set branding.title "My Server"
-  {project_name}-cli --admin config reset server.rate_limit.write.requests
+  {project_name}-cli --admin server config list
+  {project_name}-cli --admin server config get registration.mode
+  {project_name}-cli --admin server config set registration.mode private
+  {project_name}-cli --admin server config set branding.title "My Server"
+  {project_name}-cli --admin server config reset registration.mode
 ```
 
-## CLI Admin Stats Help Output
+## CLI Admin Server Admin Help Output
 
 ```bash
-$ {project_name}-cli --admin stats --help
+$ {project_name}-cli --admin server admin --help
+Server admin management commands:
+
+  list                  List all server admins
+    --format FORMAT     Output format (table|json|yaml)
+
+  invite <username>     Invite new server admin
+                        Sends invite email, admin sets own password
+    --email EMAIL       Admin's email address (required)
+
+  remove <username>     Remove server admin
+                        Cannot remove Primary Admin
+                        Cannot remove yourself
+    --force             Skip confirmation prompt
+
+  reset-password <username>
+                        Send password reset email to server admin
+
+Note: Primary server admin cannot be removed. Use --maintenance setup for recovery.
+
+Examples:
+  {project_name}-cli --admin server admin list
+  {project_name}-cli --admin server admin invite newadmin --email admin@example.com
+  {project_name}-cli --admin server admin remove oldadmin
+  {project_name}-cli --admin server admin reset-password adminuser
+```
+
+## CLI Admin Server Stats Help Output
+
+```bash
+$ {project_name}-cli --admin server stats --help
 Server statistics commands:
 
   overview              General server statistics
                         Uptime, version, request counts, error rates
+
+  users                 User statistics
+                        Total users, active users, registrations over time
 
   storage               Storage usage
                         Database size, file storage, cache usage
@@ -30561,9 +35839,10 @@ Flags:
   --period PERIOD       Time period (1h|24h|7d|30d, default: 24h)
 
 Examples:
-  {project_name}-cli --admin stats overview
-  {project_name}-cli --admin stats storage --format json
-  {project_name}-cli --admin stats performance
+  {project_name}-cli --admin server stats overview
+  {project_name}-cli --admin server stats users --period 30d
+  {project_name}-cli --admin server stats storage --format json
+  {project_name}-cli --admin server stats performance
 ```
 
 ## System User Requirements
@@ -30950,7 +36229,7 @@ func installWindowsService() error {
 ---
 
 
-# PART 24: SERVICE SUPPORT
+# PART 25: SERVICE SUPPORT
 
 ## Built-in Service Support
 
@@ -30967,7 +36246,7 @@ func installWindowsService() error {
 | **Service (escalated)** | root/admin | Any port | Yes (after binding) |
 | **User mode ($USER)** | Calling user | >1024 only | No (already unprivileged) |
 
-**See PART 23 for user creation, privilege escalation, and installation logic.**
+**See PART 24 for user creation, privilege escalation, and installation logic.**
 
 ## Service Templates
 
@@ -31262,7 +36541,7 @@ func (ws *windowsService) Execute(args []string, r <-chan svc.ChangeRequest, s c
 
 
 
-# PART 25: MAKEFILE
+# PART 26: MAKEFILE
 
 **Six core targets. DO NOT ADD MORE.**
 
@@ -31453,9 +36732,9 @@ PROJECTORG := $(shell git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]
 # Version precedence: release.txt > env/default fallback
 VERSION := $(shell [ -f release.txt ] && cat release.txt || echo "${VERSION:-0.1.0}")
 
-# Build info - use TZ env var or system timezone
-# Format: "December 4, 2025 at 13:05:13"
-BUILD_DATE := $(shell date +"%%B %%-d, %%Y at %%H:%%M:%%S")
+# Build info — ISO 8601 / RFC 3339 UTC per version_conventions.md
+# Format: "2025-12-04T13:05:13Z"
+BUILD_DATE := $(shell date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ")
 COMMIT_ID := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 # COMMIT_ID used directly - no VCS_REF alias
 
@@ -32044,7 +37323,7 @@ The **only** time binaries are copied is during CI/CD release process, where the
 ---
 
 
-# PART 26: DOCKER
+# PART 27: DOCKER
 
 ## Docker Directory Structure
 
@@ -32088,7 +37367,7 @@ docker/
 | Runtime stage | `alpine:latest` |
 | Meta labels | All OCI labels (see below) |
 | Required packages | git, curl, bash, tini, tor |
-| Tor handling | Installed but **binary controls** (see PART 31) |
+| Tor handling | Installed but **binary controls** (see PART 32) |
 | Binary location | `/usr/local/bin/{project_name}` |
 | Entrypoint script | `/usr/local/bin/entrypoint.sh` |
 | Init system | **tini** |
@@ -32119,7 +37398,8 @@ docker/
 │       └── hs_ed25519_*             # Hidden service keys
 ├── db/                               # All database storage
 │   ├── sqlite/                       # SQLite databases
-│   │   └── server.db                # Main app database
+│   │   ├── server.db                # Main app database
+│   │   └── users.db                 # Users DB (if multi-user)
 │   ├── postgres/                     # PostgreSQL data (if used)
 │   └── valkey/                       # Valkey/Redis data (if used)
 ├── log/                              # Log files
@@ -32137,7 +37417,7 @@ docker/
 |------|---------|
 | `/config/{project_name}/` | App config (server.yml, ssl/, tor/) |
 | `/data/{project_name}/` | App data (uploads, cache, tor/) |
-| `/data/db/sqlite/` | SQLite databases (server.db) |
+| `/data/db/sqlite/` | SQLite databases (server.db, users.db) |
 | `/data/db/postgres/` | PostgreSQL data directory |
 | `/data/db/valkey/` | Valkey/Redis persistence |
 | `/data/log/{project_name}/` | App logs |
@@ -32168,7 +37448,7 @@ volumes:
 └── data/
     ├── {project_name}/        # App data
     ├── db/
-    │   ├── sqlite/           # SQLite databases (server.db)
+    │   ├── sqlite/           # SQLite databases (server.db, users.db)
     │   ├── postgres/         # PostgreSQL (if multi-service)
     │   └── valkey/           # Valkey (if multi-service)
     ├── log/
@@ -32178,7 +37458,7 @@ volumes:
 **Key principles:**
 - Binary owns Tor completely - Tor dirs are under `{project_name}/`, not separate
 - All SQLite databases in `/data/db/sqlite/` (not scattered)
-- Database name is ALWAYS `server.db` (globally consistent)
+- Database names are ALWAYS `server.db` and `users.db` (globally consistent)
 - External services (postgres, valkey) have their own `/data/db/{service}/` dirs
 - Compose mounts entire `/config` and `/data` - not individual subdirectories
 
@@ -32295,7 +37575,7 @@ ARG LICENSE=MIT
 # See dockerfile_conventions.md → OCI Annotations.
 
 # Install required packages
-# NOTE: Tor binary installed but NOT configured here - binary handles all Tor setup (see PART 31)
+# NOTE: Tor binary installed but NOT configured here - binary handles all Tor setup (see PART 32)
 RUN apk add --no-cache \
     git \
     curl \
@@ -32321,7 +37601,7 @@ COPY docker/Dockerfile /root/Dockerfile
 RUN chmod 755 /usr/local/bin/*
 
 # Set environment
-# Note: Tor available (binary installed) but server binary controls Tor startup (see PART 31)
+# Note: Tor available (binary installed) but server binary controls Tor startup (see PART 32)
 # DATABASE_DIR: SQLite location (binary auto-detects container, but explicit is clearer)
 ENV MODE=development \
     TZ=America/New_York \
@@ -32436,7 +37716,7 @@ exec $APP_BIN $FLAGS "$@"
 - Create directories (binary does this)
 - Set permissions (binary does this)
 - Create user/group (binary does this)
-- Manage Tor (binary does this - see PART 31)
+- Manage Tor (binary does this - see PART 32)
 - Any runtime initialization (binary does this)
 
 **Server binary handles EVERYTHING** - entrypoint just sets env and starts it.
@@ -33504,6 +38784,7 @@ networks:
 
 | When in Container | Behavior |
 |-------------------|----------|
+| Show setup token | On first run - one-time setup token displayed in console for `/server/{admin_path}` access |
 | Defaults | Use container-appropriate defaults |
 | Logging | Log to stdout/stderr (captured by container runtime) |
 | Tor | Application manages Tor process internally |
@@ -33543,7 +38824,7 @@ networks:
 ---
 
 
-# PART 27: CI/CD WORKFLOWS
+# PART 28: CI/CD WORKFLOWS
 
 **All projects MUST have CI/CD workflows appropriate for their git hosting platform.**
 
@@ -33595,8 +38876,6 @@ networks:
 | `daily.yml` | Daily at 3am UTC + push to main/master | Daily builds |
 | `docker.yml` | Version tag, push to main/master/beta | Docker images |
 | `build-toolchain.yml` | Monthly cron (1st @ 04:00 UTC) + `workflow_dispatch` | Rebuild and push `docker/Dockerfile.build` as `:build` |
-
-> **Note:** `ci.yml`, `release.yml`, and `build-toolchain.yml` are required on every project. `beta.yml`, `daily.yml`, and `docker.yml` are project-specific optional workflows — include only when the project requires them.
 
 **Branch push auto-cancel policy:** Any workflow triggered by pushes to `main`, `master`, `devel`, `dev`, or `beta` MUST use workflow concurrency to cancel older in-progress runs for the same ref. This applies to branch-based CI (for example `beta.yml`, `daily.yml`, `docker.yml`, and any project-specific branch-push workflow).
 
@@ -33697,7 +38976,7 @@ jobs:
           fi
 
   build:
-    needs: [ensure-build-image, test]
+    needs: [ensure-build-image, lint, test]
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.ensure-build-image.outputs.image }}
@@ -33715,6 +38994,9 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - run: govulncheck ./...
+
+  # Additional jobs (same pattern — needs: ensure-build-image):
+  # secret-scan, workflow-policy, image-scan (needs: build), coverage (needs: test), upload-artifacts (needs: build)
 ```
 
 > **Note:** Security jobs (`secret-scan`, `workflow-policy`, `vuln-scan`, `image-scan`) are defined within `ci.yml` with `needs: ensure-build-image`. They run on push, PR, and weekly schedule (`cron: '0 6 * * 1'`). Add `if: github.event_name != 'schedule'` to build/test/coverage/artifact jobs to skip non-security work on scheduled runs. Secret scanning is mandatory on every public repo via truffleHog (Apache-2.0). Use `github.event.before` / `github.event.after` for the scan range — never `default_branch`, which after a push resolves to the same commit as HEAD and silently skips the scan.
@@ -34624,6 +39906,8 @@ For self-hosted runners, change `runs-on: ubuntu-latest` to your runner label.
 
 | File | Trigger | Purpose |
 |------|---------|---------|
+| `ci.yml` | Push and pull requests; weekly schedule for security jobs | Build, test, lint, coverage, security jobs |
+| `build-toolchain.yml` | Monthly schedule + `workflow_dispatch` | `:build` toolchain image rebuild |
 | `release.yml` | Tag push (`v*`, `*.*.*`) | Production releases |
 | `beta.yml` | Push to `beta` branch | Beta releases |
 | `daily.yml` | Daily at 3am UTC + push to main/master | Daily builds |
@@ -36876,7 +42160,7 @@ Before proceeding, confirm you understand:
 
 ---
 
-# PART 28: TESTING & DEVELOPMENT
+# PART 29: TESTING & DEVELOPMENT
 
 ## Host System Safety Applies to All Testing & Debugging
 
@@ -36979,8 +42263,8 @@ Config files are NEVER in the repository. They are generated at RUNTIME:
 |------|----------|--------------|
 | `server.yml` | `{config_dir}/server.yml` (see PART 4) | Server first run |
 | `cli.yml` | `~/.config/{project_org}/{internal_name}/cli.yml` | CLI first run |
-| Tor config | `{config_dir}/tor/torrc` (see PART 31) | When Tor enabled |
-| Tor data | `{data_dir}/tor/` (see PART 31) | When Tor enabled |
+| Tor config | `{config_dir}/tor/torrc` (see PART 32) | When Tor enabled |
+| Tor data | `{data_dir}/tor/` (see PART 32) | When Tor enabled |
 
 **Why runtime-generated?**
 
@@ -37298,19 +42582,28 @@ done
 | Backend + text/plain | Response is plain text |
 | *.txt endpoints | Response returns 200 with text content |
 
-**Example: Open data API project MUST test:**
+**Example: User management project MUST test:**
 ```bash
-# API endpoints (no auth required)
-GET    /api/{api_version}/items           # List items (JSON)
-GET    /api/{api_version}/items/{id}      # Get item (JSON)
-GET    /api/{api_version}/items/{id}.txt  # Get item (plain text)
-POST   /api/{api_version}/items           # Create item (JSON, rate-limited)
+# API - Current user (authenticated)
+GET    /api/{api_version}/users           # Get current user profile (API JSON)
+PATCH  /api/{api_version}/users           # Update current user profile (API JSON)
 
-# Frontend routes (smart detection) - CLI gets formatted text via HTML2TextConverter
-curl -q -LSsf /items                              # CLI → formatted text
-browser /items                                    # Browser → HTML page
-curl -q -LSsf -H "Accept: text/plain" /items/{id} # Formatted text (Accept header)
-curl -q -LSsf -H "Accept: text/html" /items/{id}  # HTML (Accept header)
+# API - Public profiles (by username)
+GET    /api/{api_version}/users/{username}     # Read public profile (API JSON)
+GET    /api/{api_version}/users/{username}.txt # Read public profile (API plain text)
+
+# API - Admin managing users (by ID)
+GET    /api/{api_version}/server/{admin_path}/config/users        # List all users (admin)
+GET    /api/{api_version}/server/{admin_path}/config/users/1      # Read specific user (admin)
+PATCH  /api/{api_version}/server/{admin_path}/config/users/1      # Update specific user (admin)
+DELETE /api/{api_version}/server/{admin_path}/config/users/1      # Delete specific user (admin)
+
+# Frontend routes (smart detection) - CLI gets beautiful formatted text via HTML2TextConverter
+curl -q -LSsf /users                              # CLI → formatted text (current user)
+browser /users                                    # Browser → HTML page (current user)
+curl -q -LSsf /{username}                         # CLI → formatted text (public profile)
+curl -q -LSsf -H "Accept: text/plain" /{username} # Formatted text (Accept header)
+curl -q -LSsf -H "Accept: text/html" /{username}  # HTML (Accept header)
 ```
 
 **Example: Jokes API (read-only) MUST test:**
@@ -37395,7 +42688,7 @@ curl -q -LSsf /links/abc123                   # Link details (text)
 make test
 ```
 
-**Note:** Makefile targets use Docker internally. See PART 25 for underlying commands.
+**Note:** Makefile targets use Docker internally. See PART 26 for underlying commands.
 
 ## 100% Test Coverage
 
@@ -37424,7 +42717,8 @@ make test
 |--------------|-----------|
 | **Public API** | All `/api/{api_version}/*` endpoints |
 | **Public Web** | All frontend routes |
-| **Server API** | All `/api/{api_version}/server/*` endpoints |
+| **Admin API** | All `/api/{api_version}/server/{admin_path}/*` endpoints |
+| **Admin Web** | All `/server/{admin_path}/*` routes |
 | **Error cases** | 400, 401, 403, 404, 500 responses |
 | **Edge cases** | Empty data, invalid input, rate limits |
 
@@ -37544,10 +42838,10 @@ test_endpoint GET "/api/{api_version}/jokes/random"
 test_endpoint GET "/api/{api_version}/jokes/categories"
 test_endpoint GET "/api/{api_version}/jokes/{id}"
 
-# SERVER API (with auth)
-test_endpoint GET "/api/{api_version}/server/config/settings"
-test_endpoint PUT "/api/{api_version}/server/config/settings"
-test_endpoint GET "/api/{api_version}/server/config/logs"
+# ADMIN API (with auth)
+test_endpoint GET "/api/{api_version}/server/{admin_path}/config/settings"
+test_endpoint PUT "/api/{api_version}/server/{admin_path}/config/settings"
+test_endpoint GET "/api/{api_version}/server/{admin_path}/config/logs"
 
 # At end: verify ALL endpoints were tested
 verify_all_endpoints_tested
@@ -37674,12 +42968,12 @@ fi
    - Agent (`./src/agent`) if exists
 3. Install test tools in container (Docker: `apk add --no-cache curl bash file jq`)
 4. Copy binaries to test container
-5. Start server
+5. Start server and capture logs (for setup token extraction)
 6. Run full beta test suite:
    - Version and help checks (server, CLI, agent if built)
    - Binary info verification
    - **Binary rename tests** (copy binary, verify --help shows new name)
-   - **Admin setup** (login with credentials from server.yml → generate API token)
+   - **Admin setup** (use setup token → create admin → login → generate API token)
    - Test API endpoints (.txt extension, Accept headers)
    - Test frontend smart detection (browser → HTML, CLI → formatted text)
    - Test project-specific endpoints (from IDEA.md)
@@ -37763,6 +43057,8 @@ docker run --rm -it \
     /app/${PROJECT_NAME} --port 64580 > /tmp/server.log 2>&1 &
     SERVER_PID=\$!
     sleep 3
+    # Show setup token if present (for debugging)
+    grep -i 'setup.*token' /tmp/server.log 2>/dev/null || true
 
     echo '=== API Endpoint Tests ==='
     # Test JSON response (default)
@@ -37792,22 +43088,62 @@ docker run --rm -it \
     #   # Optional: verify HTML is served to browsers
     #   curl -q -LSsfI -H 'Accept: text/html' http://localhost:64580/jokes/random | grep -q 'text/html' || echo 'FAILED: Frontend HTML'
     #
-    # Example for open data CRUD (full test suite):
-    #   # API - no auth required
-    #   curl -q -LSsf http://localhost:64580/api/{api_version}/items || echo 'FAILED: LIST items API'
-    #   curl -q -LSsf http://localhost:64580/api/{api_version}/items/1 || echo 'FAILED: GET item API JSON'
-    #   curl -q -LSsf http://localhost:64580/api/{api_version}/items/1.txt || echo 'FAILED: GET item API .txt'
-    #   curl -q -LSsf -X POST -H 'Content-Type: application/json' -d '{"name":"test"}' http://localhost:64580/api/{api_version}/items || echo 'FAILED: CREATE item API'
+    # Example for user CRUD (full test suite):
+    #   # API - Current user
+    #   curl -q -LSsf http://localhost:64580/api/{api_version}/users || echo 'FAILED: GET current user API'
+    #   curl -q -LSsf -X PATCH -H 'Content-Type: application/json' -d '{\"email\":\"new@test.com\"}' http://localhost:64580/api/{api_version}/users || echo 'FAILED: UPDATE current user API'
+    #   # API - Public profile (by username)
+    #   curl -q -LSsf http://localhost:64580/api/{api_version}/users/testuser || echo 'FAILED: READ public profile API JSON'
+    #   curl -q -LSsf http://localhost:64580/api/{api_version}/users/testuser.txt || echo 'FAILED: READ public profile API .txt'
+    #   # API - Admin routes (by ID)
+    #   curl -q -LSsf http://localhost:64580/api/{api_version}/server/{admin_path}/config/users || echo 'FAILED: LIST users admin API'
+    #   curl -q -LSsf http://localhost:64580/api/{api_version}/server/{admin_path}/config/users/1 || echo 'FAILED: READ user admin API'
+    #   curl -q -LSsf -X DELETE http://localhost:64580/api/{api_version}/server/{admin_path}/config/users/1 || echo 'FAILED: DELETE user admin API'
     #   # Frontend (smart detection - test with text for simplicity)
-    #   ITEMS=\$(curl -q -LSsf http://localhost:64580/items)  # CLI auto-detects text
+    #   USERS=\$(curl -q -LSsf http://localhost:64580/users)  # CLI auto-detects text (current user)
+    #   USER=\$(curl -q -LSsf http://localhost:64580/testuser)  # CLI auto-detects text (public profile)
     #
     # Test ALL project-specific endpoints defined in IDEA.md
 
-    echo '=== Open API Smoke Test ==='
-    # No auth required — all endpoints are publicly accessible
-    curl -q -LSsf http://localhost:64580/server/healthz | grep -q '"ok":true' \
-        && echo '✓ Health endpoint works' \
-        || echo '✗ FAILED: Health endpoint'
+    echo '=== Admin Setup & API Token Creation ==='
+    # Get setup token from server output (captured during startup)
+    SETUP_TOKEN=\$(cat /tmp/server.log 2>/dev/null | grep -oP 'Setup Token.*:\\s*\\K[a-f0-9]+' | head -1 || echo '')
+
+    if [ -n \"\$SETUP_TOKEN\" ]; then
+        echo \"Setup token found: \${SETUP_TOKEN:0:8}...\"
+
+        # Create admin account
+        curl -q -LSsf -X POST \\
+            -H \"X-Setup-Token: \$SETUP_TOKEN\" \\
+            -H \"Content-Type: application/json\" \\
+            -d '{\"username\":\"testadmin\",\"password\":\"TestPass123!\"}' \\
+            http://localhost:64580/api/{api_version}/server/{admin_path}/setup || echo 'Admin setup failed (may already exist)'
+
+        # Login and get session
+        SESSION=\$(curl -q -LSsf -X POST \\
+            -H \"Content-Type: application/json\" \\
+            -d '{\"username\":\"testadmin\",\"password\":\"TestPass123!\"}' \\
+            http://localhost:64580/api/{api_version}/server/{admin_path}/login | grep -oP '\"session_token\":\\s*\"\\K[^\"]+' || echo '')
+
+        if [ -n \"\$SESSION\" ]; then
+            echo '✓ Admin login successful'
+
+            # Generate API token for CLI/Agent testing
+            API_TOKEN=\$(curl -q -LSsf -X POST \\
+                -H \"Authorization: Bearer \$SESSION\" \\
+                http://localhost:64580/api/{api_version}/server/{admin_path}/{admin_username}/profile/token | grep -oP '\"token\":\\s*\"\\K[^\"]+' || echo '')
+
+            if [ -n \"\$API_TOKEN\" ]; then
+                echo \"✓ API token created: \${API_TOKEN:0:12}...\"
+            else
+                echo 'API token creation failed (continuing without token)'
+            fi
+        else
+            echo 'Admin login failed (continuing without session)'
+        fi
+    else
+        echo 'No setup token found (server may already be configured)'
+    fi
 
     echo '=== Binary Rename Tests ==='
     # Test that binaries show ACTUAL name in --help/--version (not hardcoded)
@@ -37862,10 +43198,15 @@ docker run --rm -it \
             echo '✗ FAILED: Agent --help does not show renamed binary name'
         fi
 
-        # Full Agent functionality tests against server (no token required)
+        # Full Agent functionality tests against server
         echo '--- Agent Full Functionality Tests ---'
-        /app/${PROJECT_NAME}-agent --server http://localhost:64580 status || echo 'Agent status failed'
-        # Project-specific agent commands go here (IDEA.md)
+        if [ -n \"\${API_TOKEN:-}\" ]; then
+            # Test agent registration/status with API token
+            /app/${PROJECT_NAME}-agent --server http://localhost:64580 --token \"\$API_TOKEN\" status || echo 'Agent status failed'
+            # Project-specific agent commands go here (IDEA.md)
+        else
+            echo 'Agent tests skipped (no API token)'
+        fi
     else
         echo 'Agent not built - skipping'
     fi
@@ -37980,12 +43321,12 @@ incus exec "$CONTAINER_NAME" -- bash -c "
     ${PROJECT_NAME} --service --install
 
     echo '=== Service Status ==='
-    systemctl status ${PROJECT_NAME} || true  # inside VM — not a host-service mutation
+    systemctl status ${PROJECT_NAME} || true
 
     echo '=== Service Start Test ==='
-    systemctl start ${PROJECT_NAME}  # inside VM — not a host-service mutation
+    systemctl start ${PROJECT_NAME}
     sleep 2
-    systemctl status ${PROJECT_NAME}  # inside VM — not a host-service mutation
+    systemctl status ${PROJECT_NAME}
 
     echo '=== API Endpoint Tests ==='
     # Test JSON response (default)
@@ -38015,22 +43356,62 @@ incus exec "$CONTAINER_NAME" -- bash -c "
     #   # Optional: verify HTML is served to browsers
     #   curl -q -LSsfI -H 'Accept: text/html' http://localhost:80/jokes/random | grep -q 'text/html' || echo 'FAILED: Frontend HTML'
     #
-    # Example for open data CRUD (full test suite):
-    #   # API - no auth required
-    #   curl -q -LSsf http://localhost:80/api/{api_version}/items || echo 'FAILED: LIST items API'
-    #   curl -q -LSsf http://localhost:80/api/{api_version}/items/1 || echo 'FAILED: GET item API JSON'
-    #   curl -q -LSsf http://localhost:80/api/{api_version}/items/1.txt || echo 'FAILED: GET item API .txt'
-    #   curl -q -LSsf -X POST -H 'Content-Type: application/json' -d '{"name":"test"}' http://localhost:80/api/{api_version}/items || echo 'FAILED: CREATE item API'
-    #   # Frontend (smart detection)
-    #   ITEMS=\$(curl -q -LSsf http://localhost:80/items)  # CLI auto-detects text
+    # Example for user CRUD (full test suite):
+    #   # API - Current user
+    #   curl -q -LSsf http://localhost:80/api/{api_version}/users || echo 'FAILED: GET current user API'
+    #   curl -q -LSsf -X PATCH -H 'Content-Type: application/json' -d '{\"email\":\"new@test.com\"}' http://localhost:80/api/{api_version}/users || echo 'FAILED: UPDATE current user API'
+    #   # API - Public profile (by username)
+    #   curl -q -LSsf http://localhost:80/api/{api_version}/users/testuser || echo 'FAILED: READ public profile API JSON'
+    #   curl -q -LSsf http://localhost:80/api/{api_version}/users/testuser.txt || echo 'FAILED: READ public profile API .txt'
+    #   # API - Admin routes (by ID)
+    #   curl -q -LSsf http://localhost:80/api/{api_version}/server/{admin_path}/config/users || echo 'FAILED: LIST users admin API'
+    #   curl -q -LSsf http://localhost:80/api/{api_version}/server/{admin_path}/config/users/1 || echo 'FAILED: READ user admin API'
+    #   curl -q -LSsf -X DELETE http://localhost:80/api/{api_version}/server/{admin_path}/config/users/1 || echo 'FAILED: DELETE user admin API'
+    #   # Frontend (smart detection - test with text for simplicity)
+    #   USERS=\$(curl -q -LSsf http://localhost:80/users)  # CLI auto-detects text (current user)
+    #   USER=\$(curl -q -LSsf http://localhost:80/testuser)  # CLI auto-detects text (public profile)
     #
     # Test ALL project-specific endpoints defined in IDEA.md
 
-    echo '=== Open API Smoke Test ==='
-    # No auth required — all endpoints are publicly accessible
-    curl -q -LSsf http://localhost:80/server/healthz | grep -q '"ok":true' \
-        && echo '✓ Health endpoint works' \
-        || echo '✗ FAILED: Health endpoint'
+    echo '=== Admin Setup & API Token Creation ==='
+    # Get setup token from journal
+    SETUP_TOKEN=\$(journalctl -u ${PROJECT_NAME} --no-pager 2>/dev/null | grep -oP 'Setup Token.*:\\s*\\K[a-f0-9]+' | head -1 || echo '')
+
+    if [ -n \"\$SETUP_TOKEN\" ]; then
+        echo \"Setup token found: \${SETUP_TOKEN:0:8}...\"
+
+        # Create admin account
+        curl -q -LSsf -X POST \\
+            -H \"X-Setup-Token: \$SETUP_TOKEN\" \\
+            -H \"Content-Type: application/json\" \\
+            -d '{\"username\":\"testadmin\",\"password\":\"TestPass123!\"}' \\
+            http://localhost:80/api/{api_version}/server/{admin_path}/setup || echo 'Admin setup failed (may already exist)'
+
+        # Login and get session
+        SESSION=\$(curl -q -LSsf -X POST \\
+            -H \"Content-Type: application/json\" \\
+            -d '{\"username\":\"testadmin\",\"password\":\"TestPass123!\"}' \\
+            http://localhost:80/api/{api_version}/server/{admin_path}/login | grep -oP '\"session_token\":\\s*\"\\K[^\"]+' || echo '')
+
+        if [ -n \"\$SESSION\" ]; then
+            echo '✓ Admin login successful'
+
+            # Generate API token for CLI/Agent testing
+            API_TOKEN=\$(curl -q -LSsf -X POST \\
+                -H \"Authorization: Bearer \$SESSION\" \\
+                http://localhost:80/api/{api_version}/server/{admin_path}/{admin_username}/profile/token | grep -oP '\"token\":\\s*\"\\K[^\"]+' || echo '')
+
+            if [ -n \"\$API_TOKEN\" ]; then
+                echo \"✓ API token created: \${API_TOKEN:0:12}...\"
+            else
+                echo 'API token creation failed (continuing without token)'
+            fi
+        else
+            echo 'Admin login failed (continuing without session)'
+        fi
+    else
+        echo 'No setup token found (server may already be configured)'
+    fi
 
     echo '=== Binary Rename Tests ==='
     # Test that binaries show ACTUAL name in --help/--version (not hardcoded)
@@ -38086,15 +43467,19 @@ incus exec "$CONTAINER_NAME" -- bash -c "
 
         # Full Agent functionality tests against server
         echo '--- Agent Full Functionality Tests ---'
-        # Full Agent functionality tests against server (no token required)
-        ${PROJECT_NAME}-agent --server http://localhost:80 status || echo 'Agent status failed'
-        # Project-specific agent commands go here (IDEA.md)
+        if [ -n \"\${API_TOKEN:-}\" ]; then
+            # Test agent registration/status with API token
+            ${PROJECT_NAME}-agent --server http://localhost:80 --token \"\$API_TOKEN\" status || echo 'Agent status failed'
+            # Project-specific agent commands go here (IDEA.md)
+        else
+            echo 'Agent tests skipped (no API token)'
+        fi
     else
         echo 'Agent not installed - skipping'
     fi
 
     echo '=== Service Stop Test ==='
-    systemctl stop ${PROJECT_NAME}  # inside VM — not a host-service mutation
+    systemctl stop ${PROJECT_NAME}
 
     echo '=== All tests passed ==='
 "
@@ -38139,14 +43524,14 @@ fi
 | **Test container tools** | Docker alpine MUST install: `apk add --no-cache curl bash file jq` |
 | **Test all binaries** | Test `--version` and `--help` for server, client, and agent if built |
 | **Binary rename test** | Copy binary with new name, verify `--help` shows renamed name (not hardcoded) |
-| **Admin setup** | Login with credentials from server.yml, generate API token |
+| **Admin setup** | Use setup token to create admin account, login, generate API token |
 | **CLI full functionality** | Test CLI with API token against running server (not just --help) |
 | **Agent full functionality** | Test agent with API token against running server (not just --help) |
 | **API endpoint testing** | MUST test .txt extension and Accept headers on API routes |
 | **Frontend testing** | MUST test smart detection (CLI → formatted text, browser → HTML) |
 | **Content negotiation** | Test JSON, text/plain, and text/html responses |
 | **Project-specific tests** | MUST test ALL endpoints from IDEA.md (CRUD, API, frontend) |
-| **Admin authentication** | Test login and rejection (no bypass) |
+| **Admin authentication** | Test setup token, login, and rejection (no bypass) |
 | **Cleanup** | ALWAYS use `trap` for cleanup |
 | **Exit codes** | 0 = success, non-zero = failure |
 | **Output** | Clear progress messages with `echo` |
@@ -38156,7 +43541,7 @@ fi
 
 **ALL binaries (server, agent, client) support shell completions - built into binary, no separate files.**
 
-See PART 32: "Shell Completions (Built-in)" for full implementation details.
+See PART 33: "Shell Completions (Built-in)" for full implementation details.
 
 ```bash
 # Generate and install completions (prints to stdout, user redirects)
@@ -38176,60 +43561,167 @@ eval "$({project_name}-agent --shell init)"
 | **Rename-friendly** | Works even if user renames binary |
 | **No sync issues** | Can't have outdated completion files |
 
-## Testing Open API Routes
+## Testing Admin Routes
 
-**All routes are publicly accessible — no authentication required. Tests verify responses, not access control.**
+**Admin routes (`/server/{admin_path}/**`) require authentication. Tests MUST verify authentication works.**
 
-### Proper Open API Testing Approach
+**CRITICAL: Do NOT bypass authentication in tests - TEST that it works!**
+
+### Proper Admin Testing Approach
+
+**Tests should verify the authentication system, not skip it:**
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo '=== Open API Smoke Tests ==='
+echo '=== Admin Authentication Tests ==='
 
-# Start server
+# Start server normally (authentication required)
 /app/${PROJECT_NAME} --port 64580 &
 SERVER_PID=$!
 sleep 3
 
-# 1. Health check
-echo "Testing health endpoint..."
-curl -q -LSsf http://localhost:64580/server/healthz | grep -q '"ok":true' \
-    && echo '✓ Health endpoint works' \
-    || { echo '✗ FAILED: Health endpoint'; kill $SERVER_PID; exit 1; }
-
-# 2. Rate limiting — verify limit is enforced
-echo "Testing rate limiting..."
-RATE_HIT=false
-for i in $(seq 1 300); do
-    CODE=$(curl -q -LSs -o /dev/null -w "%{http_code}" http://localhost:64580/api/{api_version}/items)
-    if [ "$CODE" = "429" ]; then
-        RATE_HIT=true
-        break
-    fi
-done
-if $RATE_HIT; then
-    echo '✓ Rate limiting enforced'
+# 1. Test that unauthenticated access is REJECTED
+echo "Testing unauthenticated access is blocked..."
+# Note: Use -q -LSs (no -f) when capturing HTTP status codes, since -f exits on 4xx/5xx
+HTTP_CODE=$(curl -q -LSs -o /dev/null -w "%{http_code}" http://localhost:64580/server/{admin_path})
+if [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "401" ]; then
+    echo "✓ Unauthenticated access properly rejected"
 else
-    echo '⚠ Rate limit not hit after 300 requests (check defaults)'
+    echo "✗ FAILED: Admin routes not protected (got HTTP $HTTP_CODE)"
+    kill $SERVER_PID
+    exit 1
+fi
+
+# 2. Get setup token from server logs (using proper temp dir structure)
+SETUP_TOKEN=$(grep -oP 'Setup Token.*:\s*\K[a-f0-9]+' "${TMPDIR:-/tmp}/${PROJECT_ORG}/${PROJECT_NAME}/server.log" | head -1)
+
+if [ -z "$SETUP_TOKEN" ]; then
+    echo "✗ FAILED: No setup token found in logs"
+    kill $SERVER_PID
+    exit 1
+fi
+
+echo "✓ Setup token found: ${SETUP_TOKEN:0:8}..."
+
+# 3. Test admin routes WITH authentication (setup token)
+echo "Testing admin access with setup token..."
+HTTP_CODE=$(curl -q -LSs -o /dev/null -w "%{http_code}" \
+    -H "X-Setup-Token: $SETUP_TOKEN" \
+    http://localhost:64580/server/{admin_path})
+
+if [ "$HTTP_CODE" = "200" ]; then
+    echo "✓ Admin access works with setup token"
+else
+    echo "✗ FAILED: Admin access with token returned HTTP $HTTP_CODE"
+    kill $SERVER_PID
+    exit 1
+fi
+
+# 4. Complete setup wizard (create admin account)
+echo "Creating admin account via API..."
+curl -q -LSsf -X POST \
+    -H "X-Setup-Token: $SETUP_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"username":"testadmin","password":"TestPass123!"}' \
+    http://localhost:64580/api/{api_version}/server/{admin_path}/setup
+
+# 5. Test login with created admin
+echo "Testing admin login..."
+SESSION=$(curl -q -LSsf -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"username":"testadmin","password":"TestPass123!"}' \
+    http://localhost:64580/api/{api_version}/server/{admin_path}/login | jq -r '.session_token')
+
+if [ -z "$SESSION" ] || [ "$SESSION" = "null" ]; then
+    echo "✗ FAILED: Admin login failed"
+    kill $SERVER_PID
+    exit 1
+fi
+
+echo "✓ Admin login successful"
+
+# 6. Test admin routes with valid session
+echo "Testing admin routes with session..."
+curl -q -LSsf -H "Authorization: Bearer $SESSION" \
+    http://localhost:64580/api/{api_version}/server/{admin_path}/config/users > /dev/null
+
+echo "✓ Admin routes work with authentication"
+
+# 7. Test that invalid credentials are rejected
+echo "Testing invalid credentials are rejected..."
+# Use -q -LSs (no -f) when checking for expected 4xx response
+INVALID=$(curl -q -LSs -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"username":"testadmin","password":"wrongpassword"}' \
+    -w "%{http_code}" \
+    http://localhost:64580/api/{api_version}/server/{admin_path}/login)
+
+if echo "$INVALID" | grep -q "401\|403"; then
+    echo "✓ Invalid credentials properly rejected"
+else
+    echo "✗ FAILED: Invalid credentials not rejected"
+    kill $SERVER_PID
+    exit 1
 fi
 
 # Cleanup
 kill $SERVER_PID
 wait $SERVER_PID 2>/dev/null || true
 
-echo '=== All open API smoke tests passed ==='
+echo '=== All admin authentication tests passed ==='
 ```
 
-### Open API Testing Rules
+### Debug Mode - ONLY for Manual Development
+
+**Debug mode auth bypass exists ONLY for quick manual testing during development:**
+
+```go
+// In admin middleware
+func AdminAuthMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Debug mode: bypass authentication ONLY for manual dev work
+        // NEVER use this in automated tests!
+        if os.Getenv("DEBUG") == "true" || config.IsDebug() {
+            log.Println("[DEBUG] Admin auth bypassed (debug mode - manual dev only)")
+            next.ServeHTTP(w, r)
+            return
+        }
+
+        // Normal: require valid admin session
+        session := validateAdminSession(r)
+        if session == nil {
+            http.Redirect(w, r, cfg.AdminPath+"/login", http.StatusSeeOther)
+            return
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+```
+
+**Debug bypass is for:**
+- ✓ Quick manual UI testing during development
+- ✓ Exploring admin panel while coding
+- ✓ Debugging admin routes interactively
+
+**Debug bypass is NOT for:**
+- ✗ Automated test scripts
+- ✗ Beta testing
+- ✗ CI/CD pipelines
+- ✗ Verifying authentication works
+
+### Admin Testing Rules
 
 | Rule | Requirement |
 |------|-------------|
-| **No auth setup** | Tests MUST NOT attempt login or pass tokens |
-| **Test rate limiting** | Verify 429 is returned after burst threshold |
-| **Test all public routes** | Every route MUST return 200 for valid requests |
-| **Test error paths** | Verify 400/404/405 for invalid inputs, unknown routes, wrong methods |
+| **Test authentication** | Tests MUST verify auth works, not bypass it |
+| **Use setup token** | First-run setup token for initial admin access |
+| **Create test admin** | Create admin account via setup API |
+| **Test login flow** | Verify credentials, sessions, and access control |
+| **Test rejection** | Verify unauthenticated and invalid credentials are rejected |
+| **Debug mode** | ONLY for manual development, NEVER in automated tests |
 
 ### Container Images
 
@@ -38537,7 +44029,7 @@ Before running any `rm -rf`:
 ---
 
 
-# PART 29: READTHEDOCS DOCUMENTATION
+# PART 30: READTHEDOCS DOCUMENTATION
 
 ## Overview
 
@@ -38718,7 +44210,7 @@ nav:
   - Usage:
     - API Reference: api.md
     - CLI Reference: cli.md         # Remove if project has no CLI surface
-    - Admin API: admin.md
+    - Admin Panel: admin.md
     - Security: security.md
     - Integrations: integrations.md
   - Development:
@@ -39068,7 +44560,7 @@ docker run -p 64580:80 {PLATFORM_CONTAINER_REGISTRY}/{project_org}/{internal_nam
 - [Installation](installation.md) - How to install and run
 - [Configuration](configuration.md) - All configuration options
 - [API Reference](api.md) - REST API, Swagger, GraphQL
-- [Admin API](admin.md) - Server administration API
+- [Admin Panel](admin.md) - WebUI administration
 - [Security](security.md) - Auth, public endpoints, reporting, and hardening behavior
 - [Integrations](integrations.md) - External identity, discovery, and platform integrations
 - [Development](development.md) - Contributing guide
@@ -39115,8 +44607,8 @@ chmod +x {project_name}-linux-amd64
 
 ```bash
 sudo ./{project_name} --service install
-sudo systemctl start {project_name}   # operator action on target host — not an AI-executed command during development
-sudo systemctl enable {project_name}  # operator action on target host — not an AI-executed command during development
+sudo systemctl start {project_name}
+sudo systemctl enable {project_name}
 ```
 
 ## Configuration
@@ -39156,9 +44648,9 @@ All settings can be overridden via environment:
 {PROJECT_NAME}_DATABASE_TYPE=postgres
 ```
 
-## Server Administration
+## Admin Panel
 
-All settings are configurable via the server config file or CLI. Server API is available at `/api/{api_version}/server/config/`.
+All settings are configurable via the WebUI at `/server/{admin_path}`.
 
 Document:
 - external auth provider settings (OIDC/LDAP) if enabled
@@ -39205,17 +44697,17 @@ GraphQL playground: [/server/docs/graphql](/server/docs/graphql)
 ### docs/admin.md
 
 ```markdown
-# Admin API
+# Admin Panel
 
 ## Access
 
-- Base URL: `/api/{api_version}/server/`
-- First-run setup creates admin account via CLI
-- Token-based authentication (Bearer)
+- URL: `/server/{admin_path}`
+- First-run setup wizard creates admin account
+- Session-based authentication
 
 ## Features
 
-- Server configuration (via config file)
+- Server configuration
 - User management
 - Database management
 - Backup/restore
@@ -39223,13 +44715,13 @@ GraphQL playground: [/server/docs/graphql](/server/docs/graphql)
 - Monitoring & logs
 
 Document:
-- external auth provider settings (OIDC/LDAP) via config file
-- web/robots/security.txt settings via config file
-- any security-reporting or public-endpoint settings enabled by the project
+- `/server/{admin_path}/config/security/auth/*` for OIDC/LDAP provider management
+- `/server/{admin_path}/config/web/*` for robots/security/well-known management
+- any security-reporting or public-endpoint admin pages enabled by the project
 
-## Server API
+## Admin API
 
-Programmatic access via `/api/{api_version}/server/` — all endpoints are publicly accessible (no auth required). Rate limiting applies.
+Programmatic access via `/api/{api_version}/server/{admin_path}/` with bearer token authentication.
 ```
 
 ### docs/security.md
@@ -39237,10 +44729,13 @@ Programmatic access via `/api/{api_version}/server/` — all endpoints are publi
 ```markdown
 # Security
 
-## Rate Limiting & Abuse Prevention
+## Authentication & Identity
 
-- All endpoints are rate limited by IP (see `server.rate_limit.*` in `server.yml`)
-- IP blocklist managed via config file
+- Local auth routes live under `/server/auth/*`
+- External identity for users/admins is documented here:
+  - OIDC providers
+  - LDAP providers
+  - first-login username confirmation flow
 
 ## Public Security Endpoints
 
@@ -39357,7 +44852,7 @@ make test
 
 ---
 
-# PART 30: I18N & A11Y
+# PART 31: I18N & A11Y
 
 ## Internationalization (i18n)
 
@@ -39368,7 +44863,7 @@ make test
 | Layer | What Gets Translated |
 |-------|---------------------|
 | **Web Frontend** | All UI text: navigation, headings, labels, buttons, tooltips, placeholders, footers, legal pages |
-| **Admin API** | All admin API: error messages, status descriptions, notifications |
+| **Admin Panel** | All admin UI: dashboard, settings forms, labels, tooltips, wizard steps, notifications |
 | **API Responses** | Error messages, validation messages, status descriptions |
 | **Swagger/OpenAPI** | Endpoint descriptions, parameter descriptions, schema descriptions, error examples |
 | **GraphQL** | Type descriptions, field descriptions, query/mutation descriptions |
@@ -39596,6 +45091,37 @@ var localeFS embed.FS
     "auto": "Automático"
   },
 
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "register": "Registrarse",
+    "forgot_password": "¿Olvidaste tu contraseña?",
+    "reset_password": "Restablecer contraseña",
+    "remember_me": "Recordarme",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "confirm_password": "Confirmar contraseña",
+    "email": "Correo electrónico",
+    "already_have_account": "¿Ya tienes una cuenta? Inicia sesión",
+    "no_account": "¿No tienes cuenta? Regístrate",
+    "show_password": "Mostrar contraseña",
+    "hide_password": "Ocultar contraseña",
+    "password_requirements": "Requisitos de contraseña",
+    "min_length": "Al menos {min} caracteres",
+    "require_uppercase": "Contiene mayúsculas y minúsculas",
+    "require_number": "Contiene un número",
+    "require_special": "Contiene un carácter especial",
+    "2fa_required": "Autenticación de dos factores requerida",
+    "2fa_code": "Código de verificación",
+    "2fa_enter_code": "Ingrese el código de su aplicación de autenticación",
+    "2fa_enable": "Habilitar autenticación de dos factores",
+    "2fa_disable": "Deshabilitar autenticación de dos factores",
+    "2fa_enabled": "Autenticación de dos factores habilitada",
+    "2fa_disabled": "Autenticación de dos factores deshabilitada",
+    "recovery_key": "Clave de recuperación",
+    "session_timeout": "Tiempo de espera de sesión",
+    "extend_on_activity": "Extender con actividad"
+  },
 
   "nav": {
     "home": "Inicio",
@@ -39778,7 +45304,11 @@ var localeFS embed.FS
     "not_found": "No encontrado",
     "bad_request": "Formato de solicitud inválido",
     "validation_failed": "La validación falló: {details}",
-    "rate_limited": "Demasiadas solicitudes, inténtalo más tarde",
+    "unauthorized": "Autenticación requerida",
+    "token_expired": "El token ha expirado",
+    "token_invalid": "Token inválido",
+    "2fa_required": "Autenticación de dos factores requerida",
+    "2fa_invalid": "Código 2FA inválido",
     "forbidden": "Permiso denegado",
     "blocked_by_blocklist": "Acceso denegado",
     "blocked_by_country": "Acceso no disponible en su región",
@@ -39932,15 +45462,24 @@ var localeFS embed.FS
       "csp": "Política de seguridad de contenido",
       "hsts": "HSTS",
       "account_lockout": "Bloqueo de cuenta",
+      "soft_lock_attempts": "Intentos de bloqueo suave",
+      "soft_lock_duration": "Duración del bloqueo suave",
+      "hard_lock_attempts": "Intentos de bloqueo duro",
       "ip_blocking": "Bloqueo de IP",
       "enable_ip_blocking": "Habilitar bloqueo de IP",
       "escalating_durations": "Duraciones de bloqueo escalonadas",
-      "first_block_duration": "Duración del primer bloqueo"
+      "first_block_duration": "Duración del primer bloqueo",
+      "min_password_length": "Longitud mínima de contraseña",
+      "require_uppercase": "Requerir mayúsculas",
+      "require_number": "Requerir número",
+      "require_special": "Requerir carácter especial",
+      "require_mfa": "Requerir MFA",
+      "allowed_mfa_methods": "Métodos MFA permitidos"
     },
 
     "allowlist": {
       "title": "Lista de permitidos (IPs de confianza)",
-      "description": "Las IPs en la lista de permitidos evitan las listas de bloqueo, los límites de velocidad y el bloqueo por país.",
+      "description": "Las IPs en la lista de permitidos evitan las listas de bloqueo, los límites de velocidad y el bloqueo por país. La autenticación SIEMPRE es requerida.",
       "current_entries": "Entradas actuales",
       "add_entry": "Agregar entrada",
       "cidr": "IP/CIDR",
@@ -40162,9 +45701,14 @@ var localeFS embed.FS
     },
 
     "profile": {
-      "notification_email": "Correo de notificaciones:",
+      "account_email": "Correo de la cuenta (notificaciones de seguridad):",
+      "notification_email": "Correo de notificaciones (notificaciones generales):",
+      "use_account_email": "Usar correo de la cuenta para todas las notificaciones",
+      "account_email_used_for": "Usado para: restablecimiento de contraseña, recuperación 2FA, alertas de seguridad",
       "notification_email_used_for": "Usado para: actualizaciones del sistema, estado de respaldo, fallos de tareas",
       "notification_preferences": "Preferencias de notificación",
+      "security_cannot_disable": "Seguridad (no se puede desactivar):",
+      "account_notifications": "Cuenta:",
       "system_notifications": "Sistema:",
       "delivery_email": "Entrega: Correo electrónico",
       "save_preferences": "Guardar preferencias",
@@ -40246,10 +45790,17 @@ var localeFS embed.FS
     "ssl_expiring": "El certificado SSL expira en {count} días",
     "backup_completed": "Respaldo completado",
     "backup_failed": "Respaldo fallido",
+    "login_new_location": "Inicio de sesión desde nueva ubicación",
     "update_available": "Actualización disponible",
     "disk_space_low": "Espacio en disco bajo",
     "task_failed": "Tarea fallida",
     "task_triggered": "Tarea ejecutada manualmente",
+    "admin_logged_in": "Administrador ha iniciado sesión",
+    "admin_logged_out": "Administrador ha cerrado sesión",
+    "password_changed": "Contraseña cambiada",
+    "2fa_enabled": "2FA habilitado",
+    "2fa_disabled": "2FA deshabilitado",
+    "api_token_regenerated": "Token de API regenerado",
     "ssl_renewed": "Certificado SSL renovado",
     "blocklist_updated": "Lista de bloqueo actualizada: {name} ({count} reglas)",
     "blocklist_update_failed": "Error al actualizar lista de bloqueo: {name}",
@@ -40271,19 +45822,72 @@ var localeFS embed.FS
 
   "email": {
     "subjects": {
+      "welcome": "Bienvenido a {app_name}",
+      "admin_welcome": "Bienvenido a {app_name} - Configuración de administrador completada",
+      "password_reset": "Solicitud de restablecimiento de contraseña - {app_name}",
+      "verify_email": "Verifique su correo electrónico - {app_name}",
+      "new_login": "Nuevo inicio de sesión detectado - {app_name}",
       "security_alert": "Alerta de seguridad - {app_name}",
+      "2fa_enabled": "Autenticación de dos factores habilitada - {app_name}",
+      "2fa_disabled": "Autenticación de dos factores deshabilitada - {app_name}",
+      "password_changed": "Su contraseña fue cambiada - {app_name}",
       "backup_completed": "Respaldo completado - {app_name}",
       "backup_failed": "Respaldo fallido - {app_name}",
       "ssl_expiring": "Certificado SSL por expirar - {app_name}",
       "ssl_renewed": "Certificado SSL renovado - {app_name}",
       "task_failed": "Tarea programada fallida - {app_name}",
+      "security_notice": "Aviso de seguridad importante - {app_name}",
+      "security_breach": "[{severity}] Brecha de seguridad detectada - {app_name}",
       "test_email": "Correo de prueba - {app_name}"
     },
     "body": {
+      "welcome_heading": "BIENVENIDO A {APP_NAME}",
+      "admin_setup_heading": "CONFIGURACIÓN DE ADMINISTRADOR COMPLETADA",
+      "password_reset_heading": "SOLICITUD DE RESTABLECIMIENTO DE CONTRASEÑA",
+      "email_verification_heading": "VERIFICACIÓN DE CORREO ELECTRÓNICO",
+      "new_login_heading": "NUEVO INICIO DE SESIÓN DETECTADO",
       "security_alert_heading": "ALERTA DE SEGURIDAD",
+      "2fa_disabled_heading": "2FA DESHABILITADO",
+      "password_changed_heading": "CONTRASEÑA CAMBIADA",
+      "security_notice_heading": "AVISO DE SEGURIDAD IMPORTANTE",
+      "getting_started": "PRIMEROS PASOS",
+      "important_next_steps": "PRÓXIMOS PASOS IMPORTANTES",
+      "did_not_request": "¿NO SOLICITÓ ESTO?",
+      "not_you": "¿NO FUE USTED?",
       "recommended_actions": "ACCIONES RECOMENDADAS",
+      "did_not_do_this": "¿NO HIZO ESTO?",
+      "did_not_change_password": "¿NO CAMBIÓ SU CONTRASEÑA?",
+      "what_happened": "QUÉ SUCEDIÓ",
+      "what_info_involved": "QUÉ INFORMACIÓN ESTUVO INVOLUCRADA",
+      "what_we_are_doing": "QUÉ ESTAMOS HACIENDO",
+      "what_you_should_do": "QUÉ DEBE HACER",
       "contact_information": "INFORMACIÓN DE CONTACTO",
-      "from": "De: {app_name} ({fqdn})"
+      "sent_to": "Este correo fue enviado a: {recipient_email}",
+      "from": "De: {app_name} ({fqdn})",
+      "ignore_if_not_requested": "Si no solicitó esto, ignore este mensaje.",
+      "no_action_required": "No se requiere ninguna acción de su parte.",
+      "password_not_changed": "Su contraseña no será cambiada a menos que haga clic en el enlace anterior.",
+      "link_expires": "Este enlace expira en {expires}.",
+      "change_password_immediately": "Cambie su contraseña inmediatamente:",
+      "review_sessions": "Revise sus sesiones activas:",
+      "enable_2fa": "Habilite 2FA si aún no lo ha hecho:",
+      "re_enable_2fa": "Vuelva a habilitar 2FA:",
+      "contact_support": "Contacte al soporte:",
+      "complete_profile": "Complete su perfil",
+      "enable_2fa_security": "Habilite la autenticación de dos factores para mayor seguridad",
+      "explore_features": "Explore las funciones disponibles",
+      "keep_credentials_secure": "Mantenga sus credenciales de administrador seguras.",
+      "mfa_setup_now": "Configurar ahora",
+      "mfa_dont_remind": "No recordar"
+    },
+    "regulatory": {
+      "gdpr_notice": "Esta notificación se proporciona de acuerdo con el Artículo 34 del RGPD...",
+      "hipaa_notice": "Aviso de HIPAA",
+      "ccpa_notice": "Aviso de CCPA",
+      "lgpd_notice": "Aviso de LGPD",
+      "pipeda_notice": "Aviso de PIPEDA",
+      "appi_notice": "Aviso de APPI",
+      "pdpa_notice": "Aviso de PDPA"
     }
   },
 
@@ -40809,7 +46413,7 @@ func (c *Client) newRequest(method, path string, body io.Reader) (*http.Request,
 # ...
 
 # Agent output in Spanish
-{project_name}-agent --lang es --server https://example.com
+{project_name}-agent --lang es --server https://example.com --token adm_xxx
 
 # Server banner in Spanish
 LANG=es_ES.UTF-8 {project_name}
@@ -41209,7 +46813,7 @@ func TestAccessibility(t *testing.T) {
 ---
 
 
-# PART 31: TOR HIDDEN SERVICE
+# PART 32: TOR HIDDEN SERVICE
 
 ## Overview
 
@@ -41421,9 +47025,9 @@ When `use_network` or `allow_user_preference` is enabled, the torrc includes `So
 
 **See full `getTorConfig()` implementation in the Implementation section below.**
 
-### Admin API (Tor Settings)
+### Admin Panel UI
 
-**`GET /api/{api_version}/server/config/settings` → `tor` section:**
+**Server Settings → Tor → Network Usage:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -41712,7 +47316,7 @@ func startDedicatedTor(ctx context.Context, serverPort int, cfg *TorConfig) (*To
     torrcContent := getTorConfig(cfg)
 
     // Create torrc only if it doesn't exist (persistent)
-    // torrc is preserved across restarts - only admin API can update it
+    // torrc is preserved across restarts - only admin panel can update it
     created, err := ensureTorrc(torrcPath, []byte(torrcContent))
     if err != nil {
         return nil, fmt.Errorf("failed to ensure torrc: %w", err)
@@ -42141,7 +47745,7 @@ func (tm *TorManager) Restart() error {
 }
 
 // UpdateConfig updates the configuration, regenerates torrc, and restarts Tor
-// This is called when admin saves new Tor settings via the admin API
+// This is called when admin saves new Tor settings via the admin panel
 func (tm *TorManager) UpdateConfig(config *TorConfig) error {
     tm.mu.Lock()
     defer tm.mu.Unlock()
@@ -42527,9 +48131,9 @@ func ensureTorFile(path string, content []byte) error {
 | PID file | `{data_dir}/tor/tor.pid` | `0600` | app user | |
 | Log file | `{log_dir}/tor.log` | `0600` | app user | |
 
-## Server API (Tor Configuration)
+## Admin Panel
 
-### /api/{api_version}/server/config/tor
+### /server/{admin_path}/config/tor (WebUI)
 
 **Hidden service is ALWAYS enabled if Tor binary is found.** No enable/disable toggle.
 
@@ -42763,7 +48367,7 @@ func ValidateTorConfig(config *TorConfig) []ValidationError {
 
 ### External Vanity Generation (7+ characters)
 
-For prefixes longer than 6 characters, use external tools with GPU acceleration. The API documentation includes guidance:
+For prefixes longer than 6 characters, use external tools with GPU acceleration. The admin panel includes documentation (expandable help section):
 
 **Using mkp224o (Linux/macOS/BSD):**
 ```bash
@@ -42793,11 +48397,11 @@ make
 **Windows users:**
 - Use WSL (Windows Subsystem for Linux) to run mkp224o
 - Or use pre-built Windows binaries if available from trusted sources
-- Generated keys are portable - generate on any platform, import via CLI or API
+- Generated keys are portable - generate on any platform, import via admin panel
 
 **Importing keys:**
 1. Generate keys using mkp224o or similar tool
-2. Use `POST /api/{api_version}/server/config/tor/import-keys`
+2. In admin panel, click "Import Keys"
 3. Upload `hs_ed25519_secret_key` file (or zip containing both key files)
 4. Confirm to replace current address
 5. Tor restarts with imported keys
@@ -42821,20 +48425,20 @@ make
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/{api_version}/server/config/tor` | GET | Get Tor status, config, and .onion address |
-| `/api/{api_version}/server/config/tor` | PATCH | Update Tor settings (validates before saving) |
-| `/api/{api_version}/server/config/tor/validate` | POST | Validate config without saving |
-| `/api/{api_version}/server/config/tor/regenerate` | POST | Regenerate .onion address |
-| `/api/{api_version}/server/config/tor/restart` | POST | Restart Tor process |
-| `/api/{api_version}/server/config/tor/vanity` | GET | Get vanity generation status |
-| `/api/{api_version}/server/config/tor/vanity` | POST | Start vanity generation |
-| `/api/{api_version}/server/config/tor/vanity` | DELETE | Cancel vanity generation |
-| `/api/{api_version}/server/config/tor/vanity/apply` | POST | Apply vanity address |
-| `/api/{api_version}/server/config/tor/import` | POST | Import external keys |
+| `/api/{api_version}/server/{admin_path}/config/tor` | GET | Get Tor status, config, and .onion address |
+| `/api/{api_version}/server/{admin_path}/config/tor` | PATCH | Update Tor settings (validates before saving) |
+| `/api/{api_version}/server/{admin_path}/config/tor/validate` | POST | Validate config without saving |
+| `/api/{api_version}/server/{admin_path}/config/tor/regenerate` | POST | Regenerate .onion address |
+| `/api/{api_version}/server/{admin_path}/config/tor/restart` | POST | Restart Tor process |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | GET | Get vanity generation status |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | POST | Start vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | DELETE | Cancel vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity/apply` | POST | Apply vanity address |
+| `/api/{api_version}/server/{admin_path}/config/tor/import` | POST | Import external keys |
 
 ### Response Format
 
-**GET `/api/{api_version}/server/config/tor`**
+**GET `/api/{api_version}/server/{admin_path}/config/tor`**
 
 ```json
 {
@@ -42863,7 +48467,7 @@ make
 }
 ```
 
-**POST `/api/{api_version}/server/config/tor/validate`** (or PATCH with invalid config)
+**POST `/api/{api_version}/server/{admin_path}/config/tor/validate`** (or PATCH with invalid config)
 
 ```json
 {
@@ -42881,7 +48485,7 @@ make
 }
 ```
 
-**PATCH `/api/{api_version}/server/config/tor`** (success)
+**PATCH `/api/{api_version}/server/{admin_path}/config/tor`** (success)
 
 ```json
 {
@@ -42961,7 +48565,7 @@ Tor Hidden Service: Connected
 
 
 
-# PART 32: CLIENT & AGENT
+# PART 33: CLIENT & AGENT
 
 ## Overview
 
@@ -43006,34 +48610,91 @@ const projectName = "{project_name}"
 userAgent := fmt.Sprintf("%s-cli/%s", projectName, version)
 ```
 
-## CLI Open API Access
+## API Token Authentication (Multi-User Mode)
 
-**The server is an open API — no authentication required. The CLI connects to the server URL and calls endpoints directly.**
+**If project uses PART 34 (Multi-User) or PART 35 (Organizations), client MUST support `--token` for API authentication.**
 
 | Flag | Description |
 |------|-------------|
-| `--server URL` | Server base URL (required if not in cli.yml) |
+| `--token TOKEN` | API token for authentication |
+| `--token-file FILE` | Read token from file |
 
-**Server sources (priority order):**
-1. `--server` flag (explicit)
-2. Environment variable: `{PROJECT_NAME}_SERVER`
-3. Config file: `cli.yml` → `server: https://...`
-4. Compiled default (if IDEA.md specifies one)
+**Token sources (priority order):**
+1. `--token` flag (explicit)
+2. `--token-file` flag (file path)
+3. Environment variable: `{PROJECT_NAME}_TOKEN`
+4. Config file: `cli.yml` → `token: xxx`
+5. Token file: `{config_dir}/token` (Unix: `~/.config/{project_org}/{internal_name}/token`, Windows: `%APPDATA%\{project_org}\{internal_name}\token`)
+
+**Token format:** See PART 11 "API Token Security" for token format and validation.
+
+```go
+func getToken(flags *Flags) (string, error) {
+    // 1. Explicit flag
+    if flags.Token != "" {
+        return flags.Token, nil
+    }
+    // 2. Token file flag
+    if flags.TokenFile != "" {
+        return readTokenFile(flags.TokenFile)
+    }
+    // 3. Environment variable
+    if token := os.Getenv(strings.ToUpper(projectName) + "_TOKEN"); token != "" {
+        return token, nil
+    }
+    // 4. Config file
+    if cfg.Token != "" {
+        return cfg.Token, nil
+    }
+    // 5. Default token file
+    tokenPath := filepath.Join(configDir, "token")
+    if data, err := os.ReadFile(tokenPath); err == nil {
+        return strings.TrimSpace(string(data)), nil
+    }
+    return "", nil  // No token (anonymous access if allowed)
+}
+```
 
 **Usage:**
 ```bash
+# Explicit token
+{project_name}-cli --token "usr_abc123..." list
+
+# From environment
+export {PROJECT_NAME}_TOKEN="usr_abc123..."
 {project_name}-cli list
-{project_name}-cli --server https://api.example.com list
+
+# Store token (interactive login)
+{project_name}-cli login
+# Saves to {config_dir}/token (see platform-specific paths above)
 ```
 
 ## CLI Config File Permissions
 
-**`cli.yml` contains server connection config. Create with standard permissions:**
+**`cli.yml` and the standalone `token` file both contain a bearer credential. They MUST be created with restrictive permissions and the binary MUST refuse to load them if the perms are too loose:**
 
-| Path | Required perms |
-|------|----------------|
-| `~/.config/{project_org}/{internal_name}/cli.yml` (Unix) | `0644` |
-| `%APPDATA%\{project_org}\{internal_name}\cli.yml` (Windows) | Default ACL |
+| Path | Required perms | Behavior on mismatch |
+|------|----------------|----------------------|
+| `~/.config/{project_org}/{internal_name}/cli.yml` (Unix) | `0600` (`-rw-------`) | If world or group readable → log a warning to stderr and refuse to use the token; user must `chmod 0600` and retry |
+| `~/.config/{project_org}/{internal_name}/token` (Unix) | `0600` | Same |
+| `%APPDATA%\{project_org}\{internal_name}\cli.yml` (Windows) | ACL: only the running user (no `Everyone`, no `Users`) | Same warning + refusal |
+| `%APPDATA%\{project_org}\{internal_name}\token` (Windows) | Same | Same |
+
+**The CLI's `login` command writes new files with the correct perms via `os.WriteFile(..., 0600)` then `os.Chmod(..., 0600)` (defense in depth — Windows ignores the mode bit, ACL inheritance handles it). The check on read uses `os.Stat()` and bails if `info.Mode().Perm() & 0o077 != 0`.**
+
+## CLI Token Revocation Handling
+
+**When a user's API token is revoked server-side (admin clicked "Revoke" on the user's token, or the user logged out from another session), running CLI processes get `401 TOKEN_REVOKED` on their next request. The CLI's response MUST be graceful, not a crash:**
+
+| Scenario | CLI behavior |
+|----------|--------------|
+| Interactive (TUI) session | Show a modal: "Your session has been revoked. Please log in again." Block until user picks "Re-login" (drops to inline `{project_name}-cli login` prompt) or "Quit". Don't kill in-flight UI state — preserve any unsaved drafts in `{config_dir}/draft/`. |
+| Non-interactive (single-shot command, scripted use) | Print to stderr: `error: your API token has been revoked. Run '{project_name}-cli login' to re-authenticate.` Exit with a non-zero code (PART 8 has an exit-code table for `--status` only — for general CLI use, simply exit non-zero so shell pipelines see the failure). |
+| Background watch / streaming (e.g., `{project_name}-cli watch`) | Stop the stream, print the same stderr message, exit with code `4`. Do NOT auto-retry — re-auth must be a deliberate user action to prevent prompt-loops on credentials. |
+
+**On `401 TOKEN_REVOKED`:** the CLI MUST also delete the cached token from `cli.yml` / `token` so the next invocation prompts for fresh credentials instead of replaying the dead token. Same behavior on `401 TOKEN_EXPIRED`.
+
+**No 3-channel propagation like agents:** CLI is short-lived and request-driven, so the simple "next request returns 401, CLI exits gracefully" pattern is sufficient. There's no long-poll/WebSocket channel to push a control message.
 
 ## CLI Cluster Failover
 
@@ -43051,15 +48712,15 @@ The CLI never adds URLs that weren't in the autodiscover response — operators 
 
 ## CLI Auto-Update (Same Pattern as Server Self-Update + Agent)
 
-**The CLI follows the same flow as the server's self-update (PART 22) and the agent's auto-update (PART 32 above): check version via autodiscover, download from the server, verify SHA-256, atomic replace, restart.**
+**The CLI follows the same flow as the server's self-update (PART 23) and the agent's auto-update (PART 33 above): check version via autodiscover, download from the server, verify SHA-256, atomic replace, restart.**
 
 | Step | Action |
 |------|--------|
 | 1. Discover | CLI's `/api/autodiscover` response includes `cli_versions: { "linux-amd64": {"version": "1.2.3", "sha256": "..."}, ... }` and `cli_min_version`. CLI checks on every start (it's short-lived; no separate poll loop needed) and additionally on `{project_name}-cli --update check`. |
 | 2. Decide | If `current_version < cli_versions[os-arch].version`: prompt the user (interactive) OR auto-update silently (when `update.auto: true` AND non-interactive AND `--update yes` was passed earlier). If `current_version < cli_min_version`: refuse to make further requests until updated; print "this CLI is too old; the server requires {min_version} — run '{project_name}-cli --update yes' to upgrade." |
-| 3. Download | Fetch `{base}/cli/binaries/{project_name}-cli-{os}-{arch}` over HTTPS. Save to a tmp path (`/tmp/{project_org}/{project_name}-XXXXXX/cli.update.tmp` per the spec's tmp-dir rules). |
-| 4. Verify SHA-256 | Same `verifyChecksum()` from PART 22 — match against the `sha256` from autodiscover. Mismatch → delete temp, abort with stderr error. |
-| 5. Atomic swap | Same platform-specific `replaceBinary()` from PART 22. The CLI is user-installed (typically `/usr/local/bin/` or `~/bin/`) — if the user lacks write permission to the install path, CLI prints "you do not have permission to update {binary_path}; ask your admin or move the binary to a writable path" and exits cleanly. |
+| 3. Download | Fetch `{base}/cli/binaries/{project_name}-cli-{os}-{arch}` over HTTPS (with bearer token if logged in; without if `--update` is run pre-login). Save to a tmp path (`/tmp/{project_org}/{project_name}-XXXXXX/cli.update.tmp` per the spec's tmp-dir rules). |
+| 4. Verify SHA-256 | Same `verifyChecksum()` from PART 23 — match against the `sha256` from autodiscover. Mismatch → delete temp, abort with stderr error. |
+| 5. Atomic swap | Same platform-specific `replaceBinary()` from PART 23. The CLI is user-installed (typically `/usr/local/bin/` or `~/bin/`) — if the user lacks write permission to the install path, CLI prints "you do not have permission to update {binary_path}; ask your admin or move the binary to a writable path" and exits cleanly. |
 | 6. Re-exec | After successful replace, CLI `exec`s the new binary with the original argv to continue the in-progress command. (Server / agent restart via service manager; CLI just re-execs since it's foreground.) |
 
 **Configuration (`cli.yml`):**
@@ -43093,7 +48754,7 @@ update:
 
 ## User/Org Context (Smart Detection, NON-NEGOTIABLE)
 
-**If project implements multi-user/orgs, client MUST support `--user` flag for user/org context. Server auto-detects type.**
+**If project uses PART 34/35, client MUST support `--user` flag for user/org context. Server auto-detects type.**
 
 ### --user Flag
 
@@ -43549,7 +49210,7 @@ if env.IsAutoDetectDisplayModeGUI() {
 
 | Binary | First Run | Configuration Method |
 |--------|-----------|---------------------|
-| **Server** | Generate default `server.yml` if absent, show status banner | Edit `server.yml` directly |
+| **Server** | Start with defaults, show status banner | WebUI at `/server/{admin_path}` |
 | **CLI** | Setup wizard (GUI/TUI) | Setup wizard (no WebUI for CLI) |
 | **Agent** | Start with connection string, show status banner | Server provides connection string |
 
@@ -43566,10 +49227,16 @@ if env.IsAutoDetectDisplayModeGUI() {
 | **Headless/daemon** | Log to file |
 
 **No built-in TUI/GUI wizard for Server or Agent binaries.** They just run:
-- **Server**: Configured by editing `server.yml` directly; generates a default `server.yml` on first run
-- **Agent**: Configured via connection string provided by the server admin API
+- **Server**: Has web-based setup at `/server/{admin_path}/config/setup` (accessed via browser, see PART 17)
+- **Agent**: Configured via connection string from server admin panel
 
-**Agent connection string example (obtained from server admin API):**
+**Note:** "Setup wizard" has two meanings:
+1. **Server's web-based setup** - HTML pages served by server, accessed in browser at `/server/{admin_path}/config/setup`
+2. **CLI's built-in TUI/GUI wizard** - interactive wizard built into CLI binary itself
+
+Only CLI has a built-in wizard. Server serves web pages for setup.
+
+**Agent connection string example (provided by server admin panel):**
 ```
 {project_name}-agent --connect "https://api.example.com?token=agt_xxx&name=office-pc"
 ```
@@ -44945,11 +50612,12 @@ server:
   primary: ""                      # Server URL (empty = use {official_site} or prompt)
   cluster: []                      # Auto-discovered cluster nodes
   api_version: v1                  # API version prefix (default: v1, must match server)
+  admin_path: admin                # Admin path (default: admin, must match server)
   timeout: 30s                     # Request timeout (match server default)
   retry: 3                         # Retry attempts on failure
   retry_delay: 1s                  # Delay between retries
 
-# Authentication (required for multi-user projects)
+# Authentication (required for multi-user, see PART 34/35)
 auth:
   token: ""                        # API token (usr_xxx, see PART 11)
   token_file: ""                   # Read token from file instead
@@ -45583,7 +51251,7 @@ func GetBinaryName() string {
 
 **Build command (CI/CD injects version from git tag):**
 ```bash
-# VERSION comes from git tag (see PART 25/28 for version handling)
+# VERSION comes from git tag (see PART 26/28 for version handling)
 go build -ldflags "-X main.ProjectName={project_name} -X main.Version=${VERSION}" -o {project_name}-cli ./src/client
 ```
 
@@ -45906,7 +51574,7 @@ func detectInput(args []string) (content string, source string) {
 
 ## Build Integration
 
-**CLI builds follow the same container-only development rules as the server. See PART 25: MAKEFILE for complete targets.**
+**CLI builds follow the same container-only development rules as the server. See PART 26: MAKEFILE for complete targets.**
 
 ### Local Development (Makefile + Docker)
 
@@ -45928,7 +51596,7 @@ make build
 
 ```bash
 # CI/CD runs inside `golang:alpine` (or uses `docker run ... golang:alpine`), NOT `actions/setup-go`
-# See PART 27: CI/CD WORKFLOWS for complete examples
+# See PART 28: CI/CD WORKFLOWS for complete examples
 go build -ldflags "${LDFLAGS}" -o ${PROJECT_NAME}-cli ./src/client
 ```
 
@@ -46664,7 +52332,7 @@ Answer these questions for your specific project:
 
 ### Agent Binary Structure (Same as Server)
 
-**Agent shares the same CLI structure, banner, and modes as the server binary.**
+**Agent shares the same CLI structure, banner, and modes as the server binary (minus setup token).**
 
 | Component | Server | Agent | Notes |
 |-----------|--------|-------|-------|
@@ -46673,6 +52341,7 @@ Answer these questions for your specific project:
 | Debug flag | ✅ | ✅ | Enables verbose logging |
 | Service management | ✅ | ✅ | install/uninstall/start/stop |
 | Self-update | ✅ | ✅ | --update flag |
+| Setup token | ✅ | ❌ | Agent uses server-issued token |
 | WebUI | ✅ | ❌ | Agent is headless |
 
 ### Agent Startup Banner
@@ -46834,12 +52503,14 @@ Shells: bash, zsh, fish, sh, dash, ksh, powershell, pwsh
 {project_name}-agent test
   Testing connection to https://monitor.example.com...
   ✅ Connection successful
+  ✅ Authentication valid
   ✅ Agent registered
 
-# Connect: one-liner (no token required — open API)
-{project_name}-agent --server https://monitor.example.com
+# Connect: one-liner from server panel (preferred)
+{project_name}-agent --server https://monitor.example.com --token adm_agt_abc123def456...
   Connecting to https://monitor.example.com...
   ✅ Connection successful
+  ✅ Token validated
   ✅ Agent registered as "web-server-01"
 
   Config saved to: /etc/projectorg/projectname/agent.yml
@@ -46858,41 +52529,79 @@ Shells: bash, zsh, fish, sh, dash, ksh, powershell, pwsh
 
 ### Agent Setup Process
 
-**Agent setup requires no tokens — the server is an open API:**
+**Agent setup is initiated from the SERVER admin panel, NOT via setup token:**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    AGENT SETUP FLOW                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1. On Target Machine (one command)                         │
-│     └─→ Run: {project_name}-agent --server {url}            │
-│     └─→ Agent connects, registers, saves config             │
-│     └─→ Server logs: "{name} has connected"                 │
+│  1. Generate token (admin/user/org panel)                   │
+│     └─→ Server generates complete command string            │
+│     └─→ Display one-liner with [Copy to Clipboard]          │
 │                                                             │
-│  2. Agent auto-starts and sends data                        │
+│  2. On Target Machine (one command)                            │
+│     └─→ Paste and run the one-liner:                        │
+│         {project_name}-agent --server {url} --token {token}  │
+│     └─→ Agent connects, registers, saves config             │
+│     └─→ Server shows notification: "{name} has connected"   │
+│                                                             │
+│  3. Agent auto-starts and sends data                        │
 │     └─→ Agent installs itself as service (if root)          │
 │     └─→ Begins sending data to server                       │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Server generates the connect command:**
+**Server generates the complete command:**
 ```go
-func GenerateAgentCommand(serverURL string) string {
-    return fmt.Sprintf("%s-agent --server %s", projectName, serverURL)
+func GenerateAgentCommand(serverURL, token string) string {
+    return fmt.Sprintf("%s-agent --server %s --token %s",
+        projectName, serverURL, token)
+}
+```
+
+### Agent Token Format
+
+**Agent tokens are scoped to their owner (admin, user, or org):**
+
+| Scope | Token Prefix | Issued By | Route |
+|-------|--------------|-----------|-------|
+| Admin | `adm_agt_` | Admin panel | `/api/{api_version}/server/{admin_path}/config/agents/*` |
+| User | `usr_agt_` | User settings | `/api/{api_version}/users/agents/*` |
+| Org | `org_agt_` | Org settings | `/api/{api_version}/orgs/{slug}/agents/*` |
+
+```go
+// Agent token generation (server-side) - scoped by owner type
+func GenerateAgentToken(scope AgentScope) string {
+    switch scope {
+    case ScopeAdmin:
+        return "adm_agt_" + generateSecureRandom(32)
+    case ScopeUser:
+        return "usr_agt_" + generateSecureRandom(32)
+    case ScopeOrg:
+        return "org_agt_" + generateSecureRandom(32)
+    }
+    return ""
 }
 ```
 
 ### Agent Registration API
 
-**Single endpoint — no token required:**
+**Same pattern for all scopes (see PART 14 for full API structure):**
 
-**Endpoint:** `POST /api/{api_version}/agents/register`
+**Endpoint:** `POST {base}/register` (where {base} = scope route)
+
+| Scope | Endpoint |
+|-------|----------|
+| Admin | `POST /api/{api_version}/server/{admin_path}/config/agents/register` |
+| User | `POST /api/{api_version}/users/agents/register` |
+| Org | `POST /api/{api_version}/orgs/{slug}/agents/register` |
 
 **Request:**
 ```json
 {
+  "token": "adm_agt_abc123def456ghi789jkl012mno345pqr678",
   "hostname": "web-server-01",
   "os": "linux",
   "arch": "amd64",
@@ -46908,8 +52617,18 @@ func GenerateAgentCommand(serverURL string) string {
   "data": {
     "agent_id": "uuid-here",
     "name": "web-server-01",
+    "scope": "admin",
     "server_time": "2025-01-15T10:00:00Z"
   }
+}
+```
+
+**Response (error):**
+```json
+{
+  "ok": false,
+  "error": "TOKEN_INVALID",
+  "message": "Agent token is invalid or expired"
 }
 ```
 
@@ -46932,6 +52651,7 @@ server:
   primary: ""                      # Server URL (required, set during registration)
   cluster: []                      # Auto-discovered cluster nodes
   api_version: v1                  # API version prefix (default: v1, must match server)
+  admin_path: admin                # Admin path (default: admin, must match server)
   timeout: 30s                     # Request timeout (match server default)
   retry: 3                         # Retry attempts on failure
   retry_delay: 5s                  # Delay between retries
@@ -46988,6 +52708,7 @@ mode: ""                           # production, development (empty = auto-detec
 ```bash
 # Pattern: {PROJECT_NAME}_AGENT_{KEY} or {PROJECT_NAME}_{KEY}
 {PROJECT_NAME}_AGENT_SERVER_PRIMARY="https://example.com"
+{PROJECT_NAME}_AGENT_TOKEN="adm_agt_abc123..."
 {PROJECT_NAME}_AGENT_HOSTNAME="web-server-01"
 {PROJECT_NAME}_AGENT_COLLECTION_INTERVAL=30
 {PROJECT_NAME}_DEBUG=true
@@ -47042,7 +52763,7 @@ mode: ""                           # production, development (empty = auto-detec
 | Logs | `{log_dir}/agent.log` | Server uses `server.log` in same dir |
 | Cache | `{cache_dir}/` | Server |
 
-**Same privilege escalation as server (see PART 23)** - agent requires root/admin for full system access.
+**Same privilege escalation as server (see PART 24)** - agent requires root/admin for full system access.
 
 ### Agent vs Client vs Server
 
@@ -47193,7 +52914,7 @@ The Agent is essentially the Server's "little sibling" - same professional struc
 |--------|--------|-------|
 | **Listens for connections** | ✅ Yes (`--port`, `--address`) | ❌ No |
 | **Connects to parent server** | ❌ No (IS the server) | ✅ Yes (`--server`, `--token`) |
-| **Setup** | ✅ CLI-based (`{project_name} --maintenance setup`) | ❌ No (registers with server via connection string) |
+| **Setup** | ✅ Web-based (token entered at `/server/{admin_path}/config/setup`) | ❌ No (registers with server via connection string) |
 | **Admin operations** | N/A (IS the server) | ❌ No (Client's job) |
 | **WebUI** | ✅ Yes | ❌ No (headless) |
 | **Database** | ✅ `server.db` | ✅ `agent.db` (if needed) |
@@ -47348,15 +53069,5796 @@ binaries/
 └── {project_name}-agent-darwin-arm64
 ```
 
-**See PART 25 (Makefile) for full build details.**
+**See PART 26 (Makefile) for full build details.**
 
 ---
 
-# PART 33: IDEA.md REFERENCE
+# OPTIONAL → REQUIRED FLIP MECHANISM (PARTS 34-36)
+
+**PARTS 34, 35, and 36 are the ONLY parts of TEMPLATE.md / AI.md that may be edited per-project. Everything else is read-only spec.**
+
+PARTS 34-36 ship marked `OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED`. A project that adopts the feature (Multi-user / Organizations / Custom Domains) MUST flip the marker to `REQUIRED - NON-NEGOTIABLE` and MUST do so consistently in both files.
+
+## When to Flip
+
+| Trigger | Flip |
+|---------|------|
+| Project adds end-user accounts (registration, profiles, API tokens) | PART 34 |
+| Project adds team/group ownership of resources (requires PART 34 flipped first) | PART 35 |
+| Project lets users/orgs bring their own domain names | PART 36 |
+
+## How to Flip (TWO files, in this order)
+
+1. **IDEA.md `## Project variables`** — add the corresponding variable, lower_snake_case, value `true`:
+
+       multi_user:     true   # PART 34 flipped
+       organizations:  true   # PART 35 flipped (requires multi_user: true)
+       custom_domains: true   # PART 36 flipped
+
+2. **The per-project AI.md** (the file generated from TEMPLATE.md for THIS project — NOT TEMPLATE.md itself) — change the heading marker:
+
+       # PART 34: MULTI-USER (OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED)
+       →
+       # PART 34: MULTI-USER (REQUIRED - NON-NEGOTIABLE)
+
+   Apply the same substitution to PART 35 and PART 36 if those are also flipped.
+
+## Rules
+
+- TEMPLATE.md (the master) NEVER changes from `OPTIONAL`. Flips happen only in the project's AI.md after generation.
+- Both files (IDEA.md variable AND AI.md heading) MUST agree. A flip recorded in only one place is a bug.
+- Once flipped to REQUIRED, the entire PART becomes mandatory: every requirement, every table, every rule applies in full.
+- Flipping is one-way for the lifetime of the project. Once a project ships multi-user / orgs / custom domains, you cannot un-flip without a data migration.
+
+---
+
+
+
+# PART 34: MULTI-USER (OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED)
+
+
+## Overview
+
+**This PART covers Regular User accounts (end-users). Server Admin accounts are covered in PART 17: ADMIN PANEL.**
+
+**Projects can operate in two modes: admin-only or multi-user.**
+
+| Mode | Use Case | Default |
+|------|----------|---------|
+| **Admin-only** | Simple APIs (jokes, quotes, etc.) - just Server Admin account | YES |
+| **Multi-user** | Apps needing end-user accounts, registration, profiles, API tokens | NO |
+
+**Key Distinction:**
+- **Server Admin** (PART 17): Administrative accounts for managing the app - **always required**
+- **Regular Users** (this PART): End-user accounts for using the app - **optional**
+
+| Aspect | Server Admin (PART 17) | Regular User (this PART) |
+|--------|------------------------|--------------------------|
+| **Purpose** | Manage server, configuration | Use application features |
+| **Storage** | `admins` table | `users` table |
+| **Required** | **YES - all projects** | **NO - optional** |
+| **Access** | `/server/{admin_path}/*` only | `/users/*` routes |
+| **Created by** | Setup wizard, admin invite | Registration, admin invitation |
+
+**See PART 17: ADMIN PANEL for Server Admin authentication, setup wizard, MFA, and admin management.**
+
+## Registration Modes
+
+**Multi-user apps use a SINGLE setting to control registration behavior.**
+
+**Config setting:**
+```yaml
+users:
+  # Enable multi-user mode
+  enabled: true
+
+  registration:
+    # Registration mode: open, invite, admin_only, disabled
+    mode: open   # Default: anyone can self-register
+```
+
+### Registration Mode Definitions
+
+| Mode | Public Self-Registration | Admin Invite | Direct Admin Create | Default | Use Case |
+|------|--------------------------|--------------|---------------------|---------|----------|
+| **open** | ✓ Anyone | Optional | Optional | **YES** | Open community, public service |
+| **invite** | ✗ No | ✓ Required | ✗ No | No | Controlled access, invite-only onboarding |
+| **admin_only** | ✗ No | ✗ No | ✓ Required | No | Enterprise/internal tools where admins provision accounts |
+| **disabled** | ✗ No | ✗ No | ✗ No | No | Closed systems with no new regular-user accounts |
+
+**Note:** Registration mode controls how NEW regular-user accounts are created. It does **not** control login for existing users or user profile visibility.
+
+**External identity note:** OIDC/LDAP-backed regular users count as "new regular-user accounts" when the system creates the first local user record for that external identity. Their first-login account creation MUST respect `auto_register` and the username collision rules in PART 34.
+
+**Admin Permission Reminder (see PART 17):**
+- Admin CANNOT set user passwords (only user can, via invite link or reset)
+- Admin CANNOT view user passwords, 2FA secrets, or private data
+- Admin CAN: issue invite links, create users directly when the mode allows it, send password reset, suspend/unsuspend, disable 2FA
+
+### Mode: open (DEFAULT)
+
+**Anyone can register. This is the default when multi-user is enabled.**
+
+- `/server/auth/register` → Registration form
+- User submits username, email, password
+- Email verification sent (if `require_email_verification: true`)
+- After verification → account immediately active
+- No admin action required
+- Use for: Public services, open communities, SaaS apps
+
+### Mode: invite
+
+**Only admin-issued invite links/codes can create accounts.**
+
+```
+Admin Panel (/server/{admin_path}/config/users)
+┌─────────────────────────────────────────────────────────────────┐
+│  Users                                                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Total Users: 5                                                 │
+│                                                                 │
+│  [+ Invite New User]                                            │
+└─────────────────────────────────────────────────────────────────┘
+
+Admin clicks "Invite New User"
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  Invite New User                                                │
+├─────────────────────────────────────────────────────────────────┤
+│  Username: [                    ]                               │
+│                                                                 │
+│  Invite expires in: [24 hours ▼]                                │
+│                                                                 │
+│  [Cancel]  [Generate Invite]                                    │
+└─────────────────────────────────────────────────────────────────┘
+
+         ↓ (Invite generated)
+
+┌─────────────────────────────────────────────────────────────────┐
+│  ✅ User Invite Created                                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Username: newuser                                              │
+│                                                                 │
+│  Invite URL (share with new user):                              │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ https://app.example.com/server/auth/invite/user/abc123...      │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│  [Copy URL]                                                     │
+│                                                                 │
+│  ⚠️  This link will only work ONCE and expires in 24 hours.     │
+│  The new user will set their own password on first use.         │
+│                                                                 │
+│  [Done]                                                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Invite Flow:**
+1. Admin sets username for new user
+2. System generates one-time invite URL
+3. Admin shares URL with new user (email, chat, etc.)
+4. New user clicks link → sets their own password
+5. Account active after password set
+
+**Invite Rules (same as Server Admin invites):**
+- Single-use (invalidated after first use or expiry)
+- Default expiry: 24 hours (configurable: 1h, 6h, 24h, 48h, 7d)
+- Only Server Admin can generate invites (users cannot invite other users)
+
+**Invite mode behavior:**
+- `/server/auth/register` → 404 (no public registration form)
+- `/server/auth/invite/user/{token}` → Password setup form (if valid token)
+- Only Server Admin can initiate user creation
+- Use for: Internal tools, controlled access, enterprise deployments
+
+### Mode: admin_only
+
+**Only Server Admin can create the account record directly. No invite-only self-service flow exists.**
+
+- `/server/auth/register` → 404 (no public registration form)
+- Server Admin creates the user at `/server/{admin_path}/config/users`
+- System generates a one-time activation/password-setup link for that specific user
+- If SMTP is enabled, send the activation link automatically; otherwise show a copyable link for manual delivery
+- Admin still cannot set the user's password
+- Existing users can still log in
+- Use for: Enterprise provisioning, tightly controlled internal systems
+
+### Mode: disabled
+
+**No new regular-user accounts can be created.**
+
+- `/server/auth/register` → 404 (no public registration form)
+- New `/server/auth/invite/user/{token}` links are not issued
+- Existing unused invite/activation links must be rejected once mode is set to `disabled`
+- Server Admin cannot create new regular-user accounts through the normal UI/API
+- Existing users can still log in
+- Use for: Closed systems where account creation is frozen or intentionally unavailable
+
+### Server Setup to User Registration Workflow
+
+**When multi-user is enabled, registration defaults to `open`. Server is always fully functional.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    SERVER SETUP TO REGISTRATION WORKFLOW                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. FRESH SERVER START                                                   │
+│     └── Server runs with defaults                                        │
+│     └── Multi-user: disabled (no user accounts feature)                  │
+│     └── Status: FULLY FUNCTIONAL ✓                                       │
+│                                                                          │
+│  2. ADMIN COMPLETES SETUP WIZARD (PART 17)                               │
+│     └── Creates Server Admin account                                     │
+│     └── Optionally enables multi-user (Step 5)                           │
+│         └── If enabled: registration defaults to "open"                  │
+│     └── Status: FULLY FUNCTIONAL ✓                                       │
+│                                                                          │
+│  3. ADMIN OPTIONALLY CHANGES REGISTRATION MODE                           │
+│     └── /server/{admin_path}/config/settings → registration mode                       │
+│     └── Mode: open (default) | invite | admin_only | disabled            │
+│     └── Mode controls how NEW regular-user accounts are created          │
+│                                                                          │
+│  4. USER CREATION METHODS                                                │
+│     ┌────────────────────────────────────────────────────────────────────────┐ │
+│     │ Method                │ open │ invite │ admin_only │ disabled │      │ │
+│     ├────────────────────────────────────────────────────────────────────────┤ │
+│     │ /server/auth/register        │  ✓   │   ✗    │     ✗      │    ✗     │      │ │
+│     │ Admin invite→user     │  ✓   │   ✓    │     ✗      │    ✗     │      │ │
+│     │ Admin create→activate │  ✓   │   ✗    │     ✓      │    ✗     │      │ │
+│     └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+│  5. ADMIN-CONTROLLED FLOWS                                               │
+│     └── invite: Admin sets username → generates one-time invite URL      │
+│     └── admin_only: Admin creates account → system generates activation  │
+│        URL/email                                                          │
+│     └── User opens link → sets own password (admin cannot set)           │
+│     └── Account active                                                   │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Points:**
+
+| State | Public Registration | Admin Invite | Direct Admin Create | Server Functional? |
+|-------|--------------------|--------------|---------------------|--------------------|
+| Fresh server (no setup) | N/A | N/A | N/A | **YES** |
+| Multi-user feature disabled | N/A | N/A | N/A | **YES** |
+| Multi-user enabled, mode=open | ✓ Open | ✓ Yes | ✓ Yes | **YES** |
+| Multi-user enabled, mode=invite | ✗ No | ✓ Yes | ✗ No | **YES** |
+| Multi-user enabled, mode=admin_only | ✗ No | ✗ No | ✓ Yes | **YES** |
+| Multi-user enabled, mode=disabled | ✗ No | ✗ No | ✗ No | **YES** |
+
+**All registration modes are VALID operational states, NOT errors.**
+
+**Mode summary:**
+- `open`: Anyone can self-register; admins may also invite or provision directly
+- `invite`: Only admin-issued invite links/codes create accounts
+- `admin_only`: Only direct admin-created accounts are allowed
+- `disabled`: No new regular-user accounts are allowed
+
+## Regular User Behavior
+
+| Route | Regular User Access |
+|-------|---------------------|
+| `/server/{admin_path}/*` | NO - 403 Forbidden (unless user has admin role) |
+| `/users/*` | Full access to own profile, settings, tokens |
+| `/server/auth/login` | Login page |
+| `/server/auth/logout` | Logout |
+| Public routes | Authenticated view (may show user-specific content) |
+
+**Regular User Accounts:**
+- Stored in database (users table)
+- Managed via `/users/{id}`, `/users/settings`
+- Can have roles (admin, user, custom)
+- Multiple accounts supported
+
+## User Account Security
+
+**Regular users have access to the same account security features as Server Admins.**
+
+### Passkeys/WebAuthn
+
+| Feature | Description |
+|---------|-------------|
+| **Registration** | User can register multiple passkeys at `/users/settings/security` |
+| **Login** | Passkey can be used as primary login or as 2FA |
+| **Device-bound** | Each passkey tied to specific device/authenticator |
+| **Naming** | User names each passkey for identification |
+| **Revocation** | User can revoke individual passkeys |
+| **Backup** | Recovery keys provided when first passkey registered |
+
+### TOTP Two-Factor Authentication
+
+| Feature | Description |
+|---------|-------------|
+| **Setup** | QR code + manual entry key at `/users/settings/security` |
+| **Apps supported** | Any TOTP app (Google Authenticator, Authy, 1Password, etc.) |
+| **Backup codes** | 10 one-time recovery codes generated on setup |
+| **Regenerate** | Can regenerate backup codes (invalidates old ones) |
+| **Disable** | Requires current TOTP code or recovery key to disable |
+
+### Account Email vs Notification Email
+
+**Users can configure separate email addresses for security vs general notifications.**
+
+| Email Type | Purpose | Required | Examples |
+|------------|---------|----------|----------|
+| **Account Email** | Security-critical communications | YES | Password reset, 2FA recovery, security alerts, login from new device |
+| **Notification Email** | General notifications (non-security) | NO (defaults to account email) | Activity updates, mentions, newsletter, product updates |
+
+**Rules:**
+- Account email is set during registration (required)
+- Notification email is optional (defaults to account email if not set)
+- Both emails must be verified before use
+- Account email changes require current password + 2FA (if enabled)
+- Notification email changes only require current session
+- **All email features require working SMTP** - if SMTP unavailable, no emails sent
+
+**User Settings Email UI (`/users/settings/email`):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Email Settings                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Account Email (security notifications):                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ user@example.com                      ✓ Verified    │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  [Change Account Email]                                     │
+│  Used for: password reset, 2FA recovery, security alerts    │
+│                                                             │
+│  Notification Email (general notifications):                │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ notifications@example.com             ✓ Verified    │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  [Change] [Remove]                                          │
+│  Used for: activity updates, mentions, newsletters          │
+│  [ ] Use account email for all notifications                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Scoped Notification Preferences
+
+**Users can enable/disable specific notification categories.**
+
+| Category | Default | Description |
+|----------|---------|-------------|
+| **Security Alerts** | ON (locked) | Cannot disable - login from new device, password changed, 2FA changed |
+| **Session Notifications** | ON | Session started from new location |
+| **Activity** | ON | Mentions, replies, follows (if applicable) |
+| **Product Updates** | OFF | New features, announcements |
+| **Newsletter** | OFF | Marketing emails, tips |
+
+**Notification Preferences UI (`/users/settings/notifications`):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Notification Preferences                                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Security (cannot be disabled):                             │
+│  [✓] Security alerts (login, password, 2FA changes)        │
+│                                                             │
+│  Account:                                                   │
+│  [✓] Session notifications                                  │
+│                                                             │
+│  Activity:                                                  │
+│  [✓] Mentions and replies                                   │
+│  [✓] New followers                                          │
+│                                                             │
+│  Marketing:                                                 │
+│  [ ] Product updates and announcements                      │
+│  [ ] Newsletter and tips                                    │
+│                                                             │
+│  Delivery: [Email ▼]  (requires SMTP)                       │
+│                                                             │
+│  [Save Preferences]                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**SMTP Requirement:**
+- All email notifications require working SMTP configuration
+- If SMTP unavailable, in-app notifications only (no email delivery)
+- See PART 18: EMAIL & NOTIFICATIONS for SMTP configuration
+
+### Username Validation
+
+**Username Rules:**
+| Rule | Value |
+|------|-------|
+| Min length | 3 characters |
+| Max length | 32 characters |
+| Allowed chars | `a-z`, `0-9`, `_`, `-` (lowercase only) |
+| Must start with | Letter (`a-z`) |
+| Cannot end with | `_` or `-` |
+| No consecutive | `__`, `--`, `_-`, `-_` |
+
+**Username Blocklist (case-insensitive):**
+
+```go
+var UsernameBlocklist = []string{
+    // System & Administrative
+    "admin", "administrator", "root", "system", "sysadmin", "superuser",
+    "master", "owner", "operator", "manager", "moderator", "mod",
+    "staff", "support", "helpdesk", "help", "service", "daemon",
+
+    // Server & Technical
+    "server", "host", "node", "cluster", "api", "www", "web", "mail",
+    "email", "smtp", "ftp", "ssh", "dns", "proxy", "gateway", "router",
+    "firewall", "localhost", "local", "internal", "external", "public",
+    "private", "network", "database", "db", "cache", "redis", "mysql",
+    "postgres", "mongodb", "elastic", "nginx", "apache", "docker",
+    "healthz", "metrics", "swagger",
+
+    // Application & Service Names
+    "app", "application", "bot", "robot", "crawler", "spider", "scraper",
+    "webhook", "callback", "cron", "scheduler", "worker", "queue", "job",
+    "task", "process", "service", "microservice", "lambda", "function",
+
+    // Authentication & Security
+    "auth", "authentication", "login", "logout", "signin", "signout",
+    "signup", "register", "password", "passwd", "token", "oauth", "sso",
+    "saml", "ldap", "kerberos", "security", "secure", "ssl", "tls",
+    "certificate", "cert", "key", "secret", "credential", "session",
+
+    // Roles & Permissions
+    "guest", "anonymous", "anon", "user", "users", "member", "members",
+    "subscriber", "editor", "author", "contributor", "reviewer", "auditor",
+    "analyst", "developer", "dev", "devops", "engineer", "architect",
+    "designer", "tester", "qa", "billing", "finance", "legal", "hr",
+    "sales", "marketing", "ceo", "cto", "cfo", "coo", "founder", "cofounder",
+
+    // Common Reserved
+    "account", "accounts", "profile", "profiles", "settings", "config",
+    "configuration", "dashboard", "panel", "console", "portal", "home",
+    "index", "main", "default", "null", "nil", "undefined", "void",
+    "true", "false", "test", "testing", "debug", "demo", "example",
+    "sample", "temp", "temporary", "tmp", "backup", "archive", "log",
+    "logs", "audit", "report", "reports", "analytics", "stats", "status",
+    "about", "contact", "privacy", "terms", "docs",
+
+    // API & Endpoints
+    "api", "rest", "graphql", "grpc", "websocket", "ws", "wss", "http",
+    "https", "endpoint", "endpoints", "route", "routes", "path", "url",
+    "uri", "callback", "hook", "hooks", "event", "events", "stream",
+    "autodiscover",
+
+    // Content & Media
+    "blog", "news", "article", "articles", "post", "posts", "page", "pages",
+    "feed", "rss", "atom", "sitemap", "robots", "favicon", "static",
+    "assets", "images", "image", "img", "media", "upload", "uploads",
+    "download", "downloads", "file", "files", "document", "documents",
+
+    // Communication
+    "contact", "message", "messages", "chat", "notification", "notifications",
+    "alert", "alerts", "inbox", "outbox", "sent", "draft", "drafts",
+    "spam", "abuse", "report", "flag", "block", "mute", "ban",
+
+    // Commerce & Billing
+    "shop", "store", "cart", "checkout", "order", "orders", "invoice",
+    "invoices", "payment", "payments", "subscription", "subscriptions",
+    "plan", "plans", "pricing", "billing", "refund", "coupon", "discount",
+
+    // Social Features
+    "follow", "follower", "followers", "following", "friend", "friends",
+    "like", "likes", "share", "shares", "comment", "comments", "reply",
+    "mention", "mentions", "tag", "tags", "group", "groups", "team", "teams",
+    "community", "communities", "forum", "forums", "channel", "channels",
+
+    // Brand & Legal
+    "official", "verified", "trusted", "partner", "affiliate", "sponsor",
+    "brand", "trademark", "copyright", "legal", "terms", "privacy",
+    "policy", "policies", "tos", "eula", "gdpr", "dmca", "abuse",
+
+    // Offensive / Impersonation Prevention
+    "fuck", "shit", "ass", "bitch", "bastard", "damn", "cunt", "dick",
+    "penis", "vagina", "sex", "porn", "xxx", "nude", "naked", "nsfw",
+    "kill", "murder", "death", "die", "suicide", "hate", "nazi", "hitler",
+    "racist", "racism", "terrorist", "terrorism", "isis", "alqaeda",
+
+    // Numbers & Special
+    "0", "1", "123", "1234", "12345", "000", "111", "666", "911", "420", "69",
+
+    // Common Spam Patterns
+    "info", "noreply", "no-reply", "donotreply", "mailer", "postmaster",
+    "webmaster", "hostmaster", "abuse", "spam", "junk", "trash",
+
+    // Project-specific (dynamic)
+    "{project_name}", "{project_org}",
+}
+```
+
+**Blocklist Notes:**
+- Server admin accounts are exempt from this blocklist, including the initial/primary server admin
+- Blocklist is checked case-insensitively
+- Also blocks usernames that contain blocklisted words as substrings for critical terms (admin, root, system, mod, official, verified)
+- The username blocklist MUST cover all reserved public and operational route names that would collide with top-level or server-owned paths
+- Custom blocklist entries can be added via config
+
+### Username & Email Rules
+
+**Case Insensitivity:**
+- Usernames are case-insensitive: `admin` = `Admin` = `aDmIn`
+- Emails are case-insensitive: `me@example.com` = `Me@Example.COM`
+- Stored in lowercase, compared in lowercase
+
+**Login Identifier :**
+
+Users can log in with ANY of these three identifiers:
+
+| Identifier | Format | Example | Detection |
+|------------|--------|---------|-----------|
+| **User ID** | Numeric only | `12345` | All digits |
+| **Username** | Text (no @) | `johndoe` | Letters/numbers, no `@` |
+| **Email** | Contains @ | `john@example.com` | Contains `@` |
+
+**Detection Logic:**
+```go
+func DetectIdentifierType(input string) string {
+    // Numeric only = User ID
+    if regexp.MustCompile(`^\d+$`).MatchString(input) {
+        return "user_id"
+    }
+    // Contains @ = Email
+    if strings.Contains(input, "@") {
+        return "email"
+    }
+    // Otherwise = Username
+    return "username"
+}
+```
+
+**API Request:**
+
+`POST /api/{api_version}/server/auth/login`
+
+Identifier can be: username, user_id, or email.
+
+```json
+{
+  "identifier": "johndoe",
+  "password": "secretpassword"
+}
+```
+
+**All identifiers must be unique across all users.**
+
+**Email Addresses:**
+| SMTP Configured | Max Emails | Verification |
+|-----------------|------------|--------------|
+| No | 1 (primary only) | Not possible |
+| Yes | Unlimited | Additional emails must be verified |
+
+**Email Types:**
+| Type | Purpose | Used For |
+|------|---------|----------|
+| **Account Email** | Security & account recovery | Password reset, 2FA recovery, security alerts, login notifications |
+| **Notification Email** | Non-security communications | Newsletters, updates, marketing, general notifications |
+
+**Email Validation Rules :**
+
+| Rule | Value | Example |
+|------|-------|---------|
+| **Format** | RFC 5322 compliant | `user@example.com` |
+| **Min local part** | 1 character | `a@example.com` ✓ |
+| **Max local part** | 64 characters | Per RFC 5321 |
+| **Max domain** | 255 characters | Per RFC 5321 |
+| **Max total length** | 254 characters | Per RFC 5321 |
+| **Allowed local chars** | `a-z`, `0-9`, `.`, `+`, `_`, `-` | `user.name+tag@example.com` ✓ |
+| **Cannot start/end with** | `.` in local part | `.user@example.com` ✗ |
+| **No consecutive dots** | In local part | `user..name@example.com` ✗ |
+| **Domain validation** | Must have valid TLD | `user@localhost` ✗ |
+| **Case handling** | Case-insensitive, stored lowercase | `User@Example.COM` → `user@example.com` |
+
+**Email Validation Code:**
+```go
+func ValidateEmail(email string) error {
+    email = strings.TrimSpace(strings.ToLower(email))
+
+    // Length checks
+    if len(email) > 254 {
+        return errors.New("email too long (max 254 characters)")
+    }
+
+    parts := strings.Split(email, "@")
+    if len(parts) != 2 {
+        return errors.New("invalid email format")
+    }
+
+    local, domain := parts[0], parts[1]
+
+    // Local part checks
+    if len(local) == 0 || len(local) > 64 {
+        return errors.New("invalid local part length")
+    }
+    if strings.HasPrefix(local, ".") || strings.HasSuffix(local, ".") {
+        return errors.New("local part cannot start or end with dot")
+    }
+    if strings.Contains(local, "..") {
+        return errors.New("local part cannot have consecutive dots")
+    }
+
+    // Domain checks
+    if len(domain) == 0 || len(domain) > 255 {
+        return errors.New("invalid domain length")
+    }
+    if !strings.Contains(domain, ".") {
+        return errors.New("domain must have valid TLD")
+    }
+
+    // Regex for allowed characters
+    localRegex := regexp.MustCompile(`^[a-z0-9.+_-]+$`)
+    if !localRegex.MatchString(local) {
+        return errors.New("invalid characters in local part")
+    }
+
+    domainRegex := regexp.MustCompile(`^[a-z0-9][a-z0-9.-]*[a-z0-9]\.[a-z]{2,}$`)
+    if !domainRegex.MatchString(domain) {
+        return errors.New("invalid domain format")
+    }
+
+    return nil
+}
+```
+
+**Email Blocklist (Optional):**
+```go
+var EmailDomainBlocklist = []string{
+    // Disposable email domains (add as needed)
+    "tempmail.com", "throwaway.email", "guerrillamail.com",
+    "mailinator.com", "10minutemail.com", "trashmail.com",
+}
+```
+
+**Email Behavior Rules:**
+- Primary email set at registration (becomes account email by default)
+- User can designate a different verified email as account email
+- Additional emails require verification (SMTP required)
+- All emails must be unique across all users
+- Unverified emails cannot be used for login
+- Account email receives security-sensitive communications ONLY
+- Notification email receives everything else (if set, otherwise account email)
+
+### Profile Privacy Settings
+
+**Users and organizations can set their profile visibility.**
+
+**Visibility Options:**
+
+| Visibility | Default | Description |
+|------------|---------|-------------|
+| **Public** | ✓ Yes | Profile visible to everyone, appears in search, listings, public pages |
+| **Private** | No | Profile hidden from public, search, listings, other user contexts |
+
+**What Private Means:**
+
+| Context | Public Profile | Private Profile |
+|---------|----------------|-----------------|
+| **Public search** | ✓ Appears | ✗ Hidden |
+| **Public listings** | ✓ Appears | ✗ Hidden |
+| **User directories** | ✓ Appears | ✗ Hidden |
+| **Profile URL** | ✓ Accessible | 404 Not Found |
+| **API queries** | ✓ Returned | ✗ Excluded |
+| **Activity feeds** | ✓ Visible | ✗ Hidden |
+| **Organization members list** (if in org) | Username only | Username only |
+| **Direct mentions/links** | ✓ Works | Redirect to 404 |
+
+**Private Profile Exceptions (always visible to):**
+- The user themselves
+- Server admins (via admin panel, not public routes)
+- Other org members (if user is in same org - username only, minimal info)
+
+**Database Fields:**
+```sql
+-- Users
+visibility TEXT NOT NULL DEFAULT 'public'  -- public, private
+
+-- Organizations
+visibility TEXT NOT NULL DEFAULT 'public'  -- public, private
+```
+
+**API Behavior:**
+```go
+// Public endpoints automatically filter private profiles
+func GetPublicUsers() []User {
+    return db.Where("visibility = ?", "public").Find(&users)
+}
+
+// User's own profile always accessible
+func GetUserProfile(requestingUserID, targetUserID int) (*User, error) {
+    user := db.Find(targetUserID)
+    if user.Visibility == "private" && requestingUserID != targetUserID {
+        return nil, ErrNotFound  // 404, not 403 (don't leak existence)
+    }
+    return user, nil
+}
+```
+
+### Avatar Settings
+
+**Users and organizations can set their avatar using three methods.**
+
+**Avatar Types:**
+
+| Type | Description | Storage |
+|------|-------------|---------|
+| **Gravatar** | Default. Uses email hash to fetch from gravatar.com | No storage needed |
+| **Upload** | User uploads image file | Stored locally or S3 |
+| **URL** | External image URL | URL stored in database |
+
+**Avatar Validation Rules:**
+
+| Rule | Value |
+|------|-------|
+| **Allowed formats** | PNG, JPG, JPEG, GIF, BMP, WEBP, ICO |
+| **Max file size** | 2 MB (upload) |
+| **Min dimensions** | 64x64 pixels |
+| **Max dimensions** | 1024x1024 pixels (resized if larger) |
+| **Aspect ratio** | Square preferred (auto-cropped if not) |
+| **Storage sizes** | Original, 256x256, 128x128, 64x64, 32x32 |
+
+**Security rule:** project-owned static assets may use SVG, but user-uploaded avatars and external avatar URLs MUST NOT use SVG. User-controlled SVG is active browser content; keep avatars raster-only unless the project explicitly sanitizes and rasterizes SVG at ingest, then serves only raster derivatives.
+
+**Avatar Validation Code:**
+```go
+var AllowedImageTypes = map[string]bool{
+    "image/png":     true,
+    "image/jpeg":    true,
+    "image/gif":     true,
+    "image/bmp":     true,
+    "image/webp":    true,
+    "image/x-icon":  true,
+    "image/vnd.microsoft.icon": true,
+}
+
+func ValidateAvatar(file io.Reader, filename string) error {
+    // Read first 512 bytes for MIME detection
+    header := make([]byte, 512)
+    n, err := file.Read(header)
+    if err != nil {
+        return errors.New("cannot read file")
+    }
+
+    // Detect actual MIME type (not from extension)
+    mimeType := http.DetectContentType(header[:n])
+    if !AllowedImageTypes[mimeType] {
+        return fmt.Errorf("invalid image type: %s", mimeType)
+    }
+
+    // For external URLs, fetch and validate
+    return nil
+}
+
+func ValidateAvatarURL(url string) error {
+    // Must be HTTPS
+    if !strings.HasPrefix(url, "https://") {
+        return errors.New("avatar URL must use HTTPS")
+    }
+
+    // Fetch with timeout
+    client := &http.Client{Timeout: 10 * time.Second}
+    resp, err := client.Head(url)
+    if err != nil {
+        return errors.New("cannot reach avatar URL")
+    }
+    defer resp.Body.Close()
+
+    // Check Content-Type
+    contentType := resp.Header.Get("Content-Type")
+    if !AllowedImageTypes[contentType] {
+        return fmt.Errorf("URL does not point to valid image: %s", contentType)
+    }
+
+    // Check Content-Length (max 2MB)
+    if resp.ContentLength > 2*1024*1024 {
+        return errors.New("avatar too large (max 2MB)")
+    }
+
+    return nil
+}
+```
+
+**Gravatar Integration:**
+```go
+import "crypto/md5"
+
+func GetGravatarURL(email string, size int) string {
+    email = strings.TrimSpace(strings.ToLower(email))
+    hash := md5.Sum([]byte(email))
+    return fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=%d&d=identicon", hash, size)
+}
+```
+
+**Avatar API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/{api_version}/users/avatar` | GET | Get current user's avatar URL |
+| `POST /api/{api_version}/users/avatar` | POST | Upload new avatar |
+| `PATCH /api/{api_version}/users/avatar` | PATCH | Update avatar settings (type, URL) |
+| `DELETE /api/{api_version}/users/avatar` | DELETE | Reset to Gravatar |
+| `GET /api/{api_version}/orgs/{slug}/avatar` | GET | Get org's avatar URL |
+| `POST /api/{api_version}/orgs/{slug}/avatar` | POST | Upload org avatar |
+| `PATCH /api/{api_version}/orgs/{slug}/avatar` | PATCH | Update org avatar settings |
+| `DELETE /api/{api_version}/orgs/{slug}/avatar` | DELETE | Reset org to Gravatar |
+
+**Avatar Upload Request:**
+```
+POST /api/{api_version}/users/avatar
+Content-Type: multipart/form-data
+
+file: <binary image data>
+```
+
+**Avatar URL Request:**
+```json
+PATCH /api/{api_version}/users/avatar
+{
+    "type": "url",
+    "url": "https://example.com/my-avatar.png"
+}
+```
+
+**Avatar Response:**
+```json
+{
+    "type": "upload",
+    "urls": {
+        "original": "/uploads/avatars/user_123_original.png",
+        "256": "/uploads/avatars/user_123_256.png",
+        "128": "/uploads/avatars/user_123_128.png",
+        "64": "/uploads/avatars/user_123_64.png",
+        "32": "/uploads/avatars/user_123_32.png"
+    }
+}
+```
+
+### Server Admin Limitations
+
+**What Server Admin CAN do:**
+| Action | Description |
+|--------|-------------|
+| Send password reset link | Triggers email to user's account email |
+| Disable user's 2FA | After manual identity verification (out-of-band) |
+| Disable/suspend account | Block user from logging in |
+| Enable/unsuspend account | Restore access |
+| View masked email | `j***n@e***.com` (for support identification) |
+| View username | For support identification |
+| View account status | Active, suspended, 2FA enabled, etc. |
+| View last login | Timestamp only |
+
+**What Server Admin CANNOT do:**
+| Action | Reason |
+|--------|--------|
+| View full email addresses | Privacy - only masked version visible |
+| View passwords | Passwords are hashed, not stored |
+| Set/change user passwords | Only user can set via reset link |
+| View recovery keys | Keys are hashed, not stored |
+| View 2FA secrets | Secrets are encrypted with user's password |
+| Read user's private data | Privacy by design |
+| Impersonate without logging | All admin actions are audited |
+
+**Admin Password Reset Flow:**
+```
+Admin Panel (/server/{admin_path}/config/moderation/users/{id})
+┌─────────────────────────────────────────────────────────────┐
+│  User: johndoe                                              │
+│  Email: j***n@e***.com (masked)                             │
+│  Status: Active                                             │
+│  2FA: Enabled                                               │
+│  Last Login: 2025-01-15 09:00:00                            │
+├─────────────────────────────────────────────────────────────┤
+│  Actions:                                                   │
+│  [Send Password Reset]  [Disable 2FA]  [Suspend Account]    │
+└─────────────────────────────────────────────────────────────┘
+
+Admin clicks "Send Password Reset"
+         ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Confirm Action                                             │
+├─────────────────────────────────────────────────────────────┤
+│  This will send a password reset link to the user's         │
+│  account email (j***n@e***.com).                            │
+│                                                             │
+│  You will NOT see the reset link or new password.           │
+│                                                             │
+│  Reason (required for audit log):                           │
+│  [User requested via support ticket #1234    ]              │
+│                                                             │
+│  [Cancel]  [Send Reset Link]                                │
+└─────────────────────────────────────────────────────────────┘
+
+         ↓ (email sent to user)
+
+User receives: "Password reset requested by administrator.
+               Click here to set a new password."
+```
+
+**Why These Limitations?**
+- **Zero-knowledge design**: Admin cannot access what they don't need
+- **Privacy by default**: User data is user's data
+- **Audit trail**: All admin actions logged with reason
+- **Trust minimization**: Even compromised admin account has limited damage potential
+
+### Error Messages
+
+**Specific Errors (OK to reveal - validation only):**
+| Scenario | Error Message |
+|----------|---------------|
+| Blocklisted username | `Username contains blocked word: {word}` |
+| Username too short | `Username must be at least 3 characters` |
+| Username too long | `Username cannot exceed 32 characters` |
+| Invalid characters | `Username can only contain lowercase letters, numbers, underscore, and hyphen` |
+| Invalid email format | `Please enter a valid email address` |
+| Password too weak | `Password must be at least 8 characters` |
+
+**Generic Errors (NEVER reveal existence):**
+| Scenario | Error Message |
+|----------|---------------|
+| Username/email taken | `Unable to complete registration. [Forgot credentials?](/server/auth/password/forgot)` |
+| Login failed (any reason) | `Invalid credentials. [Forgot password?](/server/auth/password/forgot)` |
+| Reset request | `If an account exists, instructions have been sent.` |
+
+**Why Generic Errors?**
+- Prevents username/email enumeration attacks
+- Attacker cannot determine if account exists
+- Same response time for both cases (prevent timing attacks)
+- Links to recovery flow instead of revealing information
+
+### 2FA, Passkeys & OIDC
+
+**Supported Authentication Methods:**
+| Method | Description |
+|--------|-------------|
+| Password | Standard username/email + password |
+| TOTP (2FA) | Time-based one-time passwords (Google Authenticator, Authy, etc.) |
+| Passkeys | WebAuthn/FIDO2 passwordless authentication |
+| OIDC | External identity providers |
+
+**OIDC Providers (Examples):**
+- Self-hosted: Authentik, Authelia, Keycloak, Dex, Zitadel
+- Cloud: Auth0, Okta, Azure AD, Google, GitHub, GitLab
+
+**Recovery Keys (CRITICAL):**
+| Rule | Description |
+|------|-------------|
+| **Format** | `{8-hex-chars}-{4-hex-chars}` (e.g., `a1b2c3d4-e5f6`) |
+| **Count** | 10 recovery keys generated |
+| **Generated once** | Recovery keys generated when 2FA/passkey enabled |
+| **User must copy** | Displayed ONCE, user MUST save them |
+| **Hashed storage** | Keys are hashed (SHA-256), NOT stored in plain text |
+| **NOT recoverable** | If lost, cannot be retrieved - account recovery required |
+| **Single use** | Each recovery key can only be used once |
+| **Case insensitive** | Keys are validated case-insensitively |
+
+**Recovery Key Flow:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🔑 SAVE YOUR RECOVERY KEYS                                 │
+├─────────────────────────────────────────────────────────────┤
+│  These keys can be used to access your account if you       │
+│  lose access to your 2FA device. Each key can only be       │
+│  used once.                                                 │
+│                                                             │
+│  ⚠️  SAVE THESE NOW - THEY WILL NOT BE SHOWN AGAIN          │
+│                                                             │
+│  1. a1b2c3d4-e5f6    6. k5l6m7n8-o9p0                       │
+│  2. g7h8i9j0-k1l2    7. q1r2s3t4-u5v6                       │
+│  3. m3n4o5p6-q7r8    8. w7x8y9z0-a1b2                       │
+│  4. s9t0u1v2-w3x4    9. c3d4e5f6-g7h8                       │
+│  5. y5z6a7b8-c9d0   10. i9j0k1l2-m3n4                       │
+│                                                             │
+│  [Download as TXT]  [Copy All]                              │
+│                                                             │
+│  ☑️ I have saved my recovery keys                            │
+│                                                             │
+│  [Continue]                                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Admin Panel MFA Setup (`/server/{admin_path}/account/security`):**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🔐 Account Security                                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Two-Factor Authentication                                  │
+│  ─────────────────────────────────────────────────────────  │
+│  Add an extra layer of security to your admin account.      │
+│                                                             │
+│  TOTP (Authenticator App)              [Not Enabled]        │
+│  Use Google Authenticator, Authy,      [Set Up →]           │
+│  or any TOTP-compatible app                                 │
+│                                                             │
+│  Passkey (Biometric/Security Key)      [Not Enabled]        │
+│  Use fingerprint, Face ID, or a        [Set Up →]           │
+│  hardware security key                                      │
+│                                                             │
+│  Recovery Keys                         [Not Generated]      │
+│  Generated when you enable MFA         [──────────]         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**TOTP Setup Flow (`/server/{admin_path}/account/security/totp/setup`):**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📱 Set Up Authenticator App                                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Step 1: Confirm your password                              │
+│  Password: [••••••••••••            ]  [Continue]           │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Step 2: Scan QR code with your authenticator app           │
+│                                                             │
+│         ┌─────────────────┐                                 │
+│         │  █▀▀▀▀▀▀▀▀▀█   │                                 │
+│         │  █ QR CODE █   │   Can't scan?                   │
+│         │  █▄▄▄▄▄▄▄▄▄█   │   Manual key: JBSWY3DPEHPK3PXP  │
+│         └─────────────────┘   [Copy Key]                    │
+│                                                             │
+│  Step 3: Enter the 6-digit code from your app               │
+│  Verification Code: [      ]  [Verify]                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Passkey Setup Flow (`/server/{admin_path}/account/security/passkey/setup`):**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🔑 Set Up Passkey                                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Step 1: Confirm your password                              │
+│  Password: [••••••••••••            ]  [Continue]           │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Step 2: Register your passkey                              │
+│                                                             │
+│  Your browser will prompt you to use:                       │
+│  • Fingerprint (Touch ID)                                   │
+│  • Face recognition (Face ID)                               │
+│  • Hardware security key (YubiKey, etc.)                    │
+│  • Device PIN                                               │
+│                                                             │
+│  Passkey Name: [MacBook Pro Touch ID    ]                   │
+│                                                             │
+│  [Register Passkey]                                         │
+│                                                             │
+│  ℹ️  You can register multiple passkeys for backup          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**After MFA Enabled - Recovery Keys Shown:**
+(See Recovery Key Flow above)
+
+**2FA/Passkey Setup Requirements:**
+1. User/admin must be logged in
+2. User/admin must re-enter password to confirm identity
+3. For TOTP: scan QR code and verify with 6-digit code
+4. For Passkey: complete WebAuthn registration flow
+5. Recovery keys generated and displayed (MUST save)
+6. User/admin must confirm they saved recovery keys (checkbox)
+7. Only then is 2FA/passkey activated
+
+### Account Recovery Matrix
+
+**What CAN be recovered:**
+| User Knows | User Forgot | Recovery Method |
+|------------|-------------|-----------------|
+| Email | Password | `/server/auth/password/forgot` → email link → set new password |
+| Username | Password | `/server/auth/password/forgot` → email link → set new password |
+| Email + Password | 2FA code | `/server/auth/login` → `/server/auth/recovery/use` → disable/reset 2FA |
+| Username + Password | 2FA code | `/server/auth/login` → `/server/auth/recovery/use` → disable/reset 2FA |
+
+**What CANNOT be recovered:**
+| Scenario | Result |
+|----------|--------|
+| Forgot username AND email | ❌ No recovery - account lost |
+| Forgot password + no email access | ❌ No recovery - account lost |
+| Lost 2FA + no recovery keys | ❌ Contact admin (manual identity verification) |
+| Lost everything | ❌ No recovery - account lost |
+
+**Why no recovery without username/email?**
+- We cannot store data that identifies users without credentials
+- This is a security feature, not a limitation
+- Users MUST remember at least one identifier (username or email)
+
+### Server Admin Recovery
+
+The Server Admin (administrator with access to the server/binary) has ONE recovery method:
+
+| Scenario | Recovery Method |
+|----------|-----------------|
+| Admin forgot password | `{project_name} --maintenance setup` |
+| Admin lost API token | `{project_name} --maintenance setup` |
+| Admin lost recovery keys | `{project_name} --maintenance setup` |
+| Admin lost 2FA + no recovery keys | `{project_name} --maintenance setup` |
+| Admin lost everything | `{project_name} --maintenance setup` |
+
+**This requires:**
+- Console/SSH access to the server to run the binary
+- Console access to see the new setup token
+- The service should be stopped first
+
+**This does NOT require:**
+- Previous password
+- Previous API token
+- Previous recovery keys
+- Email access
+
+See **PART 22: BACKUP & RESTORE → Admin Recovery Command** for full details.
+
+### Recovery Key Usage Flow
+
+**When Recovery Keys Are Used:**
+- User has 2FA/passkey enabled
+- User lost access to 2FA device (phone lost, authenticator wiped, etc.)
+- User still knows username/email AND password
+
+**Flow:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  /server/auth/login                                                │
+├─────────────────────────────────────────────────────────────┤
+│  Username/Email: [john@example.com        ]                 │
+│  Password:       [••••••••••••            ]                 │
+│                                                             │
+│  [Login]                                                    │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                    (2FA is enabled)
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Two-Factor Authentication                                  │
+├─────────────────────────────────────────────────────────────┤
+│  Enter the 6-digit code from your authenticator app:        │
+│                                                             │
+│  [      ]                                                   │
+│                                                             │
+│  [Verify]                                                   │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  Lost access to your authenticator?                         │
+│  [Use Recovery Key]                                         │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                (User clicks "Use Recovery Key")
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Use Recovery Key                                           │
+├─────────────────────────────────────────────────────────────┤
+│  Enter one of your recovery keys:                           │
+│                                                             │
+│  [a1b2c3d4-e5f6                          ]                  │
+│                                                             │
+│  ⚠️  This key will be invalidated after use.                 │
+│                                                             │
+│  [Submit]                                                   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                (Valid recovery key entered)
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Recovery Key Accepted                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✅ Recovery key accepted and invalidated.                   │
+│  You have X recovery keys remaining.                        │
+│                                                             │
+│  What would you like to do?                                 │
+│                                                             │
+│  ○ Disable 2FA temporarily (login with password only)       │
+│  ○ Set up new 2FA device now                                │
+│                                                             │
+│  [Continue]                                                 │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+        (If "Set up new 2FA" → new recovery keys generated)
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  🔑 NEW RECOVERY KEYS                                        │
+├─────────────────────────────────────────────────────────────┤
+│  Your old recovery keys have been invalidated.              │
+│  Save these new recovery keys:                              │
+│                                                             │
+│  1. x1y2z3a4-b5c6    6. p5q6r7s8-t9u0                       │
+│  2. d7e8f9g0-h1i2    7. v1w2x3y4-z5a6                       │
+│  3. j3k4l5m6-n7o8    8. b7c8d9e0-f1g2                       │
+│  4. q9r0s1t2-u3v4    9. h3i4j5k6-l7m8                       │
+│  5. w5x6y7z8-a9b0   10. n9o0p1q2-r3s4                       │
+│                                                             │
+│  [Download as TXT]  [Copy All]                              │
+│                                                             │
+│  ☑️ I have saved my recovery keys                            │
+│                                                             │
+│  [Complete Setup]                                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Recovery Key API Flow:**
+```
+POST /api/{api_version}/server/auth/login
+  → { "identifier": "john@example.com", "password": "secretpassword" }
+  ← { "ok": true, "data": { "requires_2fa": true, "session_token": "temp_xxx" } }
+
+POST /api/{api_version}/server/auth/recovery/use
+  → { "session_token": "temp_xxx", "recovery_key": "a1b2c3d4-e5f6" }
+  ← { "ok": true, "data": { "token": "auth_xxx", "remaining_keys": 9 } }
+
+# Now authenticated - can manage 2FA via /users/security/
+POST /api/{api_version}/users/security/2fa/disable
+  ← { "ok": true, "data": {} }
+     OR (setup new device)
+POST /api/{api_version}/users/security/2fa/enable
+  ← { "ok": true, "data": { "qr_code": "base64", "secret": "JBSWY3DPEHPK3PXP", "recovery_keys": [] } }
+```
+
+**Recovery Key Rules:**
+| Rule | Description |
+|------|-------------|
+| Single use | Each key invalidated after one use |
+| Hashed storage | Keys stored as hashes, cannot be retrieved |
+| Regeneration | New 2FA setup = new recovery keys |
+| Old keys invalidated | All old keys invalidated when new keys generated |
+| Remaining count | Show user how many keys remain |
+| Last key warning | ⚠️ Warning when only 1-2 keys remaining |
+| Zero keys + lost 2FA | Must contact admin for manual verification |
+
+**OIDC/LDAP Configuration:**
+```yaml
+server:
+  auth:
+    oidc:
+      enabled: false
+      providers:
+        - name: authentik
+          display_name: "Login with Authentik"
+          issuer: "https://auth.example.com/application/o/myapp/"
+          client_id: "{client_id}"
+          client_secret: "{client_secret}"
+          scopes: ["openid", "profile", "email", "groups"]
+          # Auto-create regular user on first login (ONLY if multi-user is enabled)
+          auto_register: true
+          # Map OIDC claims to user fields
+          claims_mapping:
+            username: "preferred_username"
+            email: "email"
+            name: "name"
+            # Claim containing group memberships
+            groups: "groups"
+          # Username confirmation behavior for new external accounts
+          username_resolution:
+            mode: prompt_on_first_login   # prompt_on_first_login | prompt_if_conflict | reject_if_conflict
+            allow_custom_on_first_login: true
+          # Map external groups to Server Admin role
+          # Users in these groups become Server Admins
+          admin_groups:
+            - "admins"
+            - "administrators"
+            - "server-admins"
+            - "app-administrators"
+            - "platform-admins"
+            - "infra-admins"
+            - "ops-admins"
+          # Map external groups to user roles (if multi-user enabled)
+          role_mapping:
+            admin: ["admins", "administrators", "app-admins", "app-administrators", "platform-admins"]
+            moderator: ["moderators", "support", "support-staff", "helpdesk", "reviewers"]
+            user: ["users", "user", "members", "member", "employees", "staff", "developers", "engineering"]
+
+      ldap:
+        enabled: false
+        providers:
+          - name: corp
+            display_name: "Corporate LDAP"
+            server: "ldap://ldap.example.com:389"
+            bind_dn: "cn=readonly,dc=example,dc=com"
+            bind_password: "{ldap_password}"
+            base_dn: "dc=example,dc=com"
+            user_filter: "(uid={username})"
+            # Auto-create regular user on first login (ONLY if multi-user is enabled)
+            auto_register: true
+            # Map LDAP attributes to user fields
+            attributes:
+              username: "uid"
+              email: "mail"
+              name: "cn"
+              groups: "memberOf"
+            username_resolution:
+              mode: prompt_on_first_login   # prompt_on_first_login | prompt_if_conflict | reject_if_conflict
+              allow_custom_on_first_login: true
+            # Map LDAP groups to Server Admin role
+            admin_groups:
+              - "cn=admins,ou=groups,dc=example,dc=com"
+              - "cn=administrators,ou=groups,dc=example,dc=com"
+              - "cn=server-admins,ou=groups,dc=example,dc=com"
+              - "cn=app-administrators,ou=groups,dc=example,dc=com"
+              - "cn=platform-admins,ou=groups,dc=example,dc=com"
+              - "cn=infra-admins,ou=groups,dc=example,dc=com"
+            # Map LDAP groups to user roles (if multi-user enabled)
+            role_mapping:
+              admin:
+                - "cn=admins,ou=groups,dc=example,dc=com"
+                - "cn=administrators,ou=groups,dc=example,dc=com"
+                - "cn=app-admins,ou=groups,dc=example,dc=com"
+                - "cn=app-administrators,ou=groups,dc=example,dc=com"
+              moderator:
+                - "cn=moderators,ou=groups,dc=example,dc=com"
+                - "cn=support,ou=groups,dc=example,dc=com"
+                - "cn=support-staff,ou=groups,dc=example,dc=com"
+                - "cn=helpdesk,ou=groups,dc=example,dc=com"
+              user:
+                - "cn=users,ou=groups,dc=example,dc=com"
+                - "cn=members,ou=groups,dc=example,dc=com"
+                - "cn=employees,ou=groups,dc=example,dc=com"
+                - "cn=staff,ou=groups,dc=example,dc=com"
+                - "cn=developers,ou=groups,dc=example,dc=com"
+                - "cn=engineering,ou=groups,dc=example,dc=com"
+```
+
+### OIDC Provider Expectations & Common Providers
+
+**OIDC support applies to BOTH regular users and Server Admins.** The difference is role mapping:
+- regular users: created/synced via `auto_register`, `claims_mapping`, and `role_mapping`
+- server admins: granted by `admin_groups`
+
+### External Identity Provider Requirements
+
+- External identity support for Server Admins MUST include BOTH OIDC and LDAP
+- OIDC and LDAP MUST each support multiple named providers
+- All OIDC and LDAP providers MUST be manageable from the Admin WebUI under `/server/{admin_path}/config/security/auth/*`
+- If `server.users.enabled: true`, the same provider definitions MUST also apply the regular-user auth rules (`auto_register`, username resolution, and `role_mapping`)
+- If `server.users.enabled: false`, those same providers remain valid for Server Admin auth only
+- Provider identity is part of the stored source value: `oidc:{provider}` or `ldap:{provider}`
+
+**Why regular-user OIDC/LDAP support matters:** organizations that already run OIDC/LDAP expect the app to plug into their existing identity infrastructure instead of forcing a second local account system. When multi-user mode is enabled, the project MUST support regular-user OIDC/LDAP login so the app fits into the operator's existing SSO/directory environment.
+
+**Common OIDC providers to support cleanly:**
+
+| Provider Type | Typical Username Claim | Typical Email Claim | Typical Groups / Roles Source | Notes |
+|--------------|------------------------|---------------------|-------------------------------|-------|
+| **Google** | `email` or hosted-domain-safe localpart derived from email | `email` | Usually none by default | Consumer Google usually has no groups claim; do NOT invent admin mapping |
+| **GitHub** | `preferred_username` if provided by broker, else `login`-style mapped username | `email` (may be absent/private) | Usually none unless brokered | Direct GitHub OIDC often lacks stable groups; use only through a broker if group-based admin is required |
+| **Keybase / brokered social identity** | Provider-specific; usually broker-mapped to `preferred_username` or another explicit claim | Provider/broker-specific | Usually none unless brokered | Treat as generic OIDC through the broker. Do NOT hardcode claim names without explicit mapping |
+| **Keycloak** | `preferred_username` | `email` | `groups` or realm/client roles | Supports both groups and roles; document exact claim used |
+| **Authentik** | `preferred_username` | `email` | `groups` | Common self-hosted default |
+| **Okta / Auth0 / Azure AD / Zitadel / Dex / generic enterprise broker** | `preferred_username`, `upn`, or email-derived fallback | `email` or `mail` | `groups`, `roles`, or provider-specific claim | Must be explicitly mapped in config |
+
+**OIDC provider rules:**
+- The project MUST NOT assume every provider exposes the same claims
+- `claims_mapping` is REQUIRED whenever the provider does not cleanly expose `preferred_username`, `email`, `name`, and `groups`
+- If group-based admin access is needed, the exact claim carrying group/role membership MUST be documented in config
+- Providers without a trustworthy username claim MUST derive an initial candidate username from email localpart or another documented stable field, then run normal collision checks
+- If a provider does not expose email, the project MUST document whether email is optional, separately collected, or that provider is unsupported
+
+### Starter Group Mapping Presets
+
+**The setup UI SHOULD offer starter presets for OIDC and LDAP group mapping so a typical enterprise/provider setup works with minimal manual editing.**
+
+**Security rule:** these are starter presets, not an excuse to auto-grant broad admin access blindly. Operators MUST still be able to review and trim the mapped groups before saving.
+
+| Mapping Type | Typical OIDC Group Names | Typical LDAP Group DNs / Names |
+|--------------|--------------------------|--------------------------------|
+| **Server Admin** | `admins`, `administrators`, `server-admins`, `app-administrators`, `platform-admins`, `infra-admins`, `ops-admins` | `cn=admins,...`, `cn=administrators,...`, `cn=server-admins,...`, `cn=app-administrators,...`, `cn=platform-admins,...`, `cn=infra-admins,...` |
+| **App Admin Role** | `admins`, `administrators`, `app-admins`, `app-administrators`, `platform-admins` | `cn=admins,...`, `cn=administrators,...`, `cn=app-admins,...`, `cn=app-administrators,...` |
+| **Moderator Role** | `moderators`, `support`, `support-staff`, `helpdesk`, `reviewers` | `cn=moderators,...`, `cn=support,...`, `cn=support-staff,...`, `cn=helpdesk,...`, `cn=reviewers,...` |
+| **User Role** | `users`, `user`, `members`, `member`, `employees`, `staff`, `developers`, `engineering` | `cn=users,...`, `cn=members,...`, `cn=employees,...`, `cn=staff,...`, `cn=developers,...`, `cn=engineering,...` |
+
+**Preset rules:**
+- For OIDC, these names are matched exactly against the configured group/role claim
+- For LDAP, these should be emitted as full DN examples in config, but the setup UI may allow shorthand entry and expand to the configured group base DN
+- Providers that emit roles instead of groups MUST allow the operator to point `claims_mapping.groups` at that roles claim
+- The starter preset is a convenience baseline; custom mappings remain fully supported and canonical
+
+### Common LDAP Mapping Presets
+
+**LDAP MUST support custom mappings, but the template should define the usual defaults clearly.**
+
+| Directory Type | User Filter | Username Attr | Email Attr | Display Name Attr | Groups Attr | Admin Groups Format |
+|----------------|------------|---------------|------------|-------------------|-------------|---------------------|
+| **OpenLDAP** | `(uid={username})` | `uid` | `mail` | `cn` | `memberOf` | Full group DN |
+| **Active Directory** | `(&(objectClass=user)(sAMAccountName={username}))` | `sAMAccountName` | `mail` | `displayName` | `memberOf` | Full group DN |
+| **FreeIPA / 389 DS style** | `(&(objectClass=person)(uid={username}))` | `uid` | `mail` | `cn` | `memberOf` | Full group DN |
+| **Generic POSIX LDAP** | `(uid={username})` | `uid` | `mail` | `cn` | `memberOf` or `isMemberOf` | Full group DN |
+
+**LDAP rules:**
+- The project MUST support overriding every LDAP attribute/filter mapping
+- `admin_groups` MUST use the exact identifier format returned by the configured directory lookup
+- If nested groups are needed (common in AD), the project MUST document whether it resolves nested membership or only direct membership
+- If the LDAP directory does not expose `memberOf`, the project MUST support a documented alternate membership lookup or explicitly state that the provider is unsupported
+
+### OIDC/LDAP Username Resolution for Regular Users
+
+**Regular-user OIDC/LDAP login MUST support a first-login username confirmation step for every new external account, not only conflict cases.**
+
+| Scenario | Required Behavior |
+|----------|-------------------|
+| Provider returns valid unique username claim | Prefill the form with it; user may keep it or edit it before account creation |
+| Username claim missing | Derive a candidate from mapped email/localpart or another documented stable claim, then prefill the form |
+| Candidate starts with `@` | Strip the leading `@` before prefilling |
+| Candidate is an email address | Use the localpart before `@` as the initial prefill |
+| Candidate is reserved | Suggest the same base plus random numeric digits that do not clash, then let the user edit it |
+| Candidate collides with existing user | Suggest the same base plus random numeric digits that do not clash, then let the user edit it |
+| Candidate collides with existing org slug | Suggest the same base plus random numeric digits that do not clash, then let the user edit it |
+| Custom username is invalid/reserved/taken | Show validation error and require another choice or another generated suggestion |
+| `auto_register: false` | Do NOT create account automatically; require pre-created local account linked by `external_id` or explicit admin provisioning |
+
+**First-login rule for regular users:**
+- If external authentication is creating a new local user record, complete external authentication first, store the identity in a short-lived pre-auth session, then send the user to `/server/auth/external/username`
+- The form MUST be prefilled with a normalized candidate derived from the mapped username claim first, then email localpart or another documented stable claim if needed
+- Normalization MUST strip a leading `@`; if the candidate is an email address, use only the localpart before `@`
+- If the normalized candidate is blocked or collides, the server MUST generate an available suggestion by appending random numeric digits, but MUST still show the final suggestion to the user before account creation
+- The username-selection step MUST use the same global namespace validation as local registration (`reserved` + existing user + existing org collision)
+- The chosen username is written once when the local account is created; after that, OIDC/LDAP login matches by `external_id`, not by re-deriving username every time
+- The project MUST NOT silently append random digits or mutate usernames without showing the user the final result first
+
+### OIDC/LDAP Username Resolution for Server Admins
+
+**OIDC/LDAP-backed Server Admins MUST support the same first-login username confirmation step for every new external admin account, not only conflict cases.**
+
+| Scenario | Required Behavior |
+|----------|-------------------|
+| Provider returns valid unique admin username | Prefill the form with it; admin may keep it or edit it before account creation |
+| Username claim missing | Derive a candidate from mapped email/localpart or another documented stable claim, then prefill the form |
+| Candidate starts with `@` | Strip the leading `@` before prefilling |
+| Candidate is an email address | Use the localpart before `@` as the initial prefill |
+| Candidate collides with existing Server Admin username | Suggest the same base plus random numeric digits that do not clash, then let the admin edit it |
+| Candidate collides with reserved admin-route child (for example `config`) | Suggest the same base plus random numeric digits that do not clash, then let the admin edit it |
+| Candidate fails admin username validation | Show validation error and require another choice or another generated suggestion |
+
+**First-login rule for Server Admins:**
+- If external authentication is creating a new local admin record, complete external authentication first, store the identity in a short-lived pre-auth session, then send the admin to `/server/auth/external/username`
+- The form MUST be prefilled with a normalized candidate derived from the mapped username claim first, then email localpart or another documented stable claim if needed
+- Normalization MUST strip a leading `@`; if the candidate is an email address, use only the localpart before `@`
+- If the normalized candidate is blocked or collides, the server MUST generate an available suggestion by appending random numeric digits, but MUST still show the final suggestion to the admin before account creation
+- The username-selection step MUST validate:
+  - no collision with existing admin usernames
+  - no collision with reserved admin-root children such as `config`
+  - the normal syntax/length rules for admin usernames
+- Server Admin usernames remain exempt from the public username blocklist, but they are NOT exempt from route-collision checks
+- The chosen username is written once when the local admin record is created; after that, OIDC/LDAP admin login matches by `external_id`, not by re-deriving username every time
+
+### Local Sync Rules for Regular Users
+
+| Field | Description |
+|-------|-------------|
+| `username` | Final local username (claim-derived or user-chosen on first login) |
+| `password` | Local Argon2id hash. Use a real fallback password hash when local fallback login is supported; otherwise store an unusable random secret so password login stays disabled for that external-only account |
+| `source` | `local`, `oidc:{provider}`, `ldap:{provider}` |
+| `external_id` | Stable provider subject / LDAP unique ID |
+| `groups` | Cached external groups/roles from last successful login |
+| `last_sync` | Last successful OIDC/LDAP sync timestamp |
+
+**Matching rule:** for OIDC/LDAP-backed regular users, the stable identity key is `external_id` + provider source, NOT mutable username/email.
+
+### Server Admin Group Mapping
+
+**Server Admins can map external identity provider groups to the Server Admin role.**
+
+| Provider | Configuration | Description |
+|----------|---------------|-------------|
+| **OIDC** | `admin_groups` list | Group names from the `groups` claim |
+| **LDAP** | `admin_groups` list | Full DN of groups (e.g., `cn=admins,ou=groups,dc=example,dc=com`) |
+
+**How Group Mapping Works:**
+
+1. User authenticates via OIDC/LDAP
+2. Server retrieves user's group memberships from identity provider
+3. If user belongs to ANY group in `admin_groups` → grant Server Admin access
+4. Admin access persists for session duration
+5. On next login, group membership is re-evaluated
+6. If user is removed from all `admin_groups` → admin access revoked
+
+**Admin auth scope rule:**
+- OIDC and LDAP can authenticate regular users and Server Admins through the same `/server/auth/*` surface
+- Server Admin access is NEVER inferred from normal user role mapping alone
+- Server Admin access requires `admin_groups` match (or an explicitly provisioned local admin account)
+
+**Admin Panel (`/server/{admin_path}/config/security/auth`):**
+
+| Route | Purpose |
+|-------|---------|
+| `/server/{admin_path}/config/security/auth` | Authentication overview, shared auth settings, and provider summaries |
+| `/server/{admin_path}/config/security/auth/oidc` | List/manage OIDC providers |
+| `/server/{admin_path}/config/security/auth/oidc/new` | Add OIDC provider |
+| `/server/{admin_path}/config/security/auth/oidc/{provider}` | Edit, test, enable/disable, or remove one OIDC provider |
+| `/server/{admin_path}/config/security/auth/ldap` | List/manage LDAP providers |
+| `/server/{admin_path}/config/security/auth/ldap/new` | Add LDAP provider |
+| `/server/{admin_path}/config/security/auth/ldap/{provider}` | Edit, test, enable/disable, or remove one LDAP provider |
+
+| Element | Type | Description |
+|---------|------|-------------|
+| OIDC Providers | Section | List of configured OIDC providers with add/edit/remove/test actions |
+| LDAP Providers | Section | List of configured LDAP providers with add/edit/remove/test actions |
+| Applies To | Readonly summary | Server Admin auth always; regular-user auth too when multi-user mode is enabled |
+| Admin Groups | Tag input | Per-provider groups that grant Server Admin access |
+| Role Mapping | Table | Per-provider mapping from external groups to application roles |
+| Test Connection | Button | Test one selected OIDC/LDAP provider |
+| Test Group Mapping | Button | Test one selected provider's groups and resulting role |
+
+**Sane Defaults:**
+- `admin_groups`: Empty (no external groups granted admin by default)
+- `role_mapping`: Empty (users get default role unless mapped)
+- `auto_register`: `false` (users must be pre-created unless enabled)
+- Group membership checked on every login (not cached)
+
+### Why This Separation?
+
+| Reason | Description |
+|--------|-------------|
+| **Security** | Server admin has server-level access, not app-level |
+| **Simplicity** | Admin-only mode doesn't need user management |
+| **Isolation** | Server admin credentials separate from user data |
+| **Recovery** | Can access admin even if database is corrupted |
+
+## Configuration
+
+```yaml
+server:
+  users:
+    # Enable multi-user mode (default: disabled = admin-only)
+    enabled: false
+
+    registration:
+      # Registration mode: open (default), invite, admin_only, disabled
+      # - open: Anyone can self-register
+      # - invite: Only admin-issued invite links/codes can create accounts
+      # - admin_only: Only Server Admin can create the account record directly
+      # - disabled: No new regular-user accounts can be created
+      mode: open
+
+      # Email verification (applies to open mode)
+      require_email_verification: true
+
+      # Email domain restrictions (applies to open mode)
+      allowed_domains: []      # Empty = all domains allowed
+      blocked_domains: []      # Block specific domains
+
+      # Invite / activation settings (admin-generated links)
+      invite_expiration_days: 7     # How long invite or activation links are valid
+
+    roles:
+      # Available roles
+      available:
+        - admin
+        - user
+      # Default role for new users
+      default: user
+
+    tokens:
+      # Allow users to generate API tokens
+      enabled: true
+      # Maximum tokens per user
+      max_per_user: 5
+      # Token expiration (0 = never)
+      expiration_days: 0
+
+    profile:
+      # Allow users to upload avatars
+      allow_avatar: true
+      # Allow users to set display name
+      allow_display_name: true
+      # Allow users to set bio
+      allow_bio: true
+
+    auth:
+      # Session duration
+      session_duration: 30d
+      # Require 2FA for all users
+      require_2fa: false
+      # Allow 2FA (user choice)
+      allow_2fa: true
+      # Password requirements
+      password_min_length: 8
+      password_require_uppercase: false
+      password_require_number: false
+      password_require_special: false
+
+    limits:
+      # Rate limits per user (0 = use global)
+      requests_per_minute: 0
+      requests_per_day: 0
+```
+
+## User Roles & Permissions
+
+| Role | Description | Default Permissions |
+|------|-------------|---------------------|
+| `admin` | Full access | All permissions |
+| `user` | Standard user | Read, own profile, own API tokens |
+
+### Custom Roles
+
+Projects can define custom roles with specific permissions:
+
+```yaml
+server:
+  users:
+    roles:
+      available:
+        - admin
+        - moderator
+        - user
+        - readonly
+      default: user
+      permissions:
+        moderator:
+          - read
+          - write
+          - moderate
+        readonly:
+          - read
+```
+
+## User Features
+
+### Registration Modes
+
+**See PART 34 "Registration Modes" for complete details.**
+
+| Mode | Public Reg | Admin Invite | Direct Admin Create | Default |
+|------|------------|--------------|---------------------|---------|
+| **open** | ✓ Anyone | ✓ Allowed | ✓ Allowed | **YES** |
+| **invite** | ✗ No | ✓ Required | ✗ No | No |
+| **admin_only** | ✗ No | ✗ No | ✓ Required | No |
+| **disabled** | ✗ No | ✗ No | ✗ No | No |
+
+**Key rule:** Registration mode defines how new regular-user accounts are created. Profile visibility remains a separate setting.
+
+### Registration Flow
+
+**Open Mode:**
+```
+1. User visits /server/auth/register
+2. Submits form (username, email, password)
+3. Email verification sent (if enabled)
+4. Account active
+```
+
+**Invite Mode:**
+```
+1. Admin creates invite at /server/{admin_path}/config/users (sets username)
+2. Admin shares invite URL with new user
+3. User clicks link → sets own password (admin cannot set)
+4. Account active
+```
+
+**Admin-Only Mode:**
+```
+1. Admin creates the user record at /server/{admin_path}/config/users
+2. System generates a one-time activation/password-setup link
+3. Link is emailed automatically (if SMTP enabled) or copied manually
+4. User clicks link → sets own password (admin cannot set)
+5. Account active
+```
+
+### Authentication Methods
+
+| Method | Use For |
+|--------|---------|
+| Session (cookie) | Web interface |
+| API token | API access (passed as Bearer token in Authorization header) |
+
+### Password Reset Flow
+
+```
+1. User requests password reset
+2. Email sent with reset link (expires in 1 hour)
+3. User clicks link, sets new password
+4. All existing sessions invalidated
+5. User must log in with new password
+```
+
+### Two-Factor Authentication (2FA)
+
+| Feature | Description |
+|---------|-------------|
+| TOTP | Time-based one-time passwords (Google Authenticator, etc.) |
+| Passkeys/WebAuthn | FIDO2 passwordless authentication (biometric, security keys) |
+| Recovery keys | 10 one-time use keys (format: `a1b2c3d4-e5f6`) |
+| Remember device | Optional "trust this device" for 30 days |
+
+## User Profile
+
+### Profile Fields
+
+| Field | Type | Required | Editable | Public | Description |
+|-------|------|----------|----------|--------|-------------|
+| `id` | Integer | Auto | No | No | Unique user ID |
+| `username` | String | Yes | No* | Yes | Unique username (3-32 chars, lowercase) |
+| `email` | String | Yes | Yes | No | Primary email (private by default) |
+| `display_name` | String | No | Yes | Yes | Public display name |
+| `avatar_type` | Enum | Yes | Yes | Yes | `gravatar`, `upload`, `url` |
+| `avatar_url` | String | No | Yes | Yes | Avatar URL (if type is upload/url) |
+| `bio` | String | No | Yes | Yes | Short biography (max 500 chars) |
+| `location` | String | No | Yes | Yes | Location (free text) |
+| `website` | String | No | Yes | Yes | Personal website URL |
+| `visibility` | Enum | Yes | Yes | N/A | `public` (default), `private` for the org/team profile only |
+| `timezone` | String | No | Yes | No | IANA timezone (e.g., `America/New_York`) |
+| `language` | String | No | Yes | No | Preferred language (e.g., `en`, `es`) |
+| `role` | String | Yes | No | No | User role (set by admin) |
+| `verified` | Boolean | Auto | No | Yes | Email verified badge |
+| `created_at` | Timestamp | Auto | No | Yes | Account creation date |
+| `last_login` | Timestamp | Auto | No | No | Last login (private) |
+
+*Username can only be changed by admin or via special request flow.
+
+**Profile Example (API Response):**
+```json
+GET /api/{api_version}/users
+{
+    "id": 12345,
+    "username": "johndoe",
+    "display_name": "John Doe",
+    "avatar": {
+        "type": "gravatar",
+        "urls": {
+            "256": "https://www.gravatar.com/avatar/abc123?s=256&d=identicon",
+            "128": "https://www.gravatar.com/avatar/abc123?s=128&d=identicon",
+            "64": "https://www.gravatar.com/avatar/abc123?s=64&d=identicon",
+            "32": "https://www.gravatar.com/avatar/abc123?s=32&d=identicon"
+        }
+    },
+    "bio": "Software developer and coffee enthusiast",
+    "location": "San Francisco, CA",
+    "website": "https://johndoe.dev",
+    "visibility": "public",
+    "timezone": "America/New_York",
+    "language": "en",
+    "verified": true,
+    "created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+**Public Profile Example (what others see):**
+```json
+GET /api/{api_version}/public/users/johndoe
+{
+    "username": "johndoe",
+    "display_name": "John Doe",
+    "avatar": {
+        "256": "https://www.gravatar.com/avatar/abc123?s=256&d=identicon"
+    },
+    "bio": "Software developer and coffee enthusiast",
+    "location": "San Francisco, CA",
+    "website": "https://johndoe.dev",
+    "verified": true,
+    "created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+### User Settings
+
+Settings are organized into categories. Each setting has a default value and can be modified by the user.
+
+**Settings Categories:**
+
+| Category | Route | Description |
+|----------|-------|-------------|
+| **Account** | `/users/settings` | Basic account settings |
+| **Privacy** | `/users/settings/privacy` | Visibility and data sharing |
+| **Notifications** | `/users/settings/notifications` | Email and push preferences |
+| **Appearance** | `/users/settings/appearance` | Theme and display options |
+| **Security** | `/users/security` | Password, 2FA, sessions |
+
+#### Account Settings (`/users/settings`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `display_name` | String | null | Public display name |
+| `bio` | String | null | Short biography |
+| `location` | String | null | Location |
+| `website` | URL | null | Personal website |
+| `timezone` | Select | Auto-detect | Timezone for dates/times |
+| `language` | Select | `en` | Interface language |
+| `date_format` | Select | `YYYY-MM-DD` | Date display format |
+| `time_format` | Select | `24h` | 12h or 24h time |
+
+**Account Settings Form Example:**
+```
+Account Settings (/users/settings)
+┌─────────────────────────────────────────────────────────────┐
+│  Display Name                                               │
+│  [John Doe                                    ]             │
+│                                                             │
+│  Bio                                                        │
+│  [Software developer and coffee enthusiast   ]             │
+│  Characters: 42/500                                         │
+│                                                             │
+│  Location                                                   │
+│  [San Francisco, CA                          ]             │
+│                                                             │
+│  Website                                                    │
+│  [https://johndoe.dev                        ]             │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Timezone                                                   │
+│  [America/New_York (UTC-5)               ▼]                │
+│                                                             │
+│  Language                                                   │
+│  [English                                ▼]                │
+│                                                             │
+│  Date Format                                                │
+│  ○ YYYY-MM-DD (2025-01-15)                                 │
+│  ● MM/DD/YYYY (01/15/2025)                                 │
+│  ○ DD/MM/YYYY (15/01/2025)                                 │
+│                                                             │
+│  Time Format                                                │
+│  ● 24-hour (14:30)                                         │
+│  ○ 12-hour (2:30 PM)                                       │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Privacy Settings (`/users/settings/privacy`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `visibility` | Select | `public` | Profile visibility (public/private) |
+| `show_email` | Toggle | Off | Show email on public profile |
+| `show_activity` | Toggle | On | Show activity on public profile |
+| `show_orgs` | Toggle | On | Show org memberships on profile |
+| `searchable` | Toggle | On | Appear in user search results |
+| `org_visibility` | Toggle | On | Show basic info in orgs (even if private) |
+
+**Privacy Settings Form Example:**
+```
+Privacy Settings (/users/settings/privacy)
+┌─────────────────────────────────────────────────────────────┐
+│  Profile Visibility                                         │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ ○ Public                                             │   │
+│  │   Anyone can view your profile and find you in      │   │
+│  │   search results.                                    │   │
+│  │                                                      │   │
+│  │ ● Private                                            │   │
+│  │   Your profile is hidden from public view and       │   │
+│  │   search results. Only you can see your profile.    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  When Profile is Public:                                    │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  [OFF] Show email address on profile                        │
+│        Your email will be visible to anyone viewing your    │
+│        profile.                                             │
+│                                                             │
+│  [ON ] Show activity on profile                             │
+│        Recent activity will appear on your public profile.  │
+│                                                             │
+│  [ON ] Show organization memberships                        │
+│        Organizations you belong to will be listed on your   │
+│        profile.                                             │
+│                                                             │
+│  [ON ] Appear in search results                             │
+│        Others can find you when searching for users.        │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  When Profile is Private:                                   │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  [ON ] Show basic info in organizations                     │
+│        Members of organizations you belong to can see       │
+│        your username, name, and avatar. Your full profile   │
+│        remains private.                                     │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Notification Settings (`/users/settings/notifications`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `email_security` | Toggle | On | Security alerts via email (cannot disable) |
+| `email_mentions` | Toggle | On | Email when mentioned |
+| `email_updates` | Toggle | On | Product updates and news |
+| `email_digest` | Select | `weekly` | Digest frequency (never/daily/weekly) |
+| `push_enabled` | Toggle | Off | Browser push notifications |
+| `push_mentions` | Toggle | On | Push when mentioned |
+
+**Notification Settings Form Example:**
+```
+Notification Settings (/users/settings/notifications)
+┌─────────────────────────────────────────────────────────────┐
+│  Email Notifications                                        │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  [ON ] Security alerts (required)                    🔒     │
+│        Password changes, new logins, 2FA changes.           │
+│        This setting cannot be disabled for your security.   │
+│                                                             │
+│  [ON ] Mentions and replies                                 │
+│        When someone mentions you or replies to you.         │
+│                                                             │
+│  [OFF] Product updates                                      │
+│        News about new features and improvements.            │
+│                                                             │
+│  Activity Digest                                            │
+│  [Weekly                                         ▼]        │
+│  Options: Never, Daily, Weekly                              │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  Push Notifications                                         │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  [OFF] Enable push notifications                            │
+│        Receive notifications in your browser even when      │
+│        you're not on this site.                             │
+│                                                             │
+│        (Requires browser permission)                        │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Appearance Settings (`/users/settings/appearance`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `theme` | Select | `dark` | Theme (dark/light/auto) |
+| `font_size` | Select | `medium` | Font size (small/medium/large) |
+| `reduce_motion` | Toggle | Off | Reduce animations |
+
+**Appearance Settings Form Example:**
+```
+Appearance Settings (/users/settings/appearance)
+┌─────────────────────────────────────────────────────────────┐
+│  Theme                                                      │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐                       │
+│  │  🌙     │ │  ☀️     │ │  💻     │                       │
+│  │ Dark    │ │ Light   │ │ Auto    │                       │
+│  └─────────┘ └─────────┘ └─────────┘ ↑ Default: Dark       │
+│                                                             │
+│  Font Size                                                  │
+│  ○ Small                                                    │
+│  ● Medium (default)                                         │
+│  ○ Large                                                    │
+│                                                             │
+│  Accessibility                                              │
+│  [OFF] Reduce motion                                        │
+│        Minimize animations and transitions.                 │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### User Settings API
+
+**Database Storage:**
+
+| Setting Category | Storage Location |
+|------------------|------------------|
+| **Account** (display_name, bio, location, website, timezone, language) | `users` table |
+| **Privacy** (visibility, org_visibility) | `users` table |
+| **Privacy** (show_email, show_activity, show_orgs, searchable) | `user_preferences` table |
+| **Notifications** (email_*, push_*) | `user_preferences` table |
+| **Appearance** (theme, font_size, reduce_motion, date_format, time_format) | `user_preferences` table |
+
+**Preferences are created on first access (lazy initialization):**
+```go
+func GetOrCreatePreferences(userID int) (*UserPreferences, error) {
+    prefs := &UserPreferences{}
+    err := db.Where("user_id = ?", userID).First(prefs).Error
+    if err == gorm.ErrRecordNotFound {
+        prefs = &UserPreferences{UserID: userID}  // Uses DB defaults
+        db.Create(prefs)
+    }
+    return prefs, nil
+}
+```
+
+**Get All Settings:**
+```json
+GET /api/{api_version}/users/settings
+{
+    "account": {
+        "display_name": "John Doe",
+        "bio": "Software developer",
+        "location": "San Francisco, CA",
+        "website": "https://johndoe.dev",
+        "timezone": "America/New_York",
+        "language": "en",
+        "date_format": "MM/DD/YYYY",
+        "time_format": "24h"
+    },
+    "privacy": {
+        "visibility": "private",
+        "show_email": false,
+        "show_activity": true,
+        "show_orgs": true,
+        "searchable": false,
+        "org_visibility": true
+    },
+    "notifications": {
+        "email_security": true,
+        "email_mentions": true,
+        "email_updates": false,
+        "email_digest": "weekly",
+        "push_enabled": false,
+        "push_mentions": true
+    },
+    "appearance": {
+        "theme": "dark",
+        "font_size": "medium",
+        "reduce_motion": false
+    }
+}
+```
+
+**Update Settings (partial update):**
+```json
+PATCH /api/{api_version}/users/settings
+{
+    "privacy": {
+        "visibility": "public",
+        "org_visibility": true
+    }
+}
+```
+
+## User API Tokens
+
+**See PART 11: API Token Security for token format, storage, and validation rules.**
+
+| Feature | Description |
+|---------|-------------|
+| Generate | User can create API tokens from `/users/settings/tokens` |
+| Name/Label | User can name tokens for identification |
+| Permissions | Optional: limit token to specific scopes |
+| Expiration | Optional: set expiry date |
+| Last used | Track when token was last used |
+| Revoke | User can delete tokens anytime |
+
+**User Token Prefix:** `usr_` (e.g., `usr_x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4`)
+
+**User Tokens UI (`/users/settings/tokens`):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  API Tokens                                    [+ New Token] │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ My CLI Token           usr_a1b2...      Last: 2h ago│    │
+│  │ Scopes: read, write    Expires: Never       [Revoke]│    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ CI Pipeline            usr_x9y8...      Last: 1d ago│    │
+│  │ Scopes: read           Expires: 2025-12-31  [Revoke]│    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Admin Panel
+
+### /server/{admin_path}/config/moderation/users (User Moderation)
+
+| Element | Type | Description |
+|---------|------|-------------|
+| User list | Table | All users with search/filter |
+| Delete user | Button | Remove user (confirmation required) |
+| Impersonate | Button | Log in as user (admin only) |
+| Disable/Enable | Toggle | Temporarily disable account |
+| Revoke sessions | Button | Log user out everywhere |
+
+### /server/{admin_path}/config/moderation/users/{id} (User Detail)
+
+| Section | Contents |
+|---------|----------|
+| Profile | Email, name, avatar, bio, role (read-only) |
+| Security | 2FA status, sessions |
+| Activity | Login history, API usage |
+| Actions | Disable, delete, impersonate |
+
+### /server/{admin_path}/config/roles (Role Management)
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Role list | Table | All roles |
+| Create role | Button | Define new role |
+| Edit permissions | Checkboxes | Set role permissions |
+| Delete role | Button | Remove role (reassign users first) |
+
+### /server/{admin_path}/config/users/invites (User Invitation Codes)
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Generate invite | Button | Create invitation code/link |
+| Invite list | Table | All invites with status |
+| Expiration | Date picker | When invite expires |
+| Max uses | Number | How many times invite can be used |
+| Role | Dropdown | What role invited users get |
+| Revoke | Button | Disable invite |
+
+## Route Standards
+
+**All routes MUST follow these standards:**
+
+| Rule | Description |
+|------|-------------|
+| **Scoped** | Routes grouped by scope: `/server`, `/server/auth`, `/users`, `/orgs`, `/server/{admin_path}` |
+| **Mirrored** | Web (`/`) and API (`/api/{api_version}/`) use same structure |
+| **Intuitive** | Simple, predictable paths |
+| **Params over queries** | Use path params, limit query params to defined cases |
+| **Duplicated when needed** | Same resource may exist in multiple scopes |
+| **Auth under /server/auth/** | NEVER `/login`, `/register`, `/password/*` at root - ALWAYS `/server/auth/login`, `/server/auth/register`, `/server/auth/password/*`, etc. |
+| **Admin scoped** | `/server/{admin_path}/**` requires authenticated admin - unauthenticated flows (invites) go through `/server/auth/` |
+
+**Note:** `{api_version}` defaults to `v1` but is configurable via `server.api_version` in server.yml. Do not hardcode `v1` in code.
+
+### Response Formats
+
+| Route | Default | Options |
+|-------|---------|---------|
+| `/` (web) | HTML | - |
+| `/api/{api_version}/` | JSON (`application/json`) | JSON, Text |
+| `/api/{api_version}/**/*.txt` | Text (`text/plain`) | - |
+
+### Scopes
+
+| Scope | Web | API | Description |
+|-------|-----|-----|-------------|
+| Public | `/**` | `/api/{api_version}/**` | Public resources, unauthenticated (project-specific) |
+| Server Pages | `/server/` | `/api/{api_version}/server/` | Public pages (about, help, contact, privacy, etc.) |
+| Auth | `/server/auth/` | `/api/{api_version}/server/auth/` | Authentication flows |
+| Users | `/users/` | `/api/{api_version}/users/` | User resources |
+| Orgs | `/orgs/` | `/api/{api_version}/orgs/` | Organization resources |
+| Server Admin | `/server/{admin_path}/` | `/api/{api_version}/server/{admin_path}/` | Admin panel |
+| Server Settings | `/server/{admin_path}/config/` | `/api/{api_version}/server/{admin_path}/config/` | Server configuration within admin |
+
+### Default Auth by Scope (Canonical Rule)
+
+**This is the default authentication requirement for every route, derived from the URL prefix. Endpoint tables that omit an "Auth" column inherit from this table. Endpoints that deviate MUST list an explicit Auth value.**
+
+#### Token Types (every Auth value in the spec resolves to one of these)
+
+| Auth value | What the caller presents | Validated against | Where issued |
+|------------|--------------------------|---------------------|--------------|
+| `None` | nothing | n/a | — public route |
+| `Session` | session cookie (browser) | `sessions` table; signed with `cookie_signing_key` (PART 11 → "Cryptographic Keys") | login flow |
+| `Bearer` | `Authorization: Bearer adm_…` / `usr_…` / `org_…` (or agent variants) | `tokens` table; SHA-256 hash compared (PART 11 → "API Token Security") | token creation flow |
+| `Reset token` | one-shot URL param (`/server/auth/password/reset?token=…`) | hashed in `password_resets` table; single-use; expires per `auth.password_reset_ttl` (default 1h) | `/server/auth/password/forgot` flow (sent via email) |
+| `Verify token` | one-shot URL param (`/server/auth/verify/{token}`) | hashed in `email_verifications` table; single-use; expires per `auth.email_verify_ttl` (default 48h) | sent via email on registration / email change |
+| `Invite token` | one-shot URL param (`/server/auth/invite/{user|server}/{token}`) | hashed in `invites` table; single-use; expires per `invites.ttl` (default 7d) | admin issues from `/server/{admin_path}/config/admins` (server invite) or user from `/users/orgs/{slug}/invites` (org invite) |
+| `Tracking token` | one-shot URL param (`/server/security/report/{tracking_id}?token=…`) | per-tracking-id token; single-use-per-day (researcher can refresh by re-clicking the email link); expires 30 days after report closes | sent via email when researcher submits a security report (PART 11 → "Security Reports") |
+| `Partial-session` | short-lived cookie issued mid-flow (post-password-correct, pre-2FA) | `partial_sessions` table; consumed when 2FA / recovery completes; expires per `auth.partial_session_ttl` (default 5m) | `/server/auth/login` flow when 2FA is required |
+
+**All one-shot tokens (`Reset`, `Verify`, `Invite`, `Tracking`, `Partial-session`) share the same construction:**
+- Generated from `crypto/rand` (32 bytes → URL-safe base64).
+- Stored ONLY as `SHA-256(token)` in DB. Plaintext exists in transit (URL/email) and in operator-side ephemeral state only.
+- Single-use unless explicitly noted (`Tracking token` is single-use-per-day).
+- Logged as `audit.{flow}_token_issued` and `audit.{flow}_token_consumed`. Token value itself is NEVER logged.
+- Wrong tokens: constant-time-compared, generic 404 on miss (no "expired vs invalid" disclosure).
+
+| Scope | Web Route | Web Auth | API Route | API Auth |
+|-------|-----------|----------|-----------|----------|
+| Public | `/` (project root, project-specific public) | None | `/api/{api_version}/` | None |
+| Server Pages | `/server/*` (about, help, contact, privacy, dpo, terms, docs/swagger, docs/graphql) | None | `/api/{api_version}/server/*` | None |
+| Auth | `/server/auth/*` (login, register, password/*, verify, invite, etc.) | None (most) | `/api/{api_version}/server/auth/*` | None (most) |
+| Users (current) | `/users/*` | Session | `/api/{api_version}/users/*` | Bearer `usr_` token |
+| Users (public profile) | `/users/{user_name}`, `/orgs/{slug}` and `/users/{user_name}/repos`, `/users/{user_name}/followers`, `/users/{user_name}/following` | None* | `/api/{api_version}/users/{user_name}`, `/api/{api_version}/users/{user_name}/repos`, etc. | None* |
+| Orgs (member) | `/orgs/{slug}/*` (non-public) | Session | `/api/{api_version}/orgs/{slug}/*` (non-public) | Bearer `usr_` (member) or `org_` token |
+| Server Admin | `/server/{admin_path}/*` | Session (admin) | `/api/{api_version}/server/{admin_path}/*` | Bearer `adm_` token |
+| Server Settings | `/server/{admin_path}/config/*` | Session (admin) | `/api/{api_version}/server/{admin_path}/config/*` | Bearer `adm_` token |
+
+**\* "None\*"** means publicly accessible but with response-field filtering: only fields the resource has marked public are returned. See PART 34 (Multi-User) and PART 35 (Organizations) for the filter rules.
+
+**Always-public exceptions (regardless of scope inheritance):**
+
+| Route | Method | Auth | Notes |
+|-------|--------|------|-------|
+| `/server/healthz` | GET | None | Frontend health (PART 13) |
+| `/healthz` | GET | None | Only when `server.healthz.root.enabled: true`; same handler as `/server/healthz`, never a redirect |
+| `/metrics` | GET | Optional | Prometheus (may be IP-restricted in config) |
+| `/sitemap.xml`, `/robots.txt`, `/favicon.ico`, `/manifest.json`, `/.well-known/*` | GET | None | Conventional web files; `/.well-known/*` is limited to documented allowlisted entries only |
+| `/server/docs/swagger`, `/server/docs/graphql` | GET | None | Public API docs (HTML) |
+| `/api/swagger`, `/api/{api_version}/server/swagger` | GET | None | Public OpenAPI JSON spec |
+| `/api/graphql`, `/api/{api_version}/server/graphql` | POST | None for introspection; per-operation otherwise | GraphQL — see PART 14 GraphQL section for resolver-level auth |
+| `/api/autodiscover` | GET | None | Public client/agent auto-config |
+| `/api/{api_version}/server/healthz` | GET | None | Public JSON health |
+| `/api/{api_version}/server/reports/*` | POST | None | Public reports sink (CSP, NEL, deprecation, intervention, crash, error, default). See PART 14 → "Public Reports Scope". Browsers cannot present credentials when emitting these reports. Rate-limited per-IP. |
+| `/server/security/policy` | GET | None | Disclosure policy page (HTML). See PART 11 → "Security Reports". |
+| `/server/security/thanks` | GET | None | Acknowledgments / hall-of-fame (HTML). See PART 11. |
+| `/server/security/report/{tracking_id}` | GET | One-shot tracking token (in URL) | Researcher status page. Token is single-use-per-day, expires 30 days after report closes. See PART 11. |
+| `/.well-known/pgp-key.asc` | GET | None | Project PGP public key for security reports. 404 until admin generates a keypair. |
+| `/server/contact?security_id=...` | GET / POST | None — but the `security_id` query param switches the form to security-report mode (no other auth) | See PART 11 → "Security Reports". Without/invalid `security_id`, behaves as the standard contact form. |
+
+**Auth-flow exceptions (within `/server/auth/*` and `/api/{api_version}/server/auth/*`):**
+
+| Route | Auth | Why |
+|-------|------|-----|
+| `/server/auth/login`, `/server/auth/register`, `/server/auth/password/forgot`, `/server/auth/password/reset`, `/server/auth/username/forgot`, `/server/auth/verify/{token}`, `/server/auth/invite/*/{token}`, `/server/auth/passkey/challenge`, `/server/auth/passkey/verify` | None | Pre-session entry points |
+| `/server/auth/logout` | Session (web) / Bearer (API) | Must know whose session to end |
+| `/server/auth/refresh` | Session (web) / Bearer (API) | Must have a session/token to refresh |
+| `/server/auth/2fa` | Partial-session (post-password, pre-2FA) | Continuation of in-progress login |
+| `/server/auth/recovery/use` | Partial-session OR password-recovery token | 2FA bypass during account recovery |
+
+**Project-specific public routes** (e.g., `/jokes/random`, `/quotes`, `/ip`, `/weather`) inherit `Public → None` unless the project's IDEA.md declares a write/admin endpoint.
+
+**Authoring rule:** when writing a new endpoint table, omit the Auth column ONLY if every endpoint in the table inherits from this canonical rule. As soon as ONE endpoint in the table deviates, add the Auth column for the WHOLE table.
+
+### Public Scope Examples (Project-Specific)
+
+**The root routes `/` and `/api/{api_version}/` return project-specific public content:**
+
+| Project Type | `/` (Web) | `/api/{api_version}/` (API) |
+|--------------|-----------|------------------|
+| Jokes | Random joke (HTML) | Random joke (JSON) |
+| Weather | Current weather (HTML) | Current weather (JSON) |
+| IP Lookup | User's IP info (HTML) | User's IP info (JSON) |
+| URL Shortener | Landing/homepage | API docs or status |
+| Pastebin | Recent public pastes | Recent public pastes (JSON) |
+
+**Additional public routes (no auth required):**
+
+| Web Route | API Route | Example Usage |
+|-----------|-----------|---------------|
+| `/ip` | `/api/{api_version}/ip` | Return requester's IP address |
+| `/jokes/random` | `/api/{api_version}/jokes/random` | Random joke |
+| `/weather/{location}` | `/api/{api_version}/weather/{location}` | Weather for location |
+| `/search/{query}` | `/api/{api_version}/search/{query}` | Public search |
+
+**Query parameter search on root routes:**
+
+| Web Route | API Route | Example Usage |
+|-----------|-----------|---------------|
+| `/?q={term}` | `/api/{api_version}/?q={term}` | Search from root |
+| `/search?q={term}` | `/api/{api_version}/search?q={term}` | Dedicated search route |
+
+```bash
+# All of these are valid search patterns:
+curl "/?q=hello"                           # Web search from root
+curl "/api/{api_version}/?q=hello"                    # API search from root
+curl "/search?q=hello"                     # Web dedicated search
+curl "/api/{api_version}/search?q=hello"              # API dedicated search
+curl "/api/{api_version}/search/hello"                # Path-based search (also valid)
+```
+
+### /api/autodiscover
+
+**Client/Agent auto-configuration endpoint. Returns server connection settings for CLI and agent to self-configure.**
+
+| Route | Method | Auth | Description |
+|-------|--------|------|-------------|
+| `/api/autodiscover` | GET | None | Return server connection settings |
+
+**Response:**
+
+```json
+{
+  "primary": "https://api.example.com",
+  "cluster": [
+    "https://api.example.com",
+    "https://api2.example.com",
+    "https://api3.example.com"
+  ],
+  "api_version": "v1",
+  "timeout": 30,
+  "retry": 3,
+  "retry_delay": 1,
+  "config": {
+    "database": {
+      "drivers": ["file", "sqlite", "libsql", "postgres", "mysql", "mssql", "mongodb"],
+      "aliases": {
+        "sqlite2": "sqlite",
+        "sqlite3": "sqlite",
+        "turso": "libsql",
+        "pgsql": "postgres",
+        "postgresql": "postgres",
+        "mariadb": "mysql",
+        "mongo": "mongodb"
+      },
+      "ssl_modes": ["disable", "require", "verify-full"]
+    },
+    "cache": {
+      "types": ["none", "memory", "valkey", "redis"]
+    },
+    "formats": {
+      "duration": ["s", "m", "h", "d"],
+      "size": ["KB", "MB", "GB"]
+    },
+    "logging": {
+      "levels": ["debug", "info", "warn", "error"]
+    },
+    "smtp": {
+      "tls_modes": ["auto", "starttls", "tls", "none"]
+    },
+    "features": {
+      "clustering": true,
+      "tor": true,
+      "webauthn": true,
+      "oauth": ["google", "github", "gitlab", "microsoft"]
+    }
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `primary` | string | Primary server URL (current server) |
+| `cluster` | array | All cluster node URLs (empty if single-node) |
+| `api_version` | string | API version prefix (default: "v1") |
+| `timeout` | int | Recommended request timeout in seconds |
+| `retry` | int | Recommended retry attempts |
+| `retry_delay` | int | Recommended seconds between retries |
+| `config` | object | Configuration schema, options, aliases, and enabled features |
+
+**Config Section:**
+
+| Field | Description |
+|-------|-------------|
+| `config.database` | Supported drivers, aliases (`sqlite2`→`sqlite`, `mariadb`→`mysql`), SSL modes |
+| `config.cache` | Supported cache types |
+| `config.formats` | Duration (`s`,`m`,`h`,`d`) and size (`KB`,`MB`,`GB`) unit suffixes |
+| `config.logging` | Valid log levels |
+| `config.smtp` | SMTP TLS mode options |
+| `config.features` | Server-enabled features (for conditional UI) |
+
+**Security :**
+
+| Rule | Description |
+|------|-------------|
+| **NEVER include `admin_path`** | The entire point of configurable admin path is obscurity - NEVER expose it |
+| **NEVER include secrets** | No tokens, passwords, API keys |
+| **NEVER include internal IPs** | Only public-facing URLs |
+| **No authentication required** | Must be accessible for initial setup |
+
+**Why no `admin_path`?** The admin path is intentionally configurable to make it harder to find. Exposing it via autodiscover would defeat this purpose. Admin path is only known to:
+1. Server administrators (from server.yml or admin panel)
+2. Users with admin tokens (they already know)
+
+**Implementation:**
+
+```go
+// GET /api/autodiscover
+func AutodiscoverHandler(w http.ResponseWriter, r *http.Request) {
+    response := map[string]interface{}{
+        "primary":     cfg.GetPublicURL(),
+        "cluster":     cfg.GetClusterNodes(),
+        "api_version": cfg.APIVersion(),
+        "timeout":     cfg.Server.Timeout,
+        "retry":       cfg.Server.Retry,
+        "retry_delay": cfg.Server.RetryDelay,
+        "config": map[string]interface{}{
+            "database": map[string]interface{}{
+                "drivers": []string{"file", "sqlite", "libsql", "postgres", "mysql", "mssql", "mongodb"},
+                "aliases": map[string]string{
+                    "sqlite2":    "sqlite",
+                    "sqlite3":    "sqlite",
+                    "turso":      "libsql",
+                    "pgsql":      "postgres",
+                    "postgresql": "postgres",
+                    "mariadb":    "mysql",
+                    "mongo":      "mongodb",
+                },
+                "ssl_modes": []string{"disable", "require", "verify-full"},
+            },
+            "cache": map[string]interface{}{
+                "types": []string{"none", "memory", "valkey", "redis"},
+            },
+            "formats": map[string]interface{}{
+                "duration": []string{"s", "m", "h", "d"},
+                "size":     []string{"KB", "MB", "GB"},
+            },
+            "logging": map[string]interface{}{
+                "levels": []string{"debug", "info", "warn", "error"},
+            },
+            "smtp": map[string]interface{}{
+                "tls_modes": []string{"auto", "starttls", "tls", "none"},
+            },
+            "features": map[string]interface{}{
+                "clustering": cfg.Cluster.Enabled,
+                "tor":        cfg.Tor.Enabled,
+                "webauthn":   cfg.Auth.WebAuthn.Enabled,
+                "oauth":      cfg.Auth.OAuth.EnabledProviders(),
+            },
+        },
+    }
+
+    // NEVER include admin_path - security by obscurity
+    // NEVER include internal addresses
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Header().Set("Cache-Control", "public, max-age=3600")
+    json.NewEncoder(w).Encode(response)
+}
+```
+
+**Built-in autodiscovery:**
+
+Both CLI and agent binaries automatically call `/api/autodiscover` when connecting to populate their config files. No special command needed - it's built into the binary startup/connection logic.
+
+```bash
+# Manual check (for debugging)
+curl -q -LSsf https://api.example.com/api/autodiscover
+```
+
+**Note:** This endpoint is NOT versioned (`/api/autodiscover` not `/api/{api_version}/autodiscover`) because clients need it BEFORE they know the API version.
+
+**Note:** Public routes are defined in IDEA.md for each project. They do NOT require authentication and are NOT scoped to users/orgs.
+
+### Authentication Requirements
+
+| Scope | Web Auth | API Auth | Notes |
+|-------|----------|----------|-------|
+| Public | None | None | Unauthenticated access |
+| Server Pages | None | None | Public info pages (about, help, contact, privacy) |
+| Auth | None | None | Used to obtain authentication |
+| Users | Session cookie | `Authorization: Bearer {token}` | User must be logged in |
+| Orgs | Session cookie | `Authorization: Bearer {token}` | User + org membership |
+| Server Admin | Session cookie | `Authorization: Bearer {admin_token}` | Admin panel access |
+| Server Settings | Session cookie | `Authorization: Bearer {admin_token}` | Server configuration (within admin) |
+
+**API Token Types:**
+
+| Token Type | Prefix | Use For | Stored In |
+|------------|--------|---------|-----------|
+| Admin token | `adm_` | Admin operations, CLI | `tokens` table |
+| User token | `usr_` | User operations | `tokens` table |
+| Org token | `org_` | Org operations | `tokens` table |
+| Admin agent | `adm_agt_` | Admin infrastructure agent | `tokens` table |
+| User agent | `usr_agt_` | User's personal agent | `tokens` table |
+| Org agent | `org_agt_` | Organization agent | `tokens` table |
+
+**Unified Tokens Table (`tokens`):**
+- All token types stored in single table with `owner_type` (admin/user/org)
+- Each token has: name, scope (`global`/`read-write`/`read`), expiration
+- `token_prefix` stores first 8 chars for display: `"adm_abc1..."`
+- Multiple tokens per owner allowed
+
+**Web Session Cookies:**
+
+| Cookie | Scope | Max Age | Notes |
+|--------|-------|---------|-------|
+| `admin_session` | `/server/{admin_path}/` | 30 days | Admin web sessions |
+| `user_session` | `/users/`, `/orgs/` | 7 days | User web sessions |
+
+## Web Routes
+
+### Public (`/`)
+
+| Path | Description |
+|------|-------------|
+| `/` | Home page |
+| `/server/healthz` | Health check |
+| `/server/docs/swagger` | Swagger UI |
+| `/server/docs/graphql` | GraphiQL interface |
+
+### Server (`/server/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/about` | About the application |
+| `/server/privacy` | Privacy policy |
+| `/server/contact` | Contact form |
+| `/server/help` | Help / documentation |
+
+### Auth (`/server/auth/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/auth/login` | Login form (username/email + password) |
+| `/server/auth/logout` | Logout |
+| `/server/auth/register` | Registration form |
+| `/server/auth/2fa` | 2FA verification step (after password, before session) |
+| `/server/auth/passkey` | Passkey authentication (WebAuthn) |
+| `/server/auth/password/forgot` | Request password reset (sends email) |
+| `/server/auth/password/reset/{token}` | Set new password (from email link) |
+| `/server/auth/username/forgot` | Request username reminder (sends email) |
+| `/server/auth/recovery/use` | Use recovery key (2FA bypass) |
+| `/server/auth/verify/{token}` | Email verification |
+| `/server/auth/invite/user/{token}` | User invite acceptance (set username, password) |
+| `/server/auth/invite/server/{token}` | Server admin invite acceptance (set username, password) |
+| `/server/auth/oidc/{provider}` | OIDC login initiation (redirect to provider) |
+| `/server/auth/oidc/{provider}/callback` | OIDC callback (provider redirects back) |
+| `/server/auth/ldap` | LDAP provider chooser |
+| `/server/auth/ldap/{provider}` | LDAP login form for the selected provider |
+| `/server/auth/external/username` | First-login username confirmation page after successful OIDC/LDAP auth when a new user/admin record is being created |
+
+### Users (`/users/`)
+
+**No ID required - app knows current user from session.**
+
+| Path | Description |
+|------|-------------|
+| `/users` | Current user's profile |
+| `/users/settings` | Account settings |
+| `/users/tokens` | Manage API tokens |
+| `/users/security` | Password, 2FA, sessions, recovery |
+| `/users/security/password` | Change password |
+| `/users/security/sessions` | Active sessions |
+| `/users/security/2fa` | Two-factor settings |
+| `/users/security/recovery` | View/regenerate recovery keys |
+| `/users/security/passkeys` | Manage passkeys (WebAuthn) |
+
+### Orgs (`/orgs/`)
+
+Organizations - only for projects with multi-user collaboration.
+
+| Path | Description |
+|------|-------------|
+| `/orgs` | List user's organizations |
+| `/orgs/new` | Create new organization |
+| `/orgs/{slug}` | Organization dashboard |
+| `/orgs/{slug}/settings` | Organization settings |
+| `/orgs/{slug}/tokens` | Organization API tokens |
+| `/orgs/{slug}/members` | Member management |
+| `/orgs/{slug}/members/invite` | Invite new members |
+| `/orgs/{slug}/roles` | Organization roles |
+| `/orgs/{slug}/security` | Security settings |
+| `/orgs/{slug}/security/audit` | Audit log |
+| `/orgs/{slug}/security/audit/export` | Export audit log (compliance) |
+| `/orgs/{slug}/security/sessions` | Active sessions (org-wide) |
+| `/orgs/{slug}/billing` | Billing & subscription (if applicable) |
+
+### Admin (`/server/{admin_path}/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}` | Dashboard |
+| `/server/{admin_path}/{admin_username}/profile` | Your admin account (password, API token, 2FA) |
+| `/server/{admin_path}/{admin_username}/preferences` | Admin preferences (theme, notifications) |
+
+### Admin - Server (`/server/{admin_path}/config/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/setup` | Initial setup wizard |
+| `/server/{admin_path}/config/settings` | Server settings |
+| `/server/{admin_path}/config/branding` | Branding & SEO |
+| `/server/{admin_path}/config/ssl` | SSL/TLS settings |
+| `/server/{admin_path}/config/tor` | Tor hidden service |
+| `/server/{admin_path}/config/web` | Web settings (robots.txt, security.txt, well-known) |
+| `/server/{admin_path}/config/pages` | Standard pages (about, privacy, contact) |
+| `/server/{admin_path}/config/email` | Email/SMTP settings |
+| `/server/{admin_path}/config/email/templates` | Email templates |
+| `/server/{admin_path}/config/notifications` | Notification settings |
+| `/server/{admin_path}/config/scheduler` | Scheduled tasks |
+| `/server/{admin_path}/config/backup` | Backup & restore |
+| `/server/{admin_path}/config/logs` | Log viewer |
+| `/server/{admin_path}/config/roles` | Role definitions |
+| `/server/{admin_path}/config/security/auth` | Auth settings and external provider overview |
+| `/server/{admin_path}/config/users/invites` | User registration invite codes (multi-user apps) |
+
+### Admin - Auth Providers (`/server/{admin_path}/config/security/auth/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/security/auth` | Authentication overview, password/MFA/session settings, and external-auth summaries |
+| `/server/{admin_path}/config/security/auth/oidc` | OIDC provider list |
+| `/server/{admin_path}/config/security/auth/oidc/new` | Add OIDC provider |
+| `/server/{admin_path}/config/security/auth/oidc/{provider}` | OIDC provider detail/edit/test/remove |
+| `/server/{admin_path}/config/security/auth/ldap` | LDAP provider list |
+| `/server/{admin_path}/config/security/auth/ldap/new` | Add LDAP provider |
+| `/server/{admin_path}/config/security/auth/ldap/{provider}` | LDAP provider detail/edit/test/remove |
+
+### Admin - Web (`/server/{admin_path}/config/web/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/web` | Web settings overview |
+| `/server/{admin_path}/config/web/robots` | robots.txt settings |
+| `/server/{admin_path}/config/web/security` | security.txt settings |
+| `/server/{admin_path}/config/web/well-known` | Well-known namespace settings, optional entry toggles, and previews |
+
+### Admin - Server Admins (`/server/{admin_path}/config/admins/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/admins` | Server admin accounts |
+| `/server/{admin_path}/config/admins/invite` | Invite new Server Admin (generates link) |
+| `/server/{admin_path}/config/admins/{id}` | Admin detail |
+
+### Admin - Moderation (`/server/{admin_path}/config/moderation/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/moderation/users` | User moderation |
+| `/server/{admin_path}/config/moderation/users/{id}` | User detail |
+| `/server/{admin_path}/config/moderation/orgs` | Org moderation |
+| `/server/{admin_path}/config/moderation/orgs/{slug}` | Org detail |
+
+## API Routes
+
+### Public (`/api/{api_version}/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/healthz` | GET | Health check |
+| `/api/{api_version}/server/swagger` | GET | OpenAPI JSON spec (versioned) |
+| `/api/{api_version}/server/graphql` | POST | GraphQL queries (versioned) |
+| `/api/healthz` | GET | Health check — direct alias for current `{api_version}` |
+| `/api/swagger` | GET | OpenAPI JSON spec — direct alias for current `{api_version}` |
+| `/api/graphql` | POST | GraphQL queries — direct alias for current `{api_version}` |
+
+**Note:** Swagger, GraphQL, and health endpoints follow the same `/api/{api_version}/...` versioning rule as the rest of the API. The unversioned `/api/swagger`, `/api/graphql`, and `/api/healthz` paths are direct aliases that resolve to the current `{api_version}` without redirects. The interactive UIs live under `/server/docs/swagger` and `/server/docs/graphql` (see PART 16).
+
+### Server (`/api/{api_version}/server/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/about` | GET | About information |
+| `/api/{api_version}/server/privacy` | GET | Privacy policy |
+| `/api/{api_version}/server/contact` | POST | Submit contact form |
+| `/api/{api_version}/server/help` | GET | Help content |
+
+### Public Reports Scope (`/api/{api_version}/server/reports/`)
+
+**Canonical home for browser-emitted and operator-emitted public reports. ALL public report endpoints live under this scope so the API stays organized and discoverable. Reports are append-only sinks — POSTed by browsers and clients, never queried by them.**
+
+**Path pattern:** `/api/{api_version}/server/reports/{name}` — the `{name}` segment identifies the report type. Adding a new report type means adding a new `{name}` here, NOT inventing a new top-level path.
+
+**Auth:** None (browsers cannot present credentials when emitting these reports). Rate-limited per-IP to prevent flooding. Bodies are accepted but never echoed back.
+
+**Default report types:**
+
+| Endpoint | Method | Body Content-Type | Source / Triggered by |
+|----------|--------|-------------------|----------------------|
+| `/api/{api_version}/server/reports/csp` | POST | `application/csp-report` (legacy) or `application/reports+json` | CSP violation in the browser. See PART 11 → "Content Security Policy". |
+| `/api/{api_version}/server/reports/nel` | POST | `application/reports+json` | Network Error Logging — TLS failures, DNS failures, etc. |
+| `/api/{api_version}/server/reports/deprecation` | POST | `application/reports+json` | Browser deprecation warnings (Reporting API). |
+| `/api/{api_version}/server/reports/intervention` | POST | `application/reports+json` | Browser interventions (e.g., autoplay blocked). |
+| `/api/{api_version}/server/reports/crash` | POST | `application/reports+json` | Page crash reports (Reporting API). |
+| `/api/{api_version}/server/reports/error` | POST | `application/json` | Frontend JS error reports (`window.onerror`, unhandled rejections). |
+| `/api/{api_version}/server/reports/default` | POST | `application/reports+json` | Catch-all for the `default` reporting group declared in the `Report-To` header (see PART 11). |
+
+**All endpoints:**
+
+| Behavior | Detail |
+|----------|--------|
+| Response | `204 No Content` on success, `400` on malformed body, `429` if rate-limited |
+| Logging | Each report writes one entry to `security.log` (CSP/NEL/error) or `server.log` (deprecation/intervention/crash) — see PART 11 log events |
+| Rate limit | Per-IP, configurable via `web.csp.reports_sample_rate` (CSP) and `web.reports.rate_limit_per_minute` (other types). Default 60/min/IP. |
+| Storage | Append to log only. Reports do NOT touch the application database — they are operational telemetry, not user data. |
+| Operator visibility | Admin panel `/server/{admin_path}/config/reports/*` views show recent entries with filtering by type, time range, and source IP/origin. Admin views are bearer-auth (the public POST endpoints are not). |
+
+**Authoring rule for new public reports:** if the project (or a third-party browser feature) needs to add a new public POST sink for telemetry, ALWAYS add it as `/api/{api_version}/server/reports/{new_name}` — never invent a new top-level path. This keeps the API tree predictable and the rate-limit / auth / logging policy uniform.
+
+### Sanitization Rules (apply to EVERY incoming report before logging)
+
+**Reports come from untrusted browsers. The browser-supplied fields can leak operator/user secrets if logged verbatim. Run every report through the canonical Output Sanitization Pipeline (PART 11 → "Output Sanitization Pipeline") plus the report-specific rules below before writing to any log or storage.**
+
+**Per-field sanitization:**
+
+| Field (any report type) | Rule |
+|-------------------------|------|
+| `document-uri`, `referrer`, `blocked-uri`, `source-file`, `url`, any URL-shaped field | Strip the query string entirely (keep scheme + host + path). Then run param redaction from PART 11 step 2 in case any sensitive token slipped into the path. |
+| `script-sample`, `error.message`, `body.message`, any free-text field | Truncate to 200 chars after PART 11 sanitization. |
+| `error.stack`, any stack-trace field | Strip absolute filesystem paths (regex `/[^\s:]+/`); keep only the basename. Truncate to 2 KB. |
+| User-Agent | Keep verbatim — already public information the browser sends to every site. |
+| Source IP | Hash with a daily-rotating salt before storage IF the deployment's `privacy.hash_report_ips: true` is set (default `true` in EU deployments per GDPR; `false` elsewhere). Raw IP retained only in the rate-limit ring buffer (memory only, never persisted). |
+| Any field NOT in the allow-list per the report-type schema | Dropped. (Defense in depth — browser vendors add fields over time; we don't auto-trust new ones.) |
+
+**Cross-report rules:**
+
+| Rule | Detail |
+|------|--------|
+| Allow-list per report type | `csp` accepts the W3C CSP-report fields only; `nel` accepts the NEL spec fields only; `error` accepts `{message, source, lineno, colno, stack}` only. Anything else is dropped before logging. |
+| No echo, ever | Response body is always `{"ok": true}` (or 204 No Content). NEVER reflect any field from the request body in the response. |
+| No user identifier correlation | Reports are NOT joined with any logged-in user — even if the browser was authenticated when emitting the report. They are anonymous operational telemetry. |
+| No DB writes | Reports go to log files only (`security.log` for csp/nel/error, `server.log` for the rest). They do not touch the application database. |
+| Admin views run the same sanitization | The `/server/{admin_path}/config/reports/*` admin views display the *already-sanitized* log entries. There is no "raw" view, even for admins. |
+| Sample to prevent flood | High-volume types (csp from a misbehaving extension, nel from a flaky network) are dropped above the rate limit, NEVER buffered to disk first. |
+
+**Why the no-echo / no-correlation / no-DB rules:** a malicious extension or page in another tab could trigger reports on our domain. Treating reports as "trusted because they come from our origin" is wrong — the browser is the trust boundary, and the browser's contents are attacker-controlled. By keeping reports anonymous, append-only, log-only, and never echoed, a poisoned report cannot corrupt application state, leak another user's data, or escalate.
+
+### Auth (`/api/{api_version}/server/auth/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/auth/register` | POST | Register new user |
+| `/api/{api_version}/server/auth/login` | POST | User login (returns session or 2FA challenge) |
+| `/api/{api_version}/server/auth/logout` | POST | User logout |
+| `/api/{api_version}/server/auth/2fa` | POST | Complete 2FA verification |
+| `/api/{api_version}/server/auth/passkey/challenge` | POST | Get WebAuthn challenge |
+| `/api/{api_version}/server/auth/passkey/verify` | POST | Verify WebAuthn response |
+| `/api/{api_version}/server/auth/password/forgot` | POST | Request password reset (sends email) |
+| `/api/{api_version}/server/auth/password/reset` | POST | Set new password (with token from email) |
+| `/api/{api_version}/server/auth/username/forgot` | POST | Request username reminder (sends email) |
+| `/api/{api_version}/server/auth/recovery/use` | POST | Use recovery key (2FA bypass) |
+| `/api/{api_version}/server/auth/verify` | POST | Verify email address |
+| `/api/{api_version}/server/auth/refresh` | POST | Refresh session/token |
+| `/api/{api_version}/server/auth/invite/user/{token}` | GET | Validate user invite token |
+| `/api/{api_version}/server/auth/invite/user/{token}` | POST | Complete user invite (set username, password) |
+| `/api/{api_version}/server/auth/invite/server/{token}` | GET | Validate Server Admin invite token |
+| `/api/{api_version}/server/auth/invite/server/{token}` | POST | Complete admin invite (set username, password) |
+| `/api/{api_version}/server/auth/oidc/{provider}` | GET | Get OIDC authorization URL for user/admin login |
+| `/api/{api_version}/server/auth/oidc/{provider}/callback` | POST | Exchange OIDC code for session, then apply user/admin mapping rules |
+| `/api/{api_version}/server/auth/ldap` | GET | List enabled LDAP providers and their display names for login UI/client selection |
+| `/api/{api_version}/server/auth/ldap/{provider}` | POST | LDAP authentication for the selected provider, then apply user/admin mapping rules |
+| `/api/{api_version}/server/auth/external/username` | POST | Complete external user/admin account creation after the first-login username confirmation step |
+
+### Users (`/api/{api_version}/users/`)
+
+**No ID required - app knows current user from session/token.**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/users` | GET | Current user's profile |
+| `/api/{api_version}/users` | PATCH | Update current user's profile |
+| `/api/{api_version}/users/tokens` | GET | List user's API tokens |
+| `/api/{api_version}/users/tokens` | POST | Create API token |
+| `/api/{api_version}/users/tokens/{token_id}` | GET | Get token details |
+| `/api/{api_version}/users/tokens/{token_id}` | DELETE | Revoke API token |
+| `/api/{api_version}/users/settings` | GET | Get user preferences |
+| `/api/{api_version}/users/settings` | PATCH | Update user preferences |
+| `/api/{api_version}/users/security/password` | POST | Change password |
+| `/api/{api_version}/users/security/sessions` | GET | List active sessions |
+| `/api/{api_version}/users/security/sessions/{session_id}` | DELETE | Revoke session |
+| `/api/{api_version}/users/security/2fa` | GET | Get 2FA status |
+| `/api/{api_version}/users/security/2fa/enable` | POST | Enable 2FA |
+| `/api/{api_version}/users/security/2fa/disable` | POST | Disable 2FA |
+| `/api/{api_version}/users/security/recovery` | GET | Get recovery keys status |
+| `/api/{api_version}/users/security/recovery/regenerate` | POST | Regenerate recovery keys |
+| `/api/{api_version}/users/security/passkeys` | GET | List passkeys |
+| `/api/{api_version}/users/security/passkeys` | POST | Register new passkey |
+| `/api/{api_version}/users/security/passkeys/{passkey_id}` | DELETE | Remove passkey |
+
+### Orgs (`/api/{api_version}/orgs/`)
+
+Organizations - only for projects with multi-user collaboration.
+
+**Route scoping:** All routes use org slug. Client gets own orgs from `GET /api/{api_version}/orgs`.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/orgs` | GET | Own orgs (user) or list all (admin) |
+| `/api/{api_version}/orgs` | POST | Create organization |
+| `/api/{api_version}/orgs/{slug}` | GET | Get organization details |
+| `/api/{api_version}/orgs/{slug}` | PATCH | Update organization |
+| `/api/{api_version}/orgs/{slug}` | DELETE | Delete organization |
+| `/api/{api_version}/orgs/{slug}/settings` | GET | Get org settings |
+| `/api/{api_version}/orgs/{slug}/settings` | PATCH | Update org settings |
+| `/api/{api_version}/orgs/{slug}/tokens` | GET | List org API tokens |
+| `/api/{api_version}/orgs/{slug}/tokens` | POST | Create org API token |
+| `/api/{api_version}/orgs/{slug}/tokens/{token_id}` | GET | Get token details |
+| `/api/{api_version}/orgs/{slug}/tokens/{token_id}` | DELETE | Revoke token |
+| `/api/{api_version}/orgs/{slug}/members` | GET | List members |
+| `/api/{api_version}/orgs/{slug}/members` | POST | Add member |
+| `/api/{api_version}/orgs/{slug}/members/{member_id}` | GET | Get member details |
+| `/api/{api_version}/orgs/{slug}/members/{member_id}` | PATCH | Update member role |
+| `/api/{api_version}/orgs/{slug}/members/{member_id}` | DELETE | Remove member |
+| `/api/{api_version}/orgs/{slug}/invites` | GET | List pending invites |
+| `/api/{api_version}/orgs/{slug}/invites` | POST | Create invite |
+| `/api/{api_version}/orgs/{slug}/invites/{invite_id}` | DELETE | Revoke invite |
+| `/api/{api_version}/orgs/{slug}/roles` | GET | List organization roles |
+| `/api/{api_version}/orgs/{slug}/roles` | POST | Create custom role |
+| `/api/{api_version}/orgs/{slug}/roles/{role_id}` | PATCH | Update role |
+| `/api/{api_version}/orgs/{slug}/roles/{role_id}` | DELETE | Delete role |
+| `/api/{api_version}/orgs/{slug}/security/audit` | GET | List audit events (paginated) |
+| `/api/{api_version}/orgs/{slug}/security/audit/export` | POST | Request audit export |
+| `/api/{api_version}/orgs/{slug}/security/audit/export/{export_id}` | GET | Download audit export |
+| `/api/{api_version}/orgs/{slug}/security/audit/retention` | GET | Get retention settings |
+| `/api/{api_version}/orgs/{slug}/security/audit/retention` | PATCH | Update retention (org owner only) |
+| `/api/{api_version}/orgs/{slug}/security/sessions` | GET | List org-wide sessions |
+
+### Admin - Server (`/api/{api_version}/server/{admin_path}/config/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/setup` | GET | Get setup status (is_complete, current_step) |
+| `/api/{api_version}/server/{admin_path}/config/setup/verify` | POST | Verify setup token |
+| `/api/{api_version}/server/{admin_path}/config/setup/account` | POST | Create admin account (Step 1) |
+| `/api/{api_version}/server/{admin_path}/config/setup/token` | POST | Generate API token (Step 2) |
+| `/api/{api_version}/server/{admin_path}/config/setup/config` | POST | Save server config (Step 3) |
+| `/api/{api_version}/server/{admin_path}/config/setup/security` | POST | Security settings - backup password, 2FA (Step 4) |
+| `/api/{api_version}/server/{admin_path}/config/setup/services` | POST | Configure services (Step 5) |
+| `/api/{api_version}/server/{admin_path}/config/setup/complete` | POST | Complete setup wizard (Step 6) |
+| `/api/{api_version}/server/{admin_path}/config/settings` | GET | Get server settings |
+| `/api/{api_version}/server/{admin_path}/config/settings` | PATCH | Update server settings |
+| `/api/{api_version}/server/{admin_path}/config/status` | GET | Server status (detailed, admin-only) |
+| `/api/{api_version}/server/{admin_path}/config/stats` | GET | Statistics |
+| `/api/{api_version}/server/{admin_path}/config/restart` | POST | Restart server |
+
+### Admin - Server Roles (`/api/{api_version}/server/{admin_path}/config/roles/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/roles` | GET | List roles |
+| `/api/{api_version}/server/{admin_path}/config/roles` | POST | Create role |
+| `/api/{api_version}/server/{admin_path}/config/roles/{id}` | GET | Get role details |
+| `/api/{api_version}/server/{admin_path}/config/roles/{id}` | PATCH | Update role |
+| `/api/{api_version}/server/{admin_path}/config/roles/{id}` | DELETE | Delete role |
+
+### Admin - User Invites (`/api/{api_version}/server/{admin_path}/config/users/invites/`)
+
+User registration invite codes (multi-user apps only).
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/users/invites` | GET | List user invite codes |
+| `/api/{api_version}/server/{admin_path}/config/users/invites` | POST | Create user invite code |
+| `/api/{api_version}/server/{admin_path}/config/users/invites/{id}` | GET | Get invite details |
+| `/api/{api_version}/server/{admin_path}/config/users/invites/{id}` | DELETE | Revoke invite |
+
+### Admin - Server Admins (`/api/{api_version}/server/{admin_path}/config/admins/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/admins` | GET | List Server Admins |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}` | GET | Get admin details |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}` | DELETE | Delete admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}/disable` | POST | Disable admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/{id}/enable` | POST | Enable admin |
+| `/api/{api_version}/server/{admin_path}/config/admins/invite` | POST | Generate admin invite link |
+
+### Admin - Moderation Users (`/api/{api_version}/server/{admin_path}/config/moderation/users/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/moderation/users` | GET | List all users |
+| `/api/{api_version}/server/{admin_path}/config/moderation/users/{id}` | GET | Get user details |
+| `/api/{api_version}/server/{admin_path}/config/moderation/users/{id}` | DELETE | Delete user |
+| `/api/{api_version}/server/{admin_path}/config/moderation/users/disable` | POST | Disable user |
+| `/api/{api_version}/server/{admin_path}/config/moderation/users/enable` | POST | Enable user |
+| `/api/{api_version}/server/{admin_path}/config/moderation/users/impersonate` | POST | Get impersonation token |
+
+### Admin - Moderation Orgs (`/api/{api_version}/server/{admin_path}/config/moderation/orgs/`)
+
+Moderation only - Server Admin does not manage org members/roles.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/moderation/orgs` | GET | List all organizations |
+| `/api/{api_version}/server/{admin_path}/config/moderation/orgs/{slug}` | GET | Get organization details |
+| `/api/{api_version}/server/{admin_path}/config/moderation/orgs/{slug}` | DELETE | Delete organization |
+| `/api/{api_version}/server/{admin_path}/config/moderation/orgs/{slug}/disable` | POST | Disable organization |
+| `/api/{api_version}/server/{admin_path}/config/moderation/orgs/{slug}/enable` | POST | Enable organization |
+
+### Admin - Profile (`/api/{api_version}/server/{admin_path}/{admin_username}/profile/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile` | GET | Get admin profile |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile` | PATCH | Update admin profile (username, icon) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/password` | POST | Change admin password |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/token` | GET | Get current API token (masked) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/profile/token` | POST | Regenerate API token (returns new token ONCE) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/preferences` | GET | Get admin preferences (theme, notifications) |
+| `/api/{api_version}/server/{admin_path}/{admin_username}/preferences` | PATCH | Update admin preferences |
+
+### Admin - Branding (`/api/{api_version}/server/{admin_path}/config/branding/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/branding` | GET | Get branding settings |
+| `/api/{api_version}/server/{admin_path}/config/branding` | PATCH | Update branding |
+
+### Admin - SSL (`/api/{api_version}/server/{admin_path}/config/ssl/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/ssl` | GET | Get SSL settings |
+| `/api/{api_version}/server/{admin_path}/config/ssl` | PATCH | Update SSL settings |
+| `/api/{api_version}/server/{admin_path}/config/ssl/renew` | POST | Force certificate renewal |
+
+### Admin - Tor (`/api/{api_version}/server/{admin_path}/config/tor/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/tor` | GET | Get Tor status |
+| `/api/{api_version}/server/{admin_path}/config/tor` | PATCH | Update Tor settings |
+| `/api/{api_version}/server/{admin_path}/config/tor/regenerate` | POST | Regenerate .onion address |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | GET | Get vanity generation status |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | POST | Start vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity` | DELETE | Cancel vanity generation |
+| `/api/{api_version}/server/{admin_path}/config/tor/vanity/apply` | POST | Apply vanity address |
+| `/api/{api_version}/server/{admin_path}/config/tor/import` | POST | Import external keys |
+
+### Admin - Web (robots.txt, security.txt, well-known) (`/api/{api_version}/server/{admin_path}/config/web/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/web` | GET | Get web settings |
+| `/api/{api_version}/server/{admin_path}/config/web` | PATCH | Update web settings |
+| `/api/{api_version}/server/{admin_path}/config/web/robots` | GET | Get robots.txt config |
+| `/api/{api_version}/server/{admin_path}/config/web/robots` | PATCH | Update robots.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/robots/preview` | GET | Preview robots.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/security` | GET | Get security.txt config |
+| `/api/{api_version}/server/{admin_path}/config/web/security` | PATCH | Update security.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/security/preview` | GET | Preview security.txt |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known` | GET | Get well-known namespace settings and supported entries |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known` | PATCH | Update optional well-known entry settings |
+| `/api/{api_version}/server/{admin_path}/config/web/well-known/preview/{name}` | GET | Preview the exact rendered body for one well-known entry |
+
+**`/api/{api_version}/server/{admin_path}/config/web` includes `server.healthz.root.enabled` and well-known namespace status in its settings payload.**
+
+### Admin - Pages (`/api/{api_version}/server/{admin_path}/config/pages/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/pages` | GET | Get all page settings |
+| `/api/{api_version}/server/{admin_path}/config/pages/about` | GET | Get about page content |
+| `/api/{api_version}/server/{admin_path}/config/pages/about` | PATCH | Update about page content |
+| `/api/{api_version}/server/{admin_path}/config/pages/privacy` | GET | Get privacy policy content |
+| `/api/{api_version}/server/{admin_path}/config/pages/privacy` | PATCH | Update privacy policy content |
+| `/api/{api_version}/server/{admin_path}/config/pages/contact` | GET | Get contact page settings |
+| `/api/{api_version}/server/{admin_path}/config/pages/contact` | PATCH | Update contact page settings |
+| `/api/{api_version}/server/{admin_path}/config/pages/help` | GET | Get help page content |
+| `/api/{api_version}/server/{admin_path}/config/pages/help` | PATCH | Update help page content |
+
+### Admin - Email (`/api/{api_version}/server/{admin_path}/config/email/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/email` | GET | Get email settings |
+| `/api/{api_version}/server/{admin_path}/config/email` | PATCH | Update email settings |
+| `/api/{api_version}/server/{admin_path}/config/email/test` | POST | Send test email |
+| `/api/{api_version}/server/{admin_path}/config/email/templates` | GET | List email templates |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}` | GET | Get template |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}` | PUT | Update template |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}/reset` | POST | Reset to default |
+| `/api/{api_version}/server/{admin_path}/config/email/templates/{name}/preview` | POST | Preview template |
+
+### Admin - Scheduler (`/api/{api_version}/server/{admin_path}/config/scheduler/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/scheduler` | GET | List scheduled tasks |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | GET | Get task details |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}` | PATCH | Update task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/run` | POST | Run task now |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/enable` | POST | Enable task |
+| `/api/{api_version}/server/{admin_path}/config/scheduler/{id}/disable` | POST | Disable task |
+
+### Admin - Backup (`/api/{api_version}/server/{admin_path}/config/backup/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/backup` | GET | List backups |
+| `/api/{api_version}/server/{admin_path}/config/backup` | POST | Create backup |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}` | GET | Get backup details |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}` | DELETE | Delete backup |
+| `/api/{api_version}/server/{admin_path}/config/backup/{id}/download` | GET | Download backup file |
+| `/api/{api_version}/server/{admin_path}/config/backup/restore` | POST | Restore from backup |
+
+### Admin - Logs (`/api/{api_version}/server/{admin_path}/config/logs/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/logs` | GET | List log files |
+| `/api/{api_version}/server/{admin_path}/config/logs/{type}` | GET | Get log entries |
+| `/api/{api_version}/server/{admin_path}/config/logs/{type}/download` | GET | Download log file |
+
+## Email Templates (User-Related)
+
+| Template | Purpose |
+|----------|---------|
+| `user_welcome` | Welcome email after registration |
+| `user_verify_email` | Email verification link |
+| `user_password_reset` | Password reset link |
+| `user_password_changed` | Confirmation of password change |
+| `user_2fa_enabled` | Confirmation of 2FA enabled |
+| `user_new_login` | Alert for login from new device/location |
+| `user_invite` | Invitation email |
+| `user_account_disabled` | Account has been disabled |
+
+## Database Architecture
+
+**Applications use TWO separate SQLite databases by default.**
+
+### Database Files
+
+| Database | File | Purpose |
+|----------|------|---------|
+| **Server DB** | `{data_dir}/db/server.db` | Admin credentials, server state, scheduler |
+| **Users DB** | `{data_dir}/db/users.db` | User accounts, tokens, sessions (multi-user mode) |
+
+### Why Two Databases?
+
+| Reason | Description |
+|--------|-------------|
+| **Isolation** | Admin credentials separate from user data |
+| **Security** | Compromised user DB doesn't expose admin |
+| **Backup** | Can backup/restore independently |
+| **Logical separation** | Server config vs user data |
+
+### Database Modes
+
+| Mode | Server DB | Users DB | Use Case |
+|------|-----------|----------|----------|
+| **Single Instance** | Local SQLite | Local SQLite | Default, simple deployment |
+| **Cluster** | Remote (shared) | Remote (shared) | Multi-node, load distribution |
+| **Mixed Mode** | Any supported | Any supported | Heterogeneous backend infrastructure |
+
+#### Clustering vs High Availability (IMPORTANT TERMINOLOGY)
+
+**These are NOT interchangeable terms.**
+
+| Term | Meaning |
+|------|---------|
+| **Clustering** | Multiple application nodes sharing state via a common database and Valkey/Redis. Enables horizontal scaling and load distribution. All nodes are equal peers. |
+| **High Availability (HA)** | Fault tolerance for the database backend itself (e.g., PostgreSQL replication, Galera for MariaDB). This is OUTSIDE the application's scope. |
+
+**The application provides clustering (multi-node). Database HA is your infrastructure's responsibility.**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      APPLICATION LAYER                          │
+│                                                                 │
+│   ┌─────────┐     ┌─────────┐     ┌─────────┐                 │
+│   │ Node 1  │     │ Node 2  │     │ Node 3  │  ← Clustering   │
+│   └────┬────┘     └────┬────┘     └────┬────┘                 │
+│        │               │               │                       │
+│        └───────────────┼───────────────┘                       │
+│                        │                                        │
+│              ┌─────────▼─────────┐                             │
+│              │  Valkey/Redis     │  ← Cluster coordination     │
+│              └─────────┬─────────┘                             │
+│                        │                                        │
+└────────────────────────┼────────────────────────────────────────┘
+                         │
+┌────────────────────────┼────────────────────────────────────────┐
+│                        ▼              INFRASTRUCTURE LAYER      │
+│              ┌───────────────────┐                              │
+│              │ Database Backend  │  ← HA is YOUR responsibility│
+│              │ (PostgreSQL/MySQL)│                              │
+│              └───────────────────┘                              │
+│                                                                 │
+│   Examples of HA (not our concern):                            │
+│   - PostgreSQL: Patroni, pgpool, streaming replication          │
+│   - MySQL/MariaDB: Galera Cluster, Group Replication           │
+│   - Managed: AWS RDS Multi-AZ, CloudSQL HA                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Single Instance (Default)
+
+Both databases are local SQLite files:
+
+```yaml
+server:
+  database:
+    driver: sqlite
+    # Both databases stored locally
+    # {data_dir}/db/server.db
+    # {data_dir}/db/users.db
+```
+
+### Cluster Mode (Remote Database)
+
+**When clustering, BOTH databases MUST use the same remote database.**
+
+All nodes need shared access to:
+- Admin credentials (same login works on any node)
+- Server settings (consistent configuration)
+- User accounts (users can access any node)
+- Sessions (no re-login when switching nodes)
+- API tokens (tokens work on any node)
+
+**Two ways to configure connection (pick one):**
+
+| Method | When to Use |
+|--------|-------------|
+| `url` | Simple, single connection string, environment-friendly |
+| `host`/`port`/etc | More explicit, when fields come from different sources |
+
+**Using connection URL:**
+```yaml
+server:
+  database:
+    driver: postgres
+    url: ${DATABASE_URL}  # postgres://user:pass@host:5432/dbname?sslmode=require
+```
+
+**Using individual fields:**
+```yaml
+server:
+  database:
+    driver: postgres
+    host: db.example.com
+    port: 5432
+    name: myapp
+    username: myapp
+    password: ${DB_PASSWORD}
+    sslmode: require
+
+    # Connection pool
+    max_open: 25
+    max_idle: 5
+    max_lifetime: 5m
+```
+
+**URL Format:**
+```
+postgres://[username[:password]@]host[:port]/database[?sslmode=mode]
+mysql://[username[:password]@]host[:port]/database[?params]
+```
+
+**Note:** `url` takes precedence if both url and individual fields are specified.
+
+```yaml
+# All tables go in same database with prefixes:
+# - srv_* tables (config, admin_sessions, rate_limits, audit_log, scheduler_*, backups)
+# - usr_* tables (admins, users, api_keys, password_resets, email_verifications, totp_secrets, passkeys, trusted_devices, user_sessions)
+```
+
+### Table Prefixes in Shared Database
+
+| Prefix | Tables |
+|--------|--------|
+| `srv_` | `srv_config`, `srv_config_meta`, `srv_admin_sessions`, `srv_rate_limits`, `srv_audit_log`, `srv_scheduler_tasks`, `srv_scheduler_history`, `srv_backups` |
+| `usr_` | `usr_admins`, `usr_users`, `usr_api_keys`, `usr_password_resets`, `usr_email_verifications`, `usr_totp_secrets`, `usr_passkeys`, `usr_trusted_devices`, `usr_user_sessions` |
+
+### Cluster Requirements
+
+| Requirement | Description |
+|-------------|-------------|
+| **Shared database** | All nodes connect to same PostgreSQL/MySQL |
+| **Same credentials** | Admin can log into any node |
+| **Session sharing** | User sessions valid across all nodes |
+| **Token validation** | API tokens work on any node |
+| **Config sync** | Settings changes propagate to all nodes |
+
+### Cluster Initialization
+
+**The FIRST node is the source of truth. Subsequent nodes inherit from the remote database.**
+
+#### First Node (Primary Setup)
+
+```
+1. Deploy first node
+         │
+         ▼
+2. First run creates local SQLite databases
+   - Admin credentials auto-generated
+   - Server settings initialized
+         │
+         ▼
+3. Configure application via admin panel
+   - Set branding, SSL, etc.
+   - Create users (if multi-user mode)
+         │
+         ▼
+4. Ready to migrate to cluster?
+         │
+         ▼
+5. Setup remote database (PostgreSQL/MySQL)
+         │
+         ▼
+6. Update config: driver: postgres (or use WebUI)
+         │
+         ▼
+7. Restart - app auto-migrates local data to remote
+         │
+         ▼
+8. Now using remote DB
+   (First node is source of truth)
+```
+
+#### Additional Nodes (Inherit from Remote)
+
+```
+1. Deploy new node
+         │
+         ▼
+2. Configure with SAME remote database connection
+   driver: postgres
+   host: db.example.com (same as first node)
+         │
+         ▼
+3. First run detects existing data in remote DB
+         │
+         ▼
+4. SKIP initialization - inherit everything:
+   - Admin credentials (same login)
+   - Server settings (same config)
+   - Users (same accounts)
+   - Sessions (shared)
+         │
+         ▼
+5. Node joins cluster automatically
+```
+
+#### Node Behavior
+
+| Scenario | Behavior |
+|----------|----------|
+| **First node + SQLite** | Create admin, init settings |
+| **First node + empty remote DB** | Create admin, init settings (becomes source of truth) |
+| **New node + remote DB with data** | Skip init, inherit everything from DB |
+| **Any node + settings change** | Write to DB, all nodes see change |
+
+#### Migration Methods
+
+**Migration to remote database is done via config file OR admin WebUI - NO CLI commands.**
+
+**Method 1: Config File**
+
+```yaml
+# server.yml - change driver and add connection details
+server:
+  database:
+    driver: postgres
+    host: db.example.com
+    port: 5432
+    name: myapp
+    username: myapp
+    password: ${DB_PASSWORD}
+    sslmode: require
+```
+
+On restart, the application:
+1. Detects driver change from `sqlite` to `postgres`
+2. Connects to remote database
+3. If empty: migrates local SQLite data automatically
+4. If has data: uses existing data (node joins cluster)
+
+**Method 2: Admin WebUI**
+
+`/server/{admin_path}/config/database`
+
+| Element | Type | Description |
+|---------|------|-------------|
+| Current Driver | Read-only | Shows current database driver |
+| Driver | Dropdown | sqlite, postgres, mysql |
+| Host | Text input | Database host (shown when not sqlite) |
+| Port | Number input | Database port |
+| Database Name | Text input | Database name |
+| Username | Text input | Database username |
+| Password | Password input | Database password |
+| SSL Mode | Dropdown | disable, require, verify-full |
+| Test Connection | Button | Verify connection before saving |
+| Migrate & Switch | Button | Migrate data and switch to remote |
+
+**Migration Process (automatic on driver change):**
+
+```
+1. Test connection to remote database
+         │
+         ▼
+2. If remote DB empty:
+   - Create tables
+   - Export local SQLite data
+   - Import to remote
+         │
+         ▼
+3. If remote DB has data:
+   - Verify schema compatibility
+   - Skip migration (join existing cluster)
+         │
+         ▼
+4. Switch to remote driver
+         │
+         ▼
+5. Local SQLite files preserved as backup
+```
+
+### Storage Backend Switching (Automatic)
+
+**Switching between SQLite and Remote databases is AUTOMATIC.**
+
+| Transition | Method | What Happens |
+|------------|--------|--------------|
+| **SQLite → Remote** | Change config, restart | Auto-migrates SQLite data to remote DB |
+| **Remote → SQLite** | Change config, restart | Auto-exports remote data to SQLite files |
+
+**How it works:**
+1. Change `database.driver` in config (or via WebUI)
+2. Restart the application
+3. Application detects driver change
+4. If target is empty: auto-migrates data from source
+5. If target has data: joins existing data (cluster mode)
+6. Source preserved as backup
+
+**Note:** Backup/restore (`--maintenance backup/restore`) is for **disaster recovery**, not storage transitions. Backup archives everything (config, databases, templates) for full server recovery. See PART 22: BACKUP & RESTORE.
+
+#### Remote → SQLite (Downgrade to Local)
+
+When switching from remote database back to local SQLite:
+
+```
+1. User selects "Switch to SQLite" in WebUI
+         │
+         ▼
+2. Export ALL data from remote database
+         │
+         ▼
+3. Create/update local SQLite files:
+   - {data_dir}/db/server.db
+   - {data_dir}/db/users.db
+         │
+         ▼
+4. Import remote data to SQLite
+         │
+         ▼
+5. Verify data integrity (row counts match)
+         │
+         ▼
+6. Disconnect from remote database
+         │
+         ▼
+7. Update config: driver: sqlite
+         │
+         ▼
+8. Now using local SQLite (standalone mode)
+```
+
+**Use case:** Converting cluster node back to standalone instance.
+
+#### SQLite ↔ YAML Sync
+
+Settings can be stored in database OR config file. Sync between them:
+
+**SQLite → YAML (Export settings to file):**
+
+```
+Admin WebUI: /server/{admin_path}/config/settings → "Export to YAML"
+         │
+         ▼
+Read all settings from server.db
+         │
+         ▼
+Write to server.yml (preserves comments, formatting)
+         │
+         ▼
+Settings now in both DB and YAML (DB is source of truth)
+```
+
+**YAML → SQLite (Import settings from file):**
+
+```
+On startup: YAML file detected with changes
+         │
+         ▼
+Read settings from server.yml
+         │
+         ▼
+Import to server.db (overwrites DB values)
+         │
+         ▼
+DB is now source of truth
+```
+
+#### Sync Priority (Source of Truth)
+
+| Mode | Source of Truth | Behavior |
+|------|-----------------|----------|
+| **Running** | Database | DB values used, YAML ignored |
+| **Startup (YAML changed)** | YAML | YAML imported to DB, then DB is source |
+| **Startup (YAML unchanged)** | Database | DB values used |
+| **Cluster** | Remote Database | All nodes read from shared DB |
+
+### Mixed Mode (Heterogeneous Database Backends)
+
+**Mixed Mode allows different nodes in a cluster to connect to different database backends.**
+
+This is useful when:
+- Migrating from one database to another (e.g., MySQL → PostgreSQL)
+- Geographic distribution with local database preferences
+- Testing new database backend before full migration
+
+#### Mixed Mode Configuration
+
+Each node specifies its own database connection:
+
+**Node 1 (PostgreSQL):**
+```yaml
+server:
+  database:
+    driver: postgres
+    host: pg.us-east.example.com
+    port: 5432
+    name: myapp
+    username: myapp
+    password: ${DB_PASSWORD}
+```
+
+**Node 2 (MariaDB):**
+```yaml
+server:
+  database:
+    driver: mysql
+    host: maria.eu-west.example.com
+    port: 3306
+    name: myapp
+    username: myapp
+    password: ${DB_PASSWORD}
+```
+
+**Node 3 (PostgreSQL - different server):**
+```yaml
+server:
+  database:
+    driver: postgres
+    host: pg.ap-south.example.com
+    port: 5432
+    name: myapp
+    username: myapp
+    password: ${DB_PASSWORD}
+```
+
+#### Mixed Mode Requirements
+
+| Requirement | Description |
+|-------------|-------------|
+| **Valkey/Redis REQUIRED** | State synchronization between heterogeneous backends |
+| **Schema compatibility** | All databases MUST have identical schema |
+| **Data sync** | Application handles cross-database replication via Valkey |
+| **Same schema version** | All nodes must run same application version |
+
+#### Mixed Mode Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        CLUSTER NODES                                │
+│                                                                     │
+│  ┌──────────┐        ┌──────────┐        ┌──────────┐             │
+│  │  Node 1  │        │  Node 2  │        │  Node 3  │             │
+│  │ (US-East)│        │ (EU-West)│        │(AP-South)│             │
+│  └────┬─────┘        └────┬─────┘        └────┬─────┘             │
+│       │                   │                   │                    │
+│       └───────────────────┼───────────────────┘                    │
+│                           │                                         │
+│                  ┌────────▼────────┐                               │
+│                  │  Valkey/Redis   │  ← Sync layer (REQUIRED)      │
+│                  │    Cluster      │                               │
+│                  └────────┬────────┘                               │
+│                           │                                         │
+└───────────────────────────┼─────────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+        ▼                   ▼                   ▼
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  PostgreSQL  │   │   MariaDB    │   │  PostgreSQL  │
+│  (US-East)   │   │  (EU-West)   │   │  (AP-South)  │
+└──────────────┘   └──────────────┘   └──────────────┘
+```
+
+#### Mixed Mode Sync via Valkey
+
+**All state changes are broadcast through Valkey/Redis:**
+
+```
+Node 1 writes user record
+         │
+         ▼
+Local PostgreSQL INSERT
+         │
+         ▼
+Publish to Valkey: "user.created" + payload
+         │
+         ├──────────────────────────────────────┐
+         │                                      │
+         ▼                                      ▼
+Node 2 receives                          Node 3 receives
+         │                                      │
+         ▼                                      ▼
+Local MariaDB INSERT                     Local PostgreSQL INSERT
+```
+
+**The application handles:**
+- Publishing changes to Valkey after local writes
+- Subscribing to changes from other nodes
+- Applying remote changes to local database
+- Conflict resolution (last-write-wins by timestamp)
+
+### Node Management
+
+**Simple node management via admin WebUI. No CLI commands, no manual config.**
+
+#### Adding a Node
+
+**On existing node:**
+
+1. Go to `/server/{admin_path}/config/nodes/add`
+2. Click "Generate Token" button
+3. Server generates:
+   - Token: `node_{random_32_chars}`
+   - URL: `{proto}://{fqdn}` (of this node)
+4. Display token and URL to admin (copy buttons)
+
+**On new server:**
+
+1. Go to `/server/{admin_path}/config/nodes/add`
+2. Enter:
+   - URL from existing node
+   - Token from existing node
+3. Click "Join Cluster"
+4. New node automatically:
+   - Connects to existing node
+   - Gets database connection details
+   - Gets all configuration
+   - Joins cluster
+
+```
+Existing Node                          New Node
+     │                                      │
+     ▼                                      │
+/server/{admin_path}/config/nodes/add               │
+     │                                      │
+     ▼                                      │
+Generate Token                              │
+  → node_abc123...                          │
+  → https://node1.example.com               │
+     │                                      │
+     └──────── Share token + URL ──────────►│
+                                            │
+                                            ▼
+                                   /server/{admin_path}/config/nodes/add
+                                            │
+                                            ▼
+                                   Enter URL + Token
+                                            │
+                                            ▼
+                                   Click "Join Cluster"
+                                            │
+                                            ▼
+                                   Auto-configured!
+```
+
+#### Join Cluster Flow (Technical)
+
+**Step-by-step process when new node joins cluster:**
+
+```
+NEW NODE                                    EXISTING NODE
+    │                                            │
+    │  1. POST /api/{api_version}/server/{admin_path}/config/nodes/join   │
+    │     Body: { "token": "node_xxx" }          │
+    │─────────────────────────────────────────►  │
+    │                                            │
+    │                                            ▼
+    │                                   2. Validate token:
+    │                                      - Token exists?
+    │                                      - Not expired (15 min)?
+    │                                      - Not already used?
+    │                                      - Not in 90-day lockout?
+    │                                            │
+    │                                            ▼
+    │                                   3. Mark token as used
+    │                                            │
+    │  4. Response: cluster bootstrap data       │
+    │  ◄─────────────────────────────────────────│
+    │                                            │
+    ▼                                            │
+5. Receive bootstrap data:                       │
+   - Database connection (encrypted)             │
+   - Encryption key for secrets                  │
+   - Cluster ID                                  │
+    │                                            │
+    ▼                                            │
+6. Connect to remote database                    │
+    │                                            │
+    ▼                                            │
+7. Read all configuration from database          │
+   - Server settings                             │
+   - Branding/SEO                                │
+   - SSL settings                                │
+   - All other config                            │
+    │                                            │
+    ▼                                            │
+8. Register self in nodes table                  │
+   - node_id: {hostname}                         │
+   - status: online                              │
+   - joined_at: now()                            │
+    │                                            │
+    ▼                                            │
+9. Write minimal server.yml                      │
+   - Database connection only                    │
+    │                                            │
+    ▼                                            │
+10. Start heartbeat                              │
+    │                                            │
+    ▼                                            │
+11. Node is now part of cluster                  │
+```
+
+#### Bootstrap Data Structure
+
+**Response from existing node (`POST /api/{api_version}/server/{admin_path}/config/nodes/join`):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "cluster": {
+      "id": "cluster_abc123",
+      "name": "MyApp Cluster"
+    },
+    "database": {
+      "driver": "postgres",
+      "host": "db.example.com",
+      "port": 5432,
+      "name": "myapp",
+      "username": "myapp",
+      "password_encrypted": "base64_encrypted_password",
+      "sslmode": "require"
+    },
+    "encryption": {
+      "key_encrypted": "base64_encrypted_key"
+    },
+    "node": {
+      "suggested_id": "server-2"
+    }
+  }
+}
+```
+
+#### Security: Encrypted Transfer
+
+**Sensitive data is encrypted during transfer using token-derived key:**
+
+```go
+// Token is used to derive encryption key for bootstrap data
+func deriveKeyFromToken(token string) []byte {
+    // Use Argon2id to derive encryption key from token
+    salt := sha256.Sum256([]byte("cluster_join_" + token))
+    return argon2.IDKey([]byte(token), salt[:16], 3, 64*1024, 4, 32)
+}
+
+// Existing node encrypts sensitive data
+func encryptBootstrapData(data []byte, token string) []byte {
+    key := deriveKeyFromToken(token)
+    // AES-256-GCM encryption
+    return aesGcmEncrypt(data, key)
+}
+
+// New node decrypts using same token
+func decryptBootstrapData(encrypted []byte, token string) []byte {
+    key := deriveKeyFromToken(token)
+    return aesGcmDecrypt(encrypted, key)
+}
+```
+
+**What's encrypted:**
+- Database password
+- Encryption key for secrets (TOTP secrets, etc.)
+
+**What's NOT encrypted (not sensitive):**
+- Database host/port/name
+- Cluster ID
+- Node suggestions
+
+#### Database Tables for Clustering
+
+**Nodes Table (in remote database):**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | String | Node ID (default: hostname) |
+| `hostname` | String | Server hostname |
+| `ip_address` | String | Node IP address |
+| `version` | String | Application version |
+| `status` | String | online, offline, degraded |
+| `last_heartbeat` | Timestamp | Last heartbeat time |
+| `joined_at` | Timestamp | When node joined cluster |
+| `system_info` | JSON | CPU, memory, disk stats |
+
+**Join Tokens Table (in remote database):**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `token_hash` | String | SHA-256 hash of token |
+| `created_by` | String | Node ID that created token |
+| `created_at` | Timestamp | Creation time |
+| `expires_at` | Timestamp | Expiration (created_at + 15 min) |
+| `used_at` | Timestamp | When token was used (NULL if unused) |
+| `used_by` | String | Node ID that used token |
+| `lockout_until` | Timestamp | Cannot reuse until (used_at + 90 days) |
+
+#### Heartbeat
+
+**Nodes send heartbeat every 30 seconds:**
+
+```go
+func startHeartbeat(ctx context.Context, db *sql.DB, nodeID string) {
+    ticker := time.NewTicker(30 * time.Second)
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case <-ticker.C:
+            updateHeartbeat(db, nodeID)
+        }
+    }
+}
+
+func updateHeartbeat(db *sql.DB, nodeID string) {
+    db.Exec(`
+        UPDATE nodes
+        SET last_heartbeat = NOW(),
+            status = 'online',
+            system_info = $1
+        WHERE id = $2
+    `, getSystemInfo(), nodeID)
+}
+```
+
+**Node status determination:**
+
+| Last Heartbeat | Status |
+|----------------|--------|
+| < 1 minute ago | online |
+| 1-5 minutes ago | degraded |
+| > 5 minutes ago | offline |
+
+#### Error Handling
+
+| Error | Response | Action |
+|-------|----------|--------|
+| Invalid token | 401 Unauthorized | Show error, ask to retry |
+| Token expired | 401 Token Expired | Generate new token on existing node |
+| Token already used | 401 Token Already Used | Generate new token |
+| Token in lockout | 401 Token Locked | Wait 90 days or generate new token |
+| Database connection failed | 500 Database Error | Show error, check DB settings |
+| Network error | Connection Failed | Retry with backoff |
+
+#### Token Rules
+
+| Rule | Value |
+|------|-------|
+| Format | `node_{random_32_chars}` |
+| Valid for | 15 minutes |
+| Usage | One-time only |
+| Reuse lockout | 90 days (prevents replay attacks) |
+
+#### Removing a Node
+
+**A node can only remove ITSELF from the cluster.**
+
+1. Go to `/server/{admin_path}/config/nodes/remove` (on the node to remove)
+2. Click "Remove from Cluster"
+3. Confirmation modal: "Are you sure you want to remove {nodename} from the cluster?"
+   - [Yes, Remove] [Cancel]
+4. On confirmation:
+   - Node disconnects from cluster
+   - Node reverts to standalone mode (local SQLite)
+   - Node creates fresh local databases
+   - Other nodes see removal, adjust node count
+
+**Cannot remove other nodes** - prevents accidental/malicious removal.
+
+#### Viewing Nodes
+
+**`/server/{admin_path}/config/nodes`** - Node list
+
+| Column | Description |
+|--------|-------------|
+| Node Name | Hostname (clickable link) |
+| Status | online, offline, degraded |
+| Uptime | Time since last restart |
+| Version | Application version |
+| Last Seen | Last heartbeat time |
+
+**`/server/{admin_path}/config/nodes/{node}`** - Node detail
+
+| Section | Contents |
+|---------|----------|
+| **Info** | Node name, hostname, IP, version, uptime |
+| **Status** | Connection status, last heartbeat |
+| **System** | CPU usage, memory usage, disk usage |
+| **Database** | Connection status, query latency |
+| **Tor** | Hidden service status, .onion address |
+
+#### Node Identity
+
+| Setting | Default | Changeable |
+|---------|---------|------------|
+| Node ID | `{hostname}` | Yes, via `/server/{admin_path}/config/nodes/settings` |
+| Display Name | `{hostname}` | Yes |
+
+#### First Node Behavior
+
+**Generating the first token automatically converts to cluster mode.**
+
+```
+Single Instance (SQLite)
+         │
+         ▼
+Admin goes to /server/{admin_path}/config/nodes/add
+         │
+         ▼
+Clicks "Generate Token"
+         │
+         ▼
+Wizard prompts: "Enable cluster mode?"
+  - Requires remote database connection
+  - Enter PostgreSQL/MySQL details
+         │
+         ▼
+On confirm:
+  - Migrates local data to remote DB
+  - Generates join token
+  - Node is now cluster-ready
+```
+
+#### Admin Panel Routes
+
+| Route | Description |
+|-------|-------------|
+| `/server/{admin_path}/config/nodes` | List all nodes |
+| `/server/{admin_path}/config/nodes/add` | Add node (generate token OR join) |
+| `/server/{admin_path}/config/nodes/remove` | Remove THIS node from cluster |
+| `/server/{admin_path}/config/nodes/settings` | Node identity settings |
+| `/server/{admin_path}/config/nodes/{node}` | View specific node details |
+
+#### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/nodes` | GET | List all nodes |
+| `/api/{api_version}/server/{admin_path}/config/nodes/token` | POST | Generate join token |
+| `/api/{api_version}/server/{admin_path}/config/nodes/join` | POST | Join cluster with token |
+| `/api/{api_version}/server/{admin_path}/config/nodes/leave` | POST | Remove this node from cluster |
+| `/api/{api_version}/server/{admin_path}/config/nodes/{node}` | GET | Get node details |
+| `/api/{api_version}/server/{admin_path}/config/nodes/settings` | GET | Get node identity settings |
+| `/api/{api_version}/server/{admin_path}/config/nodes/settings` | PATCH | Update node identity |
+
+### Supported Remote Databases
+
+| Database | Driver | Pure Go | Notes |
+|----------|--------|---------|-------|
+| PostgreSQL | `github.com/jackc/pgx/v5` | YES | Recommended for production |
+| MySQL/MariaDB | `github.com/go-sql-driver/mysql` | YES | Widely supported |
+| SQLite | `modernc.org/sqlite` | YES | Single instance only |
+
+### Schema Migration
+
+When using remote database, the same tables are created but with appropriate types:
+
+| SQLite Type | PostgreSQL Type | MySQL Type |
+|-------------|-----------------|------------|
+| TEXT | TEXT | VARCHAR(255) / TEXT |
+| INTEGER | INTEGER / BIGINT | INT / BIGINT |
+| BOOLEAN | BOOLEAN | TINYINT(1) |
+| TIMESTAMP | TIMESTAMPTZ | DATETIME |
+| UUID | UUID | CHAR(36) |
+| JSON | JSONB | JSON |
+
+## Database Schema
+
+### Server Database Tables (server.db)
+
+#### Admin Credentials Table
+
+**Stores Server Admin credentials - NEVER in config file.**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key (always 1 - single admin) |
+| `username` | String | Admin username |
+| `email` | String | Admin email |
+| `password_hash` | String | Argon2id hash (PHC format) |
+| `token_hash` | String | SHA-256 hash of API token |
+| `token_prefix` | String | First 8 chars of token (for identification) |
+| `totp_secret` | String | 2FA secret (encrypted, optional) |
+| `totp_enabled` | Boolean | 2FA enabled |
+| `created_at` | Timestamp | Account creation |
+| `updated_at` | Timestamp | Last update |
+| `last_login_at` | Timestamp | Last login |
+
+**Notes:**
+- Only ONE row ever exists (id=1)
+- Created via setup wizard on first run
+- Setup token displayed in console ONCE, used to access `/server/{admin_path}/config/setup`
+- Admin password and API token created during setup wizard (user must copy)
+
+#### Admin Sessions Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `token_hash` | String | SHA-256 hash of session token |
+| `ip_address` | String | Client IP |
+| `user_agent` | String | Browser/client info |
+| `location` | String | GeoIP location |
+| `expires_at` | Timestamp | Session expiry |
+| `created_at` | Timestamp | Session start |
+
+#### Scheduler State Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `task_id` | String | Unique task identifier |
+| `last_run` | Timestamp | Last execution time |
+| `next_run` | Timestamp | Next scheduled time |
+| `last_result` | String | success/failure |
+| `last_error` | Text | Error message if failed |
+| `run_count` | Integer | Total runs |
+| `enabled` | Boolean | Task enabled |
+
+### Users Database Tables (users.db)
+
+#### Users Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `email` | String | Unique, required |
+| `password_hash` | String | Argon2id hash (PHC format) |
+| `display_name` | String | Optional |
+| `avatar_url` | String | Optional |
+| `bio` | Text | Optional |
+| `role` | String | User role |
+| `email_verified` | Boolean | Email verified status |
+| `approved` | Boolean | Admin approved (if required) |
+| `disabled` | Boolean | Account disabled |
+| `totp_secret` | String | 2FA secret (encrypted) |
+| `totp_enabled` | Boolean | 2FA enabled |
+| `timezone` | String | User timezone |
+| `language` | String | User language |
+| `created_at` | Timestamp | Account creation |
+| `updated_at` | Timestamp | Last update |
+| `last_login_at` | Timestamp | Last login |
+
+#### User Tokens Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | Foreign key to users |
+| `name` | String | User-defined label |
+| `token_hash` | String | SHA-256 hash of API token |
+| `token_prefix` | String | First 8 chars (for identification) |
+| `scopes` | JSON | Optional permission scopes |
+| `expires_at` | Timestamp | Optional expiration |
+| `last_used_at` | Timestamp | Last usage |
+| `created_at` | Timestamp | Creation time |
+
+#### User Sessions Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | Foreign key to users |
+| `token_hash` | String | SHA-256 hash of session token |
+| `ip_address` | String | Client IP |
+| `user_agent` | String | Browser/client info |
+| `location` | String | GeoIP location |
+| `expires_at` | Timestamp | Session expiry |
+| `created_at` | Timestamp | Session start |
+
+#### Invites Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `code` | String | Unique invite code |
+| `role` | String | Role for invited users |
+| `max_uses` | Integer | Maximum uses (0 = unlimited) |
+| `use_count` | Integer | Current use count |
+| `expires_at` | Timestamp | Expiration |
+| `created_by` | UUID | Admin who created |
+| `created_at` | Timestamp | Creation time |
+
+## Public User Profiles & Vanity URLs (OPTIONAL)
+
+**For apps with public user profiles, support vanity URLs at root level.**
+
+This is OPTIONAL and only applies when user profiles should be publicly accessible (social platforms, code hosting, link aggregators, portfolios, etc.).
+
+### Vanity URL Routing
+
+| URL Pattern | Maps To | API Endpoint |
+|-------------|---------|--------------|
+| `/{username}` | User public profile | `GET /api/{api_version}/users/{username}` |
+| `/{username}/{resource}` | User's resource | `GET /api/{api_version}/users/{username}/{resource}` |
+| `/{username}/{resource}/{item}` | Specific item | `GET /api/{api_version}/users/{username}/{resource}/{item}` |
+
+**Examples by App Type:**
+
+| App Type | `/{username}` Shows | Sub-routes |
+|----------|---------------------|------------|
+| **Linktree clone** | User's link page | `/{user}/analytics` |
+| **GitHub clone** | User profile + repos | `/{user}/{repo}`, `/{user}/{repo}/issues` |
+| **Twitter clone** | User timeline | `/{user}/status/{id}`, `/{user}/followers` |
+| **Portfolio** | User portfolio | `/{user}/projects/{project}` |
+
+### Public User API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `GET /api/{api_version}/users/{username}` | GET | None | Public profile (filtered fields) |
+| `GET /api/{api_version}/users/{username}/repos` | GET | None | User's public repositories |
+| `GET /api/{api_version}/users/{username}/followers` | GET | None | User's followers |
+| `GET /api/{api_version}/users/{username}/following` | GET | None | Users they follow |
+
+### Public vs Private Profile Fields
+
+| Field | Public | Private (self only) |
+|-------|--------|---------------------|
+| `username` | ✓ | ✓ |
+| `display_name` | ✓ | ✓ |
+| `bio` | ✓ | ✓ |
+| `avatar_url` | ✓ | ✓ |
+| `website` | ✓ | ✓ |
+| `location` | ✓ (if enabled) | ✓ |
+| `created_at` | ✓ | ✓ |
+| `email` | ✗ | ✓ |
+| `email_verified` | ✗ | ✓ |
+| `2fa_enabled` | ✗ | ✓ |
+| `last_login` | ✗ | ✓ |
+
+### Username Validation
+
+```go
+// Username rules:
+// - 2-39 characters
+// - Lowercase alphanumeric and hyphens only
+// - Must start and end with alphanumeric
+// - No consecutive hyphens
+// - Not in reserved names list
+
+var usernameRegex = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
+
+func ValidateUsername(username string) error {
+    if len(username) < 2 || len(username) > 39 {
+        return errors.New("username must be 2-39 characters")
+    }
+    if !usernameRegex.MatchString(username) {
+        return errors.New("username must be lowercase alphanumeric with hyphens")
+    }
+    if strings.Contains(username, "--") {
+        return errors.New("username cannot contain consecutive hyphens")
+    }
+    // Use shared namespace check (reserved + user + org collision)
+    if err := CheckNameAvailable(username); err != nil {
+        return err
+    }
+    return nil
+}
+
+// CheckNameAvailable verifies name is not taken by user OR org (global uniqueness)
+func CheckNameAvailable(name string) error {
+    // Check reserved names
+    if isReservedName(name) {
+        return errors.New("name is reserved")
+    }
+    // Check if username exists
+    if _, err := db.GetUserByUsername(name); err == nil {
+        return errors.New("name is already taken")
+    }
+    // Check if org slug exists (if orgs enabled)
+    if _, err := db.GetOrgBySlug(name); err == nil {
+        return errors.New("name is already taken")
+    }
+    return nil
+}
+```
+
+### Reserved Names & Global Namespace
+
+**Usernames and org/team slugs share the SAME namespace.** A name cannot be registered as a username if an org/team with that slug exists, and vice versa. This is standard practice (GitHub, GitLab, Gitea).
+
+See PART 16 (Web Frontend) for the complete reserved names list.
+
+---
+
+
+
+# PART 35: ORGANIZATIONS (OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED)
+
+**Requires PART 34: MULTI-USER to be implemented first.**
+
+## When Organizations Are Needed vs Not Needed
+
+**Key Question: Do users need to collaborate as teams/groups with shared resources?**
+
+### Organization Decision Matrix
+
+| Scenario | Orgs Needed? | Why |
+|----------|--------------|-----|
+| Teams share repositories/projects | ✅ YES | GitHub, GitLab model - org owns repos |
+| Company departments with shared resources | ✅ YES | Marketing team, Engineering team |
+| Agencies managing client accounts | ✅ YES | Agency creates org per client |
+| Multi-tenant SaaS with team billing | ✅ YES | Billing at org level, not user |
+| Personal note-taking app | ❌ NO | Individual use, no sharing |
+| Simple blog platform | ❌ NO | Authors work independently |
+| Dating/social matching | ❌ NO | Individual profiles, not teams |
+| Single-user self-hosted apps | ❌ NO | One user, no collaboration |
+
+### Project Examples: Organizations vs No Organizations
+
+**Projects that DO need organizations:**
+
+| Project Type | Example Names | Org Use Case |
+|--------------|---------------|--------------|
+| **Git Hosting** | GitHub, GitLab, Gitea, Forgejo | Orgs own repositories, teams have access |
+| **Project Management** | Jira, Linear, Plane | Teams collaborate on projects |
+| **Document Collaboration** | Notion, Confluence, Outline | Teams share docs/wikis |
+| **Cloud Storage** | Nextcloud, Seafile | Shared folders for teams |
+| **Communication** | Slack, Mattermost, Discord | Workspaces/servers for groups |
+| **Design Tools** | Figma, Penpot | Teams share design files |
+| **CI/CD Platforms** | Jenkins, Drone, Woodpecker | Orgs have pipelines and secrets |
+| **Container Registry** | Harbor, Docker Hub | Orgs own image repositories |
+| **Monitoring/Observability** | Grafana, Sentry | Teams share dashboards/projects |
+| **API Management** | Kong, Tyk | Orgs manage API keys and quotas |
+
+**Projects that do NOT need organizations:**
+
+| Project Type | Example Names | Why No Orgs |
+|--------------|---------------|-------------|
+| **Personal Tools** | Standard Notes, Joplin | Individual note-taking |
+| **Single-User Hosting** | Personal blogs, portfolios | One author per site |
+| **Consumer Social** | Instagram, TikTok | Individual accounts (followers ≠ org) |
+| **Dating Apps** | Tinder, Bumble | Individual matching |
+| **Media Consumption** | Netflix, Spotify | Personal accounts (family ≠ org) |
+| **Personal Finance** | Budget trackers | Individual budgets |
+| **Fitness/Health** | Strava, MyFitnessPal | Personal tracking |
+| **Gaming** | Most games | Players, not organizations |
+| **Simple APIs** | Jokes, Quotes, Weather | No user accounts at all |
+| **Pastebin** | Hastebin, PrivateBin | Anonymous/individual pastes |
+
+### Organization Decision Tree
+
+```
+Does your app have multiple users?
+│
+├─► NO → Skip organizations (and skip multi-user too)
+│
+└─► YES
+    │
+    ├─► Do users need to share resources (repos, projects, files)?
+    │   └─► YES → Organizations beneficial
+    │
+    ├─► Do users work in teams with shared permissions?
+    │   └─► YES → Organizations beneficial
+    │
+    ├─► Is billing/subscription at team level, not individual?
+    │   └─► YES → Organizations beneficial
+    │
+    └─► Are users independent with no collaboration needs?
+        └─► Skip organizations - just user accounts
+```
+
+### Organization vs Just Groups/Teams
+
+**Terminology rule:** This spec uses **organization** as the canonical internal term. Apps may label the same concept as **team**, **workspace**, **group**, or similar in user-facing copy when that better matches the product. Routes, config examples, and database examples stay `org`/`orgs` unless the project has a stronger established convention.
+
+**When full Organizations are needed:**
+
+| Feature | Simple Groups | Full Organizations |
+|---------|---------------|-------------------|
+| Shared ownership | ❌ User owns, shares access | ✅ Org owns resources |
+| Billing entity | ❌ Per-user billing | ✅ Org-level billing |
+| Transfer ownership | ❌ Complex | ✅ Add/remove members |
+| Public profile | ❌ No org identity | ✅ /orgs/acme public page |
+| Vanity URL | ❌ No | ✅ /acme-corp/project |
+| Member roles | ❌ Simple share | ✅ Owner, Admin, Member |
+| Audit trail | ❌ Per-user | ✅ Org-level audit |
+
+### Quick Decision
+
+| If your users... | Orgs? |
+|-----------------|-------|
+| Work alone, never share | ❌ No |
+| Share occasionally (like Google Docs link) | ❌ No (just sharing) |
+| Regularly collaborate as teams | ✅ Yes |
+| Need team billing | ✅ Yes |
+| Are companies/agencies with multiple staff | ✅ Yes |
+
+---
+
+## Organization Creation Modes
+
+**Organization/team creation is a separate concern from organization visibility and member invites.**
+
+- **Creation mode** answers who may create a new organization/team
+- **Visibility** answers who can see an existing organization/team
+- **Member invites** answer who can add people after the organization/team exists
+
+**Server config example:**
+```yaml
+server:
+  orgs:
+    enabled: true
+
+    creation:
+      # Organization/team creation mode: open (default), invite, admin_only, disabled
+      # - open: Any authenticated user can create an organization/team
+      # - invite: Only users with a server-admin-issued org/team creation invite/code can create one
+      # - admin_only: Only Server Admin can create organizations/teams and assign the initial owner
+      # - disabled: No new organizations/teams can be created
+      mode: open
+
+    profile:
+      default_visibility: public
+
+    members:
+      default_role: member
+      require_2fa: false
+      allow_invites: true
+```
+
+| Mode | Who Can Create | Initial Owner | Default | Use Case |
+|------|----------------|---------------|---------|----------|
+| **open** | Any authenticated user | Creator | **YES** | Collaborative/self-service products |
+| **invite** | User with org/team creation invite/code | Invite redeemer | No | Controlled self-service onboarding |
+| **admin_only** | Server Admin only | User selected by admin | No | Enterprise/internal deployments |
+| **disabled** | Nobody | N/A | No | Existing orgs remain, but no new ones are allowed |
+
+**Key rule:** `server.orgs.creation.mode` is a **server-level policy**. It is not an organization-level setting, and it must not be confused with per-org `visibility: public/private`.
+
+## Organization Profile
+
+### Org Profile Fields
+
+| Field | Type | Required | Editable | Public | Description |
+|-------|------|----------|----------|--------|-------------|
+| `id` | Integer | Auto | No | No | Unique org ID |
+| `slug` | String | Yes | No* | Yes | URL-safe identifier (3-32 chars) |
+| `name` | String | Yes | Yes | Yes | Display name |
+| `description` | String | No | Yes | Yes | Short description (max 500 chars) |
+| `avatar_type` | Enum | Yes | Yes | Yes | `gravatar`, `upload`, `url` |
+| `avatar_url` | String | No | Yes | Yes | Avatar URL |
+| `website` | String | No | Yes | Yes | Organization website |
+| `location` | String | No | Yes | Yes | Location |
+| `visibility` | Enum | Yes | Yes | N/A | `public` (default), `private` |
+| `owner_id` | Integer | Yes | Yes** | No | Owner user ID |
+| `member_count` | Integer | Auto | No | Yes | Number of members |
+| `created_at` | Timestamp | Auto | No | Yes | Creation date |
+
+*Slug change requires confirmation and redirect setup.
+**Ownership can be transferred to another member.
+
+**Org Profile Example (API Response):**
+```json
+GET /api/{api_version}/orgs/acme-corp
+{
+    "id": 42,
+    "slug": "acme-corp",
+    "name": "Acme Corporation",
+    "description": "Building the future, one anvil at a time",
+    "avatar": {
+        "type": "upload",
+        "urls": {
+            "256": "/uploads/orgs/acme-corp_256.png",
+            "128": "/uploads/orgs/acme-corp_128.png",
+            "64": "/uploads/orgs/acme-corp_64.png",
+            "32": "/uploads/orgs/acme-corp_32.png"
+        }
+    },
+    "website": "https://acme.example.com",
+    "location": "Phoenix, AZ",
+    "visibility": "public",
+    "member_count": 15,
+    "created_at": "2024-06-01T08:00:00Z",
+    "your_role": "admin"
+}
+```
+
+### Org Member Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full control, can delete org, transfer ownership |
+| **Admin** | Manage members, settings, tokens (cannot delete org) |
+| **Member** | View org, access org resources |
+
+### Org Settings
+
+**Org/team creation policy is configured at the server level (`server.orgs.creation.mode` / `/server/{admin_path}/config/settings`). It is NOT editable inside an individual org/team.**
+
+**Settings Categories:**
+
+| Category | Route | Who Can Edit |
+|----------|-------|--------------|
+| **General** | `/orgs/{slug}/settings` | Owner, Admin |
+| **Members** | `/orgs/{slug}/members` | Owner, Admin |
+| **Roles** | `/orgs/{slug}/roles` | Owner, Admin |
+| **Security** | `/orgs/{slug}/security` | Owner, Admin |
+| **Email** | `/orgs/{slug}/email` | Owner, Admin |
+| **Tokens** | `/orgs/{slug}/tokens` | Owner, Admin |
+| **Billing** | `/orgs/{slug}/billing` | Owner only |
+| **Danger Zone** | `/orgs/{slug}/settings#danger` | Owner only |
+
+#### General Settings (`/orgs/{slug}/settings`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `name` | String | Required | Organization display name |
+| `description` | String | null | Short description |
+| `website` | URL | null | Organization website |
+| `location` | String | null | Location |
+| `visibility` | Select | `public` | Public or private org/team profile (not creation mode) |
+| `default_member_role` | Select | `member` | Role for new members |
+| `require_2fa` | Toggle | Off | Require 2FA for all members |
+
+**General Settings Form Example:**
+```
+Organization Settings (/orgs/acme-corp/settings)
+┌─────────────────────────────────────────────────────────────┐
+│  Organization Profile                                       │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Name                                                       │
+│  [Acme Corporation                           ]             │
+│                                                             │
+│  URL Slug                                                   │
+│  [acme-corp                                  ] 🔒           │
+│  https://example.com/orgs/acme-corp                        │
+│  (Contact support to change)                                │
+│                                                             │
+│  Description                                                │
+│  [Building the future, one anvil at a time   ]             │
+│  Characters: 42/500                                         │
+│                                                             │
+│  Website                                                    │
+│  [https://acme.example.com                   ]             │
+│                                                             │
+│  Location                                                   │
+│  [Phoenix, AZ                                ]             │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  Visibility                                                 │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  ● Public                                                   │
+│    Anyone can see this organization and its public         │
+│    members.                                                 │
+│                                                             │
+│  ○ Private                                                  │
+│    Only members can see this organization. It won't        │
+│    appear in search or public listings.                    │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  Member Settings                                            │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Default role for new members                               │
+│  [Member                                     ▼]            │
+│                                                             │
+│  [OFF] Require two-factor authentication                    │
+│        All members must enable 2FA to access org resources. │
+│                                                             │
+│  [Save Changes]                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Members Management (`/orgs/{slug}/members`)
+
+**Members List Example:**
+```
+Organization Members (/orgs/acme-corp/members)
+┌─────────────────────────────────────────────────────────────┐
+│  Members (15)                              [+ Invite Member]│
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 👤 johndoe          John Doe           Owner    ⋮  │   │
+│  │ 👤 janedoe          Jane Doe           Admin    ⋮  │   │
+│  │ 👤 bobsmith         Bob Smith          Member   ⋮  │   │
+│  │ 👤 private_user     Private User       Member   ⋮  │   │
+│  │    (Profile hidden - org visibility enabled)        │   │
+│  │ ...                                                 │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ⋮ Menu: Change role, Remove from org                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Danger Zone (`/orgs/{slug}/settings#danger`)
+
+**Owner-only actions:**
+
+| Action | Confirmation | Description |
+|--------|--------------|-------------|
+| Transfer ownership | Password + confirmation | Transfer to another admin |
+| Delete organization | Password + type org name | Permanently delete |
+
+**Danger Zone Form Example:**
+```
+Danger Zone (/orgs/acme-corp/settings#danger)
+┌─────────────────────────────────────────────────────────────┐
+│  ⚠️ Danger Zone                                              │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Transfer Ownership                                         │
+│  Transfer this organization to another admin. You will     │
+│  become an admin after transfer.                           │
+│                                                     [Transfer]│
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Delete Organization                                        │
+│  Once deleted, all data will be permanently removed.       │
+│  This action cannot be undone.                             │
+│                                                     [Delete] │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Organization Email Settings (`/orgs/{slug}/email`)
+
+**Organizations can configure a separate email address for org-specific notifications.**
+
+| Email Type | Purpose | Required | Examples |
+|------------|---------|----------|----------|
+| **Organization Email** | Org-specific notifications | NO (defaults to owner's email) | Member joined/left, role changes, security alerts for org, billing notices |
+
+**Rules:**
+- Organization email is optional (defaults to owner's account email)
+- Organization email must be verified before use
+- Only Owner and Admins can change organization email
+- Email changes logged to org audit log
+- **All email features require working SMTP** - if SMTP unavailable, no emails sent
+
+**Organization Email Settings Form:**
+```
+Organization Email Settings (/orgs/acme-corp/email)
+┌─────────────────────────────────────────────────────────────┐
+│  Email Settings                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Organization Email:                                        │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ org-admin@acme.example.com            ✓ Verified    │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  [Change] [Remove]                                          │
+│  Used for: member changes, security alerts, billing        │
+│  [ ] Use owner's email for all notifications                │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│  Notification Preferences                                   │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Security (cannot be disabled):                             │
+│  [✓] Security alerts (suspicious activity, settings changes)│
+│                                                             │
+│  Members:                                                   │
+│  [✓] Member joined organization                             │
+│  [✓] Member left organization                               │
+│  [✓] Member role changed                                    │
+│                                                             │
+│  Administrative:                                            │
+│  [✓] API token created/revoked                              │
+│  [ ] Weekly activity summary                                │
+│                                                             │
+│  Billing (if applicable):                                   │
+│  [✓] Payment received                                       │
+│  [✓] Payment failed                                         │
+│  [✓] Subscription changes                                   │
+│                                                             │
+│  [Save Preferences]                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Scoped Organization Notification Categories:**
+
+| Category | Default | Description |
+|----------|---------|-------------|
+| **Security Alerts** | ON (locked) | Cannot disable - suspicious activity, security setting changes |
+| **Member Joined** | ON | New member added to organization |
+| **Member Left** | ON | Member removed or left organization |
+| **Role Changes** | ON | Member role upgraded/downgraded |
+| **API Token Activity** | ON | Token created or revoked |
+| **Activity Summary** | OFF | Weekly digest of org activity |
+| **Billing** | ON | Payment and subscription notifications |
+
+**SMTP Requirement:**
+- All email notifications require working SMTP configuration
+- If SMTP unavailable, notifications shown in org dashboard only (no email)
+- See PART 18: EMAIL & NOTIFICATIONS for SMTP configuration
+
+### Org Settings API
+
+**Database Storage:**
+
+| Setting Category | Storage Location |
+|------------------|------------------|
+| **Creation Policy** (`server.orgs.creation.mode`) | Server config / server settings |
+| **General** (name, slug, description, website, location, visibility) | `orgs` table |
+| **Members** (default_role, require_2fa, allow_invites) | `org_preferences` table |
+| **Visibility** (show_members, show_activity) | `org_preferences` table |
+| **Notifications** (notify_new_member, notify_member_leave) | `org_preferences` table |
+
+**Preferences are created on first access (lazy initialization):**
+```go
+func GetOrCreateOrgPreferences(orgID int) (*OrgPreferences, error) {
+    prefs := &OrgPreferences{}
+    err := db.Where("org_id = ?", orgID).First(prefs).Error
+    if err == gorm.ErrRecordNotFound {
+        prefs = &OrgPreferences{OrgID: orgID}  // Uses DB defaults
+        db.Create(prefs)
+    }
+    return prefs, nil
+}
+```
+
+**Get Org Settings:**
+```json
+GET /api/{api_version}/orgs/acme-corp/settings
+{
+    "general": {
+        "name": "Acme Corporation",
+        "slug": "acme-corp",
+        "description": "Building the future, one anvil at a time",
+        "website": "https://acme.example.com",
+        "location": "Phoenix, AZ",
+        "visibility": "public"
+    },
+    "members": {
+        "default_role": "member",
+        "require_2fa": false,
+        "member_count": 15
+    },
+    "your_permissions": {
+        "can_edit_settings": true,
+        "can_manage_members": true,
+        "can_manage_billing": false,
+        "can_delete_org": false
+    }
+}
+```
+
+## Org-Scoped User Visibility
+
+**Users with private profiles can choose to show basic info within organizations they belong to.**
+
+### How It Works
+
+| User Setting | Org Context | Public Context |
+|--------------|-------------|----------------|
+| `visibility: public` | Full profile visible | Full profile visible |
+| `visibility: private`, `org_visibility: true` | Basic info visible | 404 Not Found |
+| `visibility: private`, `org_visibility: false` | Username only | 404 Not Found |
+
+### What "Basic Info" Means
+
+When a private user has `org_visibility: true`, org members can see:
+
+| Field | Visible in Org | Visible Publicly |
+|-------|----------------|------------------|
+| `username` | ✓ Yes | ✗ No |
+| `display_name` | ✓ Yes | ✗ No |
+| `avatar` | ✓ Yes | ✗ No |
+| `bio` | ✗ No | ✗ No |
+| `location` | ✗ No | ✗ No |
+| `website` | ✗ No | ✗ No |
+| `email` | ✗ No | ✗ No |
+| `activity` | ✗ No | ✗ No |
+
+### API Responses
+
+**Private user with org_visibility=true, viewed by org member:**
+```json
+GET /api/{api_version}/orgs/acme-corp/members/private_user
+{
+    "username": "private_user",
+    "display_name": "Private User",
+    "avatar": {
+        "64": "https://www.gravatar.com/avatar/xyz?s=64&d=identicon"
+    },
+    "role": "member",
+    "joined_at": "2024-08-01T10:00:00Z",
+    "profile_visibility": "org_only"  // Indicates limited visibility
+}
+```
+
+**Private user with org_visibility=true, viewed publicly:**
+```json
+GET /api/{api_version}/public/users/private_user
+{
+    "error": "not_found",
+    "message": "User not found"
+}
+// Returns 404, not 403 (don't leak existence)
+```
+
+**Private user with org_visibility=false, viewed by org member:**
+```json
+GET /api/{api_version}/orgs/acme-corp/members/very_private_user
+{
+    "username": "very_private_user",
+    "role": "member",
+    "joined_at": "2024-08-01T10:00:00Z",
+    "profile_visibility": "hidden"  // Indicates minimal visibility
+}
+// Only username and role shown - no avatar, no display name
+```
+
+### Database Schema Update
+
+```sql
+-- Add org_visibility to users table
+ALTER TABLE users ADD COLUMN org_visibility INTEGER NOT NULL DEFAULT 1;
+-- 1 = show basic info in orgs, 0 = username only
+
+-- Index for efficient org member queries
+CREATE INDEX IF NOT EXISTS idx_users_org_visibility ON users(visibility, org_visibility);
+```
+
+### Implementation Logic
+
+```go
+// Get user info for org context
+func GetOrgMemberProfile(orgID, targetUserID, requestingUserID int) (*MemberProfile, error) {
+    // Verify requester is in the org
+    if !IsOrgMember(orgID, requestingUserID) {
+        return nil, ErrForbidden
+    }
+
+    // Verify target is in the org
+    member := GetOrgMember(orgID, targetUserID)
+    if member == nil {
+        return nil, ErrNotFound
+    }
+
+    user := GetUser(targetUserID)
+
+    // Build response based on visibility settings
+    profile := &MemberProfile{
+        Username:  user.Username,
+        Role:      member.Role,
+        JoinedAt:  member.CreatedAt,
+    }
+
+    // If public or org_visibility enabled, include basic info
+    if user.Visibility == "public" || user.OrgVisibility {
+        profile.DisplayName = user.DisplayName
+        profile.Avatar = GetAvatarURLs(user)
+        profile.ProfileVisibility = "org_only"
+    } else {
+        profile.ProfileVisibility = "hidden"
+    }
+
+    return profile, nil
+}
+```
+
+### UI Indicators
+
+**In org member lists, show visibility status:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 👤 johndoe          John Doe           Owner              │
+│ 👤 janedoe          Jane Doe           Admin              │
+│ 👤 private_user     Private User       Member   🔒        │
+│                     (Profile visible to org only)          │
+│ 👤 very_private     -                  Member   🔒🔒      │
+│                     (Minimal info - username only)         │
+└─────────────────────────────────────────────────────────────┘
+
+🔒 = Private profile, basic info visible in org
+🔒🔒 = Private profile, username only
+```
+
+## Public Org Profiles & Vanity URLs (OPTIONAL)
+
+**For apps with public organization profiles, support vanity URLs at root level.**
+
+This is OPTIONAL and only applies when org profiles should be publicly accessible (code hosting, team pages, company profiles, etc.).
+
+### Vanity URL Routing
+
+| URL Pattern | Maps To | API Endpoint |
+|-------------|---------|--------------|
+| `/{org_slug}` | Org public profile | `GET /api/{api_version}/orgs/{slug}` |
+| `/{org_slug}/{resource}` | Org's resource | `GET /api/{api_version}/orgs/{slug}/{resource}` |
+| `/{org_slug}/{resource}/{item}` | Specific item | `GET /api/{api_version}/orgs/{slug}/{resource}/{item}` |
+
+**Examples by App Type:**
+
+| App Type | `/{org_slug}` Shows | Sub-routes |
+|----------|---------------------|------------|
+| **GitHub clone** | Org profile + repos | `/{org}/{repo}`, `/{org}/teams` |
+| **GitLab clone** | Group page | `/{org}/{project}`, `/{org}/-/members` |
+| **Slack clone** | Workspace info | `/{org}/channels`, `/{org}/members` |
+| **Company directory** | Company page | `/{org}/about`, `/{org}/jobs` |
+
+### Public Org API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `GET /api/{api_version}/orgs/{slug}` | GET | None* | Public org profile |
+| `GET /api/{api_version}/orgs/{slug}/repos` | GET | None* | Org's public repositories |
+| `GET /api/{api_version}/orgs/{slug}/members` | GET | None* | Public member list |
+| `GET /api/{api_version}/orgs/{slug}/teams` | GET | Member | Team list (members only) |
+
+*Public orgs only. Private orgs require membership.
+
+### Public vs Private Org Fields
+
+| Field | Public Org | Private Org (members only) |
+|-------|------------|---------------------------|
+| `slug` | ✓ | ✓ |
+| `name` | ✓ | ✓ |
+| `description` | ✓ | ✓ |
+| `avatar_url` | ✓ | ✓ |
+| `website` | ✓ | ✓ |
+| `location` | ✓ | ✓ |
+| `created_at` | ✓ | ✓ |
+| `member_count` | ✓ (if enabled) | ✓ |
+| `members` | Public members only | All members |
+| `teams` | ✗ | ✓ |
+| `settings` | ✗ | Owner/admin only |
+
+### Org Slug Validation
+
+```go
+// Org slug rules (same as username):
+// - 2-39 characters
+// - Lowercase alphanumeric and hyphens only
+// - Must start and end with alphanumeric
+// - No consecutive hyphens
+// - Not in reserved names list
+// - Not already taken by a user or org
+
+var slugRegex = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
+
+func ValidateOrgSlug(slug string) error {
+    if len(slug) < 2 || len(slug) > 39 {
+        return errors.New("slug must be 2-39 characters")
+    }
+    if !slugRegex.MatchString(slug) {
+        return errors.New("slug must be lowercase alphanumeric with hyphens")
+    }
+    if strings.Contains(slug, "--") {
+        return errors.New("slug cannot contain consecutive hyphens")
+    }
+    // Use shared namespace check (reserved + user + org collision)
+    if err := CheckNameAvailable(slug); err != nil {
+        return err
+    }
+    return nil
+}
+```
+
+### Shared Namespace
+
+**Users and orgs share the same namespace.** A username `acme` blocks org slug `acme` and vice versa.
+
+| Slug | User Exists | Org Exists | Result |
+|------|-------------|------------|--------|
+| `acme` | No | No | Available |
+| `acme` | Yes | No | `/{acme}` → User profile |
+| `acme` | No | Yes | `/{acme}` → Org profile |
+| `acme` | Yes | Yes | **IMPOSSIBLE** - blocked at creation |
+
+### Reserved Names
+
+See PART 16 (Web Frontend) for the complete reserved names list. Users and orgs share the same namespace and cannot register reserved names.
+
+---
+
+
+# PART 36: CUSTOM DOMAINS (OPTIONAL - NON-NEGOTIABLE WHEN IMPLEMENTED)
+
+## Overview
+
+**Custom domains is an OPTIONAL feature that allows users or organizations to use their own domains with the application.** Not all projects need this feature.
+
+**IMPORTANT: Once a project implements custom domains, this entire PART becomes NON-NEGOTIABLE.** The implementation must follow all standards defined here exactly.
+
+| Attribute | Description |
+|-----------|-------------|
+| Feature type | Optional, per-project |
+| Scope | User-owned or Org-owned domains |
+| SSL | Automatic via Let's Encrypt DNS-01 |
+| Verification | TXT record ownership verification |
+
+## When Custom Domains Are Needed vs Not Needed
+
+**Key Question: Do users need to present YOUR service under THEIR brand/domain?**
+
+### Custom Domains Decision Matrix
+
+| Scenario | Custom Domains? | Why |
+|----------|-----------------|-----|
+| Users publish public content | ✅ YES | They want `myblog.com` not `platform.com/username` |
+| White-label SaaS for businesses | ✅ YES | Customers need `app.theircompany.com` |
+| Link-in-bio/landing pages | ✅ YES | Users share their domain, not yours |
+| E-commerce/storefronts | ✅ YES | Merchants want branded stores |
+| Internal API service | ❌ NO | No public-facing user content |
+| Simple data APIs | ❌ NO | API is your service, not theirs |
+| Personal self-hosted apps | ❌ NO | Single tenant, admin sets domain |
+| Anonymous/ephemeral content | ❌ NO | No identity to brand |
+
+### Project Examples: Custom Domains vs No Custom Domains
+
+**Projects that DO need custom domains:**
+
+| Project Type | Example Names | Custom Domain Use Case |
+|--------------|---------------|------------------------|
+| **Blogging Platforms** | Ghost, Wordpress.com, Medium | `myblog.com` for each author |
+| **Link-in-Bio** | Linktree, Bento, Carrd | `links.myname.com` |
+| **E-commerce** | Shopify, WooCommerce, Saleor | `store.mybrand.com` |
+| **Website Builders** | Squarespace, Wix, Webflow | `mysite.com` for each customer |
+| **Email Marketing** | Mailchimp, Buttondown | `mail.mybrand.com` |
+| **Help Desk/Docs** | Zendesk, GitBook, ReadMe | `docs.company.com` |
+| **URL Shorteners** | Bitly, Short.io, YOURLS | `short.mybrand.com` |
+| **Status Pages** | Statuspage, Instatus | `status.company.com` |
+| **Landing Pages** | Leadpages, Unbounce | `campaign.mybrand.com` |
+| **Scheduling** | Calendly, Cal.com | `book.consultant.com` |
+
+**Projects that do NOT need custom domains:**
+
+| Project Type | Example Names | Why No Custom Domains |
+|--------------|---------------|----------------------|
+| **Data APIs** | Weather, GeoIP, Jokes, Quotes | Users consume API, don't rebrand it |
+| **Dev Tools (APIs)** | Stripe, Twilio, SendGrid | API is under your brand |
+| **Git Hosting** | GitHub, GitLab, Gitea | Repos live on platform (subdomain sufficient) |
+| **Chat/Communication** | Slack, Discord, Mattermost | Workspace is internal, not public |
+| **Personal Notes** | Standard Notes, Joplin | Private content, not published |
+| **Password Managers** | Bitwarden, Vaultwarden | Private vaults, no public presence |
+| **Media Libraries** | Jellyfin, Plex, Navidrome | Personal media, not shared publicly |
+| **Monitoring/Internal** | Grafana, Prometheus | Internal dashboards |
+| **Pastebin (anonymous)** | PrivateBin, Hastebin | Anonymous pastes, no branding |
+| **File Sync** | Syncthing, Seafile | Private sync, not public sharing |
+
+### Custom Domains Decision Tree
+
+```
+Does your app serve public-facing content for users?
+│
+├─► NO (internal tool, private data, API-only)
+│   └─► Skip custom domains
+│
+└─► YES (blogs, stores, public pages)
+    │
+    ├─► Do users want to present content under THEIR brand?
+    │   └─► YES → Custom domains beneficial
+    │
+    ├─► Would "yoursite.yourplatform.com" hurt their brand?
+    │   └─► YES → Custom domains beneficial
+    │
+    ├─► Do users share links publicly that represent them?
+    │   └─► YES → Custom domains beneficial
+    │
+    └─► Is subdomain sufficient (user.platform.com)?
+        └─► For many projects, subdomain is enough (simpler)
+```
+
+### Custom Domains vs Subdomains
+
+**When full custom domains are worth the complexity:**
+
+| Feature | Subdomain (user.platform.com) | Custom Domain (user.com) |
+|---------|------------------------------|-------------------------|
+| Setup complexity | ✅ Zero config | ❌ DNS + verification |
+| SSL | ✅ Wildcard cert | ❌ Per-domain certs |
+| User branding | ⚠️ Platform in URL | ✅ Fully branded |
+| SEO | ⚠️ Authority split | ✅ User controls SEO |
+| Portability | ❌ Locked to platform | ✅ User owns domain |
+| Enterprise demand | ⚠️ Some care | ✅ Often required |
+
+**Start with subdomains, add custom domains if users request it.**
+
+### Quick Decision
+
+| If your users... | Custom Domains? |
+|-----------------|-----------------|
+| Publish content publicly under their name | ✅ Yes |
+| Need white-label for their clients | ✅ Yes |
+| Share links that represent their brand | ✅ Yes |
+| Run businesses through your platform | ✅ Yes |
+| Use your platform internally/privately | ❌ No |
+| Just consume your API | ❌ No |
+| Are fine with `user.yourplatform.com` | ❌ Maybe (subdomain first) |
+
+### Use Cases (When Implemented)
+
+- **Blog platform**: `myblog.example.com` → user's blog
+- **API service**: `api.acme-corp.com` → org's API endpoint
+- **SaaS**: `app.customer.com` → customer's branded instance
+- **Linktree**: `links.myname.com` → user's link page
+- **E-commerce**: `shop.mybrand.com` → merchant's storefront
+- **Status page**: `status.company.com` → company's status page
+
+## Feature Configuration
+
+**Enable custom domains in `server.yml`:**
+
+```yaml
+server:
+  features:
+    custom_domains:
+      # Enable custom domain support
+      enabled: false
+
+      # Limit per user (0 = unlimited)
+      max_domains_per_user: 5
+
+      # Limit per org (0 = unlimited)
+      max_domains_per_org: 20
+
+      # Require SSL for all custom domains
+      require_ssl: true
+
+      # Allow apex domains (example.com)
+      allow_apex: true
+
+      # Allow subdomains (sub.example.com)
+      allow_subdomain: true
+
+      # Allow wildcard domains (*.example.com)
+      allow_wildcard: false
+
+      # Verification token TTL
+      verification_ttl: 24h
+
+      # Renew SSL certs N days before expiry
+      ssl_renewal_days: 7
+
+      # Reserved domains that cannot be used
+      reserved:
+        - "localhost"
+        - "*.local"
+        - "*.test"
+        - "*.example"
+        - "*.invalid"
+
+      # Blocked patterns (regex)
+      # Government/military/education TLDs
+      blocked_patterns:
+        - ".*\\.(gov|mil|edu)$"
+```
+
+**Environment variable override:**
+
+```bash
+CUSTOM_DOMAINS_ENABLED=true
+CUSTOM_DOMAINS_MAX_PER_USER=5
+CUSTOM_DOMAINS_MAX_PER_ORG=20
+```
+
+## Database Schema
+
+**Tables in users.db:**
+
+```sql
+-- ----------------------------------------------------------------------------
+-- Custom Domains
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS custom_domains (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    -- Ownership
+    owner_type          TEXT NOT NULL,                      -- user, org
+    owner_id            INTEGER NOT NULL,                   -- FK to users or orgs
+
+    -- Domain info
+    domain              TEXT NOT NULL UNIQUE,               -- The custom domain
+    is_apex             INTEGER NOT NULL DEFAULT 0,         -- Is apex domain (no subdomain)
+    is_wildcard         INTEGER NOT NULL DEFAULT 0,         -- Is wildcard (*.example.com)
+
+    -- Verification (domain must resolve to server IP)
+    verification_status TEXT NOT NULL DEFAULT 'pending',    -- pending, verified, failed
+    verified_at         INTEGER,                            -- When domain was verified
+    verified_ip         TEXT,                               -- IP that domain resolved to
+    last_check_at       INTEGER,                            -- Last verification check
+    check_count         INTEGER NOT NULL DEFAULT 0,         -- Number of verification attempts
+
+    -- SSL Configuration
+    ssl_enabled         INTEGER NOT NULL DEFAULT 0,
+    ssl_status          TEXT NOT NULL DEFAULT 'none',       -- none, pending, active, expired, error
+    ssl_challenge       TEXT,                               -- http-01, tls-alpn-01, dns-01
+    ssl_provider        TEXT,                               -- DNS provider (only for dns-01)
+    ssl_credentials     TEXT,                               -- Encrypted provider credentials (only for dns-01)
+    ssl_cert_pem        TEXT,                               -- Encrypted certificate (PEM)
+    ssl_key_pem         TEXT,                               -- Encrypted private key (PEM)
+    ssl_issued_at       INTEGER,
+    ssl_expires_at      INTEGER,
+    ssl_last_error      TEXT,                               -- Last SSL error message
+
+    -- Status
+    status              TEXT NOT NULL DEFAULT 'pending',    -- pending, active, suspended, error
+    suspended_reason    TEXT,                               -- Why domain was suspended
+
+    -- Timestamps
+    created_at          INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at          INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_custom_domains_domain ON custom_domains(domain);
+CREATE INDEX IF NOT EXISTS idx_custom_domains_owner ON custom_domains(owner_type, owner_id);
+CREATE INDEX IF NOT EXISTS idx_custom_domains_status ON custom_domains(status);
+CREATE INDEX IF NOT EXISTS idx_custom_domains_ssl_expires ON custom_domains(ssl_expires_at);
+
+-- ----------------------------------------------------------------------------
+-- Custom Domain Audit Log
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS custom_domain_audit (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    domain_id       INTEGER NOT NULL REFERENCES custom_domains(id) ON DELETE CASCADE,
+    action          TEXT NOT NULL,                          -- created, verified, ssl_issued, suspended, deleted
+    actor_type      TEXT NOT NULL,                          -- user, org, admin, system
+    actor_id        INTEGER,
+    details         TEXT,                                   -- JSON details
+    created_at      INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_domain_audit_domain ON custom_domain_audit(domain_id);
+```
+
+## Domain Resolution Flow
+
+**How incoming requests are routed to custom domains:**
+
+```
+Incoming Request: https://api.customer.com/path
+   │
+   ├─► Extract Host header: api.customer.com
+   │
+   ├─► Check custom_domains table for matching domain
+   │   │
+   │   ├─► Not found → 404 or redirect to main domain
+   │   │
+   │   ├─► Found but status != 'active' → Show domain status page
+   │   │
+   │   └─► Found and active → Continue
+   │
+   ├─► Check SSL certificate valid
+   │   │
+   │   ├─► Expired/missing → Attempt renewal or show error
+   │   │
+   │   └─► Valid → Serve with custom domain's cert
+   │
+   └─► Route request to owner's resources
+       │
+       ├─► User-owned: Route to user's content/namespace
+       │
+       └─► Org-owned: Route to org's resources/namespace
+```
+
+**Go Implementation:**
+
+```go
+// DomainResolver handles custom domain routing
+type DomainResolver struct {
+    db       *sql.DB
+    // Cache domain lookups
+    cache    *cache.Cache
+    cacheTTL time.Duration
+}
+
+// Resolve looks up a custom domain and returns routing info
+func (r *DomainResolver) Resolve(host string) (*CustomDomain, error) {
+    // Check cache first
+    if cached, ok := r.cache.Get(host); ok {
+        return cached.(*CustomDomain), nil
+    }
+
+    // Query database
+    var domain CustomDomain
+    err := r.db.QueryRow(`
+        SELECT id, owner_type, owner_id, domain, status, ssl_enabled,
+               ssl_cert_pem, ssl_key_pem, ssl_expires_at
+        FROM custom_domains
+        WHERE domain = ? AND status = 'active'
+    `, host).Scan(
+        &domain.ID, &domain.OwnerType, &domain.OwnerID, &domain.Domain,
+        &domain.Status, &domain.SSLEnabled, &domain.SSLCertPEM,
+        &domain.SSLKeyPEM, &domain.SSLExpiresAt,
+    )
+
+    if err == sql.ErrNoRows {
+        return nil, ErrDomainNotFound
+    }
+    if err != nil {
+        return nil, err
+    }
+
+    // Cache result
+    r.cache.Set(host, &domain, r.cacheTTL)
+
+    return &domain, nil
+}
+
+// Middleware for custom domain handling
+func CustomDomainMiddleware(resolver *DomainResolver) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            host := r.Host
+
+            // Skip if it's the main application domain
+            if host == config.MainDomain {
+                next.ServeHTTP(w, r)
+                return
+            }
+
+            // Resolve custom domain
+            domain, err := resolver.Resolve(host)
+            if err == ErrDomainNotFound {
+                http.Error(w, t(r, "errors.not_found"), http.StatusNotFound)
+                return
+            }
+            if err != nil {
+                http.Error(w, t(r, "errors.server_error"), http.StatusInternalServerError)
+                return
+            }
+
+            // Add domain context
+            ctx := context.WithValue(r.Context(), CustomDomainKey, domain)
+            next.ServeHTTP(w, r.WithContext(ctx))
+        })
+    }
+}
+```
+
+## Web Routes
+
+### User Domain Management (`/users/domains/`)
+
+| Path | Description |
+|------|-------------|
+| `/users/domains` | List user's custom domains |
+| `/users/domains/add` | Add new custom domain form |
+| `/users/domains/{domain}` | Domain details and management |
+| `/users/domains/{domain}/dns` | DNS configuration instructions |
+| `/users/domains/{domain}/ssl` | SSL configuration |
+| `/users/domains/{domain}/verify` | Trigger verification |
+| `/users/domains/{domain}/delete` | Delete confirmation |
+
+### Org Domain Management (`/orgs/{slug}/domains/`)
+
+| Path | Description |
+|------|-------------|
+| `/orgs/{slug}/domains` | List org's custom domains |
+| `/orgs/{slug}/domains/add` | Add new custom domain form |
+| `/orgs/{slug}/domains/{domain}` | Domain details and management |
+| `/orgs/{slug}/domains/{domain}/dns` | DNS configuration instructions |
+| `/orgs/{slug}/domains/{domain}/ssl` | SSL configuration |
+| `/orgs/{slug}/domains/{domain}/verify` | Trigger verification |
+| `/orgs/{slug}/domains/{domain}/delete` | Delete confirmation |
+
+### Admin Domain Management (`/server/{admin_path}/config/domains/`)
+
+| Path | Description |
+|------|-------------|
+| `/server/{admin_path}/config/domains` | List all custom domains |
+| `/server/{admin_path}/config/domains/{domain}` | View/manage any domain |
+| `/server/{admin_path}/config/domains/{domain}/suspend` | Suspend domain |
+| `/server/{admin_path}/config/domains/{domain}/unsuspend` | Unsuspend domain |
+| `/server/{admin_path}/config/domains/{domain}/delete` | Force delete domain |
+
+## API Routes
+
+### User Domain API (`/api/{api_version}/users/domains/`)
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/{api_version}/users/domains` | GET | List user's domains |
+| `/api/{api_version}/users/domains` | POST | Add new domain |
+| `/api/{api_version}/users/domains/{domain}` | GET | Get domain details |
+| `/api/{api_version}/users/domains/{domain}` | DELETE | Remove domain |
+| `/api/{api_version}/users/domains/{domain}/verify` | POST | Trigger verification |
+| `/api/{api_version}/users/domains/{domain}/dns` | GET | Get DNS records to configure |
+| `/api/{api_version}/users/domains/{domain}/ssl` | GET | Get SSL status |
+| `/api/{api_version}/users/domains/{domain}/ssl` | POST | Configure SSL (provider + credentials) |
+| `/api/{api_version}/users/domains/{domain}/ssl/renew` | POST | Force SSL renewal |
+
+### Org Domain API (`/api/{api_version}/orgs/{slug}/domains/`)
+
+Same routes as user, scoped to organization.
+
+### Admin Domain API (`/api/{api_version}/server/{admin_path}/config/domains/`)
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/{api_version}/server/{admin_path}/config/domains` | GET | List all domains (paginated) |
+| `/api/{api_version}/server/{admin_path}/config/domains/{domain}` | GET | Get any domain details |
+| `/api/{api_version}/server/{admin_path}/config/domains/{domain}` | DELETE | Force delete any domain |
+| `/api/{api_version}/server/{admin_path}/config/domains/{domain}/suspend` | POST | Suspend domain |
+| `/api/{api_version}/server/{admin_path}/config/domains/{domain}/unsuspend` | POST | Unsuspend domain |
+| `/api/{api_version}/server/{admin_path}/config/domains/{domain}/ssl/renew` | POST | Force SSL renewal |
+
+## Verification Flow
+
+**Verification is simple: the custom domain must resolve to the server's public IP or FQDN.**
+
+### Step 1: User Adds Domain
+
+```
+POST /api/{api_version}/users/domains
+{
+  "domain": "api.mycompany.com"
+}
+
+Response:
+{
+  "ok": true,
+  "data": {
+    "id": 123,
+    "domain": "api.mycompany.com",
+    "status": "pending",
+    "verification_status": "pending",
+    "dns_instructions": {
+      "target": "custom.yourapp.com",
+      "target_ips": ["203.0.113.50", "2001:db8::1"],
+      "instructions": "Add a CNAME record pointing to custom.yourapp.com, or A/AAAA records pointing to the IPs above."
+    }
+  }
+}
+```
+
+### Step 2: User Configures DNS
+
+User adds ONE of these at their DNS provider:
+
+```
+; Option 1: CNAME (recommended for subdomains)
+api.mycompany.com.          300  IN  CNAME  custom.yourapp.com.
+
+; Option 2: A/AAAA records (required for apex domains)
+mycompany.com.              300  IN  A      203.0.113.50
+mycompany.com.              300  IN  AAAA   2001:db8::1
+```
+
+### Step 3: User Triggers Verification
+
+```
+POST /api/{api_version}/users/domains/api.mycompany.com/verify
+
+Response (success):
+{
+  "ok": true,
+  "data": {
+    "domain": "api.mycompany.com",
+    "verification_status": "verified",
+    "verified_at": "2025-01-15T10:30:00Z",
+    "status": "active",
+    "resolved_to": "203.0.113.50"
+  }
+}
+
+Response (failed - wrong IP):
+{
+  "ok": false,
+  "error": "DNS_MISMATCH",
+  "message": "Domain does not resolve to this server. DNS propagation can take up to 48 hours."
+}
+```
+
+### Verification Logic
+
+```go
+func (s *DomainService) Verify(domainID int64) (*VerifyResult, error) {
+    domain, err := s.GetByID(domainID)
+    if err != nil {
+        return nil, err
+    }
+
+    // Get server's public IPs
+    serverIPs := s.getServerPublicIPs()
+
+    // Resolve the custom domain
+    ips, err := net.LookupIP(domain.Domain)
+    if err != nil {
+        return &VerifyResult{
+            OK:      false,
+            Error:   "DNS_LOOKUP_FAILED",
+            Message: "DNS lookup failed",
+        }, nil
+    }
+
+    // Check if any resolved IP matches server IP
+    matched := false
+    var resolvedIPs []string
+    for _, ip := range ips {
+        resolvedIPs = append(resolvedIPs, ip.String())
+        for _, serverIP := range serverIPs {
+            if ip.Equal(serverIP) {
+                matched = true
+                break
+            }
+        }
+    }
+
+    if !matched {
+        return &VerifyResult{
+            OK:      false,
+            Error:   "DNS_MISMATCH",
+            Message: fmt.Sprintf("Domain resolves to %v, expected %v", resolvedIPs, serverIPs),
+        }, nil
+    }
+
+    // Mark as verified
+    domain.VerificationStatus = "verified"
+    domain.VerifiedAt = time.Now().Unix()
+    domain.Status = "active"
+
+    if err := s.Update(domain); err != nil {
+        return nil, err
+    }
+
+    // Log audit event
+    s.audit.Log(domain.ID, "verified", domain.OwnerType, domain.OwnerID, nil)
+
+    return &VerifyResult{Success: true, ResolvedTo: resolvedIPs[0]}, nil
+}
+
+// getServerPublicIPs returns all public IPs the server is reachable on
+// Uses cached external IP discovery (refreshed every 12 hours)
+func (s *DomainService) getServerPublicIPs() []net.IP {
+    var ips []net.IP
+
+    // From DOMAIN env var / configured FQDN
+    if fqdn := config.GetFQDN(); fqdn != "" {
+        if resolved, err := net.LookupIP(fqdn); err == nil {
+            ips = append(ips, resolved...)
+        }
+    }
+
+    // From external IP discovery (works in containers)
+    // This is cached and refreshed every 12 hours by scheduler
+    if cached := s.cache.Get("server_public_ips"); cached != nil {
+        ips = append(ips, cached.([]net.IP)...)
+    }
+
+    return ips
+}
+
+// discoverPublicIPs discovers our public IP addresses
+// Called on startup and every 12 hours (hardcoded, sensible interval)
+// Safe to expose in /server/healthz - same info available via `dig`
+func discoverPublicIPs() ([]net.IP, error) {
+    var ips []net.IP
+
+    // IPv4: Always use external lookup (containers/NAT hide real IP)
+    ipv4Services := []string{
+        "https://api.ipify.org",
+        "https://ifconfig.me/ip",
+        "https://icanhazip.com",
+        "https://checkip.amazonaws.com",
+    }
+
+    for _, url := range ipv4Services {
+        if ip := fetchIP(url); ip != nil && ip.To4() != nil {
+            ips = append(ips, ip)
+            break
+        }
+    }
+
+    // IPv6: Check local interfaces first for global addresses
+    if globalIPv6 := getLocalGlobalIPv6(); globalIPv6 != nil {
+        ips = append(ips, globalIPv6)
+    }
+
+    if len(ips) == 0 {
+        return nil, errors.New("failed to discover public IP")
+    }
+
+    return ips, nil
+}
+
+// getLocalGlobalIPv6 returns the first global unicast IPv6 address from local interfaces
+func getLocalGlobalIPv6() net.IP {
+    ifaces, err := net.Interfaces()
+    if err != nil {
+        return nil
+    }
+
+    for _, iface := range ifaces {
+        // Skip loopback and down interfaces
+        if iface.Flags&net.FlagLoopback != 0 || iface.Flags&net.FlagUp == 0 {
+            continue
+        }
+
+        addrs, err := iface.Addrs()
+        if err != nil {
+            continue
+        }
+
+        for _, addr := range addrs {
+            var ip net.IP
+            switch v := addr.(type) {
+            case *net.IPNet:
+                ip = v.IP
+            case *net.IPAddr:
+                ip = v.IP
+            }
+
+            // Must be IPv6 (not IPv4) and global unicast (not link-local, not ULA)
+            if ip != nil && ip.To4() == nil && ip.IsGlobalUnicast() && !isULA(ip) {
+                return ip
+            }
+        }
+    }
+    return nil
+}
+
+// isULA checks if IP is a Unique Local Address (fc00::/7)
+func isULA(ip net.IP) bool {
+    return len(ip) == net.IPv6len && (ip[0]&0xfe) == 0xfc
+}
+
+func fetchIP(url string) net.IP {
+    client := &http.Client{Timeout: 5 * time.Second}
+    resp, err := client.Get(url)
+    if err != nil {
+        return nil
+    }
+    defer resp.Body.Close()
+
+    body, err := io.ReadAll(io.LimitReader(resp.Body, 64))
+    if err != nil {
+        return nil
+    }
+
+    return net.ParseIP(strings.TrimSpace(string(body)))
+}
+```
+
+## SSL Challenge Types
+
+**Three ACME challenge types are supported for custom domain SSL:**
+
+| Challenge | Requirements | Best For |
+|-----------|--------------|----------|
+| **HTTP-01** | Port 80 accessible | Direct server access |
+| **TLS-ALPN-01** | Port 443 accessible | Behind reverse proxy (recommended) |
+| **DNS-01** | DNS API credentials | Wildcard certs, firewalled servers |
+
+### Challenge Selection Logic
+
+```go
+func (s *DomainService) selectChallengeType(domain *CustomDomain) string {
+    // If user explicitly configured DNS provider, use DNS-01
+    if domain.SSLProvider != "" {
+        return "dns-01"
+    }
+
+    // If domain is wildcard, must use DNS-01
+    if domain.IsWildcard {
+        return "dns-01"
+    }
+
+    // Try TLS-ALPN-01 first (works behind reverse proxy)
+    // This is preferred because it uses port 443 which is usually available
+    if s.canUseTLSALPN() {
+        return "tls-alpn-01"
+    }
+
+    // Fall back to HTTP-01
+    if s.canUseHTTP() {
+        return "http-01"
+    }
+
+    // Must configure DNS provider
+    return "dns-01"
+}
+```
+
+## SSL Configuration Flow
+
+### Automatic SSL (HTTP-01 / TLS-ALPN-01)
+
+**For verified domains, SSL can be issued automatically without user configuration:**
+
+Challenge options: `auto`, `http-01`, `tls-alpn-01`
+
+```
+POST /api/{api_version}/users/domains/api.mycompany.com/ssl
+{
+  "challenge": "auto"
+}
+
+Response:
+{
+  "ok": true,
+  "data": {
+    "domain": "api.mycompany.com",
+    "ssl_status": "active",
+    "ssl_challenge": "tls-alpn-01",
+    "ssl_issued_at": "2025-01-15T10:30:00Z",
+    "ssl_expires_at": "2025-04-15T10:30:00Z"
+  }
+}
+```
+
+**TLS-ALPN-01 behind reverse proxy:**
+
+The server handles the ACME TLS-ALPN-01 challenge on port 443. This works behind a reverse proxy as long as the proxy forwards TLS connections for the custom domain to the backend.
+
+### DNS-01 (Manual Configuration)
+
+**For wildcards or when HTTP/TLS challenges aren't available:**
+
+```
+POST /api/{api_version}/users/domains/api.mycompany.com/ssl
+{
+  "challenge": "dns-01",
+  "provider": "cloudflare",
+  "credentials": {
+    "api_token": "cf_xxx..."
+  }
+}
+```
+
+The system validates credentials, encrypts them, and stores for reuse.
+
+### Certificate Issuance
+
+```go
+func (s *DomainService) issueCertificate(domain *CustomDomain) error {
+    // Create ACME client
+    acmeClient := acme.NewClient(acme.Config{
+        Email:   s.config.LetsEncryptEmail,
+        Staging: s.config.LetsEncryptStaging,
+    })
+
+    var cert, key []byte
+    var err error
+
+    switch domain.SSLChallenge {
+    case "http-01":
+        // HTTP-01: Serve challenge on /.well-known/acme-challenge/
+        cert, key, err = acmeClient.ObtainCertificateHTTP(domain.Domain)
+
+    case "tls-alpn-01":
+        // TLS-ALPN-01: Handle ALPN challenge on port 443
+        cert, key, err = acmeClient.ObtainCertificateTLSALPN(domain.Domain)
+
+    case "dns-01":
+        // DNS-01: Use configured DNS provider
+        creds, err := s.decryptCredentials(domain.SSLCredentials)
+        if err != nil {
+            return s.setSSLError(domain, err)
+        }
+        dnsProvider, err := dns.NewProvider(domain.SSLProvider, creds)
+        if err != nil {
+            return s.setSSLError(domain, err)
+        }
+        cert, key, err = acmeClient.ObtainCertificateDNS(domain.Domain, dnsProvider)
+    }
+
+    if err != nil {
+        return s.setSSLError(domain, err)
+    }
+
+    // Encrypt and store certificate
+    domain.SSLCertPEM = s.encrypt(cert)
+    domain.SSLKeyPEM = s.encrypt(key)
+    domain.SSLIssuedAt = time.Now().Unix()
+    domain.SSLExpiresAt = extractExpiry(cert)
+    domain.SSLStatus = "active"
+    domain.SSLEnabled = true
+
+    // Clear cache to pick up new cert
+    s.cache.Delete(domain.Domain)
+
+    return s.Update(domain)
+}
+```
+
+### Challenge Endpoints
+
+**HTTP-01 Challenge Handler:**
+
+```go
+// Serves ACME HTTP-01 challenges for all custom domains
+// Route: GET /.well-known/acme-challenge/{token}
+func (s *Server) handleACMEChallenge(w http.ResponseWriter, r *http.Request) {
+    token := chi.URLParam(r, "token")
+    host := r.Host
+
+    // Look up challenge response for this domain + token
+    response, err := s.acmeStore.GetChallenge(host, token)
+    if err != nil {
+        http.NotFound(w, r)
+        return
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte(response))
+}
+```
+
+**TLS-ALPN-01 requires TLS config that handles the ACME-TLS/1 protocol.**
+
+## Scheduled Tasks
+
+**Add to scheduler configuration:**
+
+**System task (hardcoded, not configurable):**
+- `public_ip_refresh` - Runs on startup and every 12 hours
+- IPv4: External lookup (containers/NAT hide real IP)
+- IPv6: Check local interfaces for global unicast address
+
+```yaml
+server:
+  scheduler:
+    tasks:
+      custom_domain_verification:
+        enabled: true
+        schedule: "*/15 * * * *"        # Every 15 minutes
+        description: "Retry pending domain verifications"
+
+      custom_domain_ssl_renewal:
+        enabled: true
+        schedule: "0 4 * * *"           # Daily at 4:00 AM
+        description: "Renew expiring custom domain SSL certs"
+        renew_before: 7d
+
+      custom_domain_cleanup:
+        enabled: true
+        schedule: "0 5 * * *"           # Daily at 5:00 AM
+        description: "Remove unverified domains after TTL"
+```
+
+**Public IP in /server/healthz:**
+
+The discovered public IPs are safe to include in `/server/healthz` - same info anyone can get with `dig {fqdn}`.
+- IPv4: From external lookup (needed for containers/NAT)
+- IPv6: From local interface if global unicast address exists
+
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "public_ips": {
+    "ipv4": "203.0.113.50",
+    "ipv6": "2001:db8::1",
+    "last_checked": "2025-01-15T10:00:00Z"
+  }
+}
+```
+
+## Error Handling
+
+**Uses standard error format (see PART 16). Domain-specific error codes:**
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `DOMAIN_EXISTS` | 409 | Domain already registered |
+| `DOMAIN_RESERVED` | 400 | Domain is reserved/blocked |
+| `DOMAIN_LIMIT` | 400 | Max domains limit reached |
+| `DOMAIN_INVALID` | 400 | Invalid domain format |
+| `DOMAIN_NOT_FOUND` | 404 | Domain not found |
+| `DOMAIN_NOT_VERIFIED` | 400 | Domain not yet verified |
+| `DOMAIN_SUSPENDED` | 403 | Domain is suspended |
+| `DNS_LOOKUP_FAILED` | 400 | DNS lookup failed |
+| `DNS_MISMATCH` | 400 | Domain does not resolve to server IP |
+| `SSL_PROVIDER_INVALID` | 400 | Invalid DNS provider for SSL |
+| `SSL_CREDENTIALS_INVALID` | 400 | DNS credentials validation failed |
+| `SSL_CHALLENGE_FAILED` | 400 | ACME challenge failed |
+| `SSL_ISSUANCE_FAILED` | 500 | Certificate issuance failed |
+
+## Admin Controls
+
+**Server admins can:**
+
+| Action | Description |
+|--------|-------------|
+| View all domains | List all custom domains across users/orgs |
+| Suspend domain | Disable a domain (shows suspension page) |
+| Unsuspend domain | Re-enable a suspended domain |
+| Force delete | Remove any domain immediately |
+| Force SSL renewal | Trigger certificate renewal |
+| View audit log | See all domain actions |
+
+**Suspension reasons:**
+
+| Reason | Description |
+|--------|-------------|
+| `abuse` | Domain used for abuse/spam |
+| `tos_violation` | Terms of service violation |
+| `billing` | Payment issue (if applicable) |
+| `security` | Security concern |
+| `admin_request` | Manual admin action |
+
+## WebUI Components
+
+### Domain List Page
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Custom Domains                                    [+ Add Domain] │
+├─────────────────────────────────────────────────────────────────┤
+│ Domain                    │ Status   │ SSL      │ Actions       │
+├───────────────────────────┼──────────┼──────────┼───────────────┤
+│ api.mycompany.com        │ ✅ Active │ 🔒 Valid │ [Manage]      │
+│ blog.example.org         │ ⏳ Pending│ ⚠️ None  │ [Verify][DNS] │
+│ old.domain.com           │ ❌ Error  │ ❌ Error │ [Fix][Delete] │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### DNS Configuration Page
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ DNS Configuration for api.mycompany.com                         │
+├─────────────────────────────────────────────────────────────────┤
+│ Add these records at your DNS provider:                         │
+│                                                                 │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │ Type: TXT                                                   │ │
+│ │ Name: _verify.api.mycompany.com                            │ │
+│ │ Value: verify_abc123def456                       [Copy]    │ │
+│ │ Status: ✅ Verified                                         │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │ Type: CNAME                                                 │ │
+│ │ Name: api.mycompany.com                                    │ │
+│ │ Value: custom.yourapp.com                        [Copy]    │ │
+│ │ Status: ⏳ Pending                                          │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ [Check DNS Records]                                             │
+│                                                                 │
+│ ℹ️ DNS changes can take up to 48 hours to propagate.            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### SSL Configuration Page
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ SSL Configuration for api.mycompany.com                         │
+├─────────────────────────────────────────────────────────────────┤
+│ SSL Status: 🔒 Active                                           │
+│ Certificate: Let's Encrypt                                      │
+│ Expires: 2025-04-15 (in 90 days)                               │
+│                                                                 │
+│ DNS Provider: Cloudflare                                        │
+│ Credentials: ✅ Valid (last checked: 2 hours ago)               │
+│                                                                 │
+│ [Renew Now] [Change Provider]                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+OR (if not configured):
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SSL Configuration for api.mycompany.com                         │
+├─────────────────────────────────────────────────────────────────┤
+│ SSL Status: ⚠️ Not Configured                                   │
+│                                                                 │
+│ To enable SSL, we need access to your DNS provider to complete │
+│ the ACME DNS-01 challenge.                                      │
+│                                                                 │
+│ DNS Provider: [Cloudflare          ▼]                           │
+│                                                                 │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │ API Token: [________________________________]               │ │
+│ │                                                             │ │
+│ │ ℹ️ Create a token with Zone:DNS:Edit permission             │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ [Validate & Enable SSL]                                         │
+│                                                                 │
+│ 🔒 Credentials are encrypted and stored securely.               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Implementation Checklist
+
+When implementing custom domains for a project:
+
+- [ ] Add feature flag to configuration
+- [ ] Create database tables (custom_domains, custom_domain_records, custom_domain_audit)
+- [ ] Implement domain resolver middleware
+- [ ] Create user web routes (/users/domains/*)
+- [ ] Create user API routes (/api/{api_version}/users/domains/*)
+- [ ] Create org web/API routes (if orgs supported)
+- [ ] Create admin management routes
+- [ ] Implement DNS verification
+- [ ] Implement SSL issuance via ACME DNS-01
+- [ ] Add scheduled tasks (verification retry, SSL renewal, cleanup)
+- [ ] Add domain caching
+- [ ] Add rate limiting for domain operations
+- [ ] Create WebUI pages
+- [ ] Update README.md if project uses custom domains
+
+---
+
+
+
+# PART 37: IDEA.md REFERENCE
 
 **NEVER modify this PART. Read-only reference for IDEA.md structure.**
 
-**The canonical layout is defined at the top of this file under "IDEA.md Required Layout" (PART 0). PART 33 here is the worked-example reference — every example below uses the same three-section structure.**
+**The canonical layout is defined at the top of this file under "IDEA.md Required Layout" (PART 0). PART 37 here is the worked-example reference — every example below uses the same three-section structure.**
 
 ---
 
@@ -47417,7 +58919,7 @@ maintainer_email: {maintainer_email}
 
 - No hardcoded routes — say "Get random joke", not `/api/v1/jokes/random`. AI.md PART 14 defines route patterns.
 - No implementation details — describe behavior, not algorithms or libraries. AI.md PARTS 0–36 define HOW.
-- Cross-reference AI.md PARTs by number for any pattern that already exists there (database → PART 10, security → PART 11, scheduler → PART 18, etc.).
+- Cross-reference AI.md PARTs by number for any pattern that already exists there (database → PART 10, security → PART 11, scheduler → PART 19, etc.).
 
 ---
 
@@ -47524,7 +59026,7 @@ maintainer_email: jane@example.com
 
 **Data sources:**
 - Database for links and clicks — see PART 10
-- GeoIP for location data — see PART 19
+- GeoIP for location data — see PART 20
 ```
 
 **Example 3: Weather API**
@@ -47593,7 +59095,7 @@ maintainer_email: jane@example.com
 
 ### Document Rules
 
-- [ ] **AI.md is SOURCE OF TRUTH** - PARTS 0-33 define HOW, PART 33 is reference-only — READ-ONLY, do not modify
+- [ ] **AI.md is SOURCE OF TRUTH** - PARTS 0-36 define HOW, PART 37 is reference-only — read-only; optional PART activation goes in SPEC.md
 - [ ] **IDEA.md is the project PLAN** - WHAT (update when features change)
 - [ ] **IDEA.md must be SPEC compliant** - AI.md always wins conflicts
 - [ ] **IDEA.md examples are illustrative only** - SPEC defines actual patterns
@@ -47605,7 +59107,7 @@ maintainer_email: jane@example.com
 
 ### Rule Files (.claude/rules/)
 
-- [ ] **All 13 rule files exist** - ai-rules, project-rules, config-rules, binary-rules, backend-rules, api-rules, frontend-rules, features-rules, service-rules, makefile-rules, docker-rules, cicd-rules, testing-rules
+- [ ] **All 14 rule files exist** - ai-rules, project-rules, config-rules, binary-rules, backend-rules, api-rules, frontend-rules, features-rules, service-rules, makefile-rules, docker-rules, cicd-rules, testing-rules, optional-rules
 - [ ] **Correct PART assignments** - each file covers PARTs specified in PART 0 table
 - [ ] **Required header format** - `# {Topic} Rules (PART X, Y, Z)`
 - [ ] **Required warning line** - `⚠️ **These rules are NON-NEGOTIABLE. Violations are bugs.** ⚠️`
@@ -47631,7 +59133,9 @@ maintainer_email: jane@example.com
 - [ ] No external runtime dependencies - everything embedded
 - [ ] Use ONLY approved libraries (see PART 5)
 - [ ] Follow exact config paths: `server.xxx`, not variations
-- [ ] Follow exact route patterns: `/api/{api_version}/...` (no auth gates)
+- [ ] Follow exact route patterns: `/api/{api_version}/server/{admin_path}/config/xxx`
+- [ ] Token prefixes: `adm_` (admin), `usr_` (user), `org_` (org)
+- [ ] Setup token: 32 hex chars, no dashes
 
 ### Container Rules
 
@@ -47654,7 +59158,7 @@ maintainer_email: jane@example.com
 - [ ] **Goal is to BREAK things** - try edge cases, invalid inputs, stress tests
 - [ ] **Then FIX them** - don't just report bugs, implement fixes
 - [ ] **Verify fixes** - re-test to confirm the fix works
-- [ ] See PART 28: TESTING & DEVELOPMENT for full procedures
+- [ ] See PART 29: TESTING & DEVELOPMENT for full procedures
 
 ### API & Endpoints
 
@@ -47667,14 +59171,14 @@ maintainer_email: jane@example.com
 
 1. Read the relevant `.claude/rules/*.md` files for your current task
 2. Read TODO.AI.md and TODO.md for current tasks (if either exists)
-3. Identify the specific PART(s) for your task and read them
+3. Identify the specific PART(s) for your task
 4. Check for cross-references to other sections
 5. Ask clarifying questions BEFORE implementing
 6. Implement exactly as specified
 7. Verify consistency with related sections
-8. Remove completed items from TODO.AI.md when each task is fully resolved and committed; mark items done in TODO.md in place
+8. Update TODO.AI.md (and mark items done in TODO.md if listed there) when tasks complete
 
-**After context compaction:** Read the PART(s) required by the current task — not the whole spec. Do not pre-load PART 0 or 1 speculatively; read them only if the current task requires them.
+**After context compaction:** Read what the current task requires — the PART(s) and rules files directly relevant to continuing — not the whole spec.
 
 ### Quick Reference - Critical Rules
 
@@ -47717,12 +59221,12 @@ cd "$TEMP_DIR" && docker compose up -d
 | `config/`, `data/`, `logs/`, `cache/` | Runtime dirs go to temp/OS paths |
 | `server.yml`, `cli.yml` | Generated at runtime, not in repo |
 | `volumes/` in project root | Runtime mount data belongs in temp/deployment dirs, not the source repo |
-| `.env` with secrets | Use environment variables or API-managed config |
+| `.env` with secrets | Use environment variables or admin panel |
 
 **Config Files:**
 - NEVER in repository - generated at RUNTIME
 - Binary creates on first run with sane defaults
-- User edits generated file or uses admin API
+- User edits generated file or uses admin panel
 
 **Testing:**
 | Type | Container | Purpose |
@@ -47917,7 +59421,7 @@ make docker # Build Docker image
 - [ ] API versioning in URL path
 - [ ] No breaking changes without major version bump
 
-### Phase 5: Auth & Security (PARTS 15-16)
+### Phase 5: SSL/TLS & Web Frontend (PARTS 15-16)
 
 **PART 15: SSL/TLS & Let's Encrypt**
 - [ ] Let's Encrypt HTTP-01 challenge
@@ -47948,10 +59452,22 @@ make docker # Build Docker image
 - [ ] Long strings have `word-break: break-all` CSS (IPv6, .onion, tokens, hashes)
 - [ ] Touch targets minimum 44x44px on mobile
 
-### Phase 6: Email & Scheduler (PARTS 17-18)
+### Phase 6: Admin & Email (PARTS 17-18)
 
-**PART 17: Email & Notifications**
-- [ ] SMTP configuration in config file and API
+**PART 17: Admin Panel**
+- [ ] Admin UI at `/server/{admin_path}`
+- [ ] Admin API at `/api/{api_version}/server/{admin_path}/`
+- [ ] First-run setup wizard
+- [ ] All settings configurable via UI
+- [ ] Settings organized by category
+- [ ] Real-time validation feedback
+- [ ] Confirmation for destructive actions
+- [ ] Same theme system as main UI
+- [ ] Activity/audit log viewer
+- [ ] System status dashboard
+
+**PART 18: Email & Notifications**
+- [ ] SMTP configuration in admin
 - [ ] Email disabled gracefully if no SMTP
 - [ ] Customizable email templates
 - [ ] WebUI notifications always available
@@ -47960,31 +59476,31 @@ make docker # Build Docker image
 
 ### Phase 7: Features (PARTS 19-22)
 
-**PART 18: Scheduler**
+**PART 19: Scheduler**
 - [ ] Built-in scheduler always running
 - [ ] Backup: 02:00 daily (configurable)
 - [ ] SSL renewal: 03:00 daily
 - [ ] GeoIP update: 03:00 Sunday
 - [ ] Session cleanup: hourly
 - [ ] Cluster-aware task locking
-- [ ] Scheduler status in admin API
+- [ ] Scheduler status in admin panel
 - [ ] Manual task trigger option
 
-**PART 19: GeoIP**
+**PART 20: GeoIP**
 - [ ] ip-location-db GeoIP database support
 - [ ] Auto-download and update
 - [ ] Country blocking capability
 - [ ] IP lookup API endpoint
 - [ ] Graceful degradation if unavailable
 
-**PART 20: Metrics**
+**PART 21: Metrics**
 - [ ] Prometheus metrics at `/metrics`
 - [ ] Request count, latency, errors
 - [ ] System metrics (memory, goroutines)
 - [ ] Custom business metrics
 - [ ] Metrics endpoint authentication option
 
-**PART 21: Backup & Restore**
+**PART 22: Backup & Restore**
 - [ ] Automatic daily backups (backup_daily task at 02:00)
 - [ ] Optional hourly incremental (backup_hourly task, disabled by default)
 - [ ] Backup encryption (AES-256-GCM) - optional unless compliance enabled
@@ -48001,7 +59517,7 @@ make docker # Build Docker image
 
 ### Phase 8: Maintenance (PARTS 23-26)
 
-**PART 22: Update Command**
+**PART 23: Update Command**
 - [ ] `--update check` - Check for updates
 - [ ] `--update yes` - Perform update
 - [ ] `--update branch {name}` - Switch branch
@@ -48009,13 +59525,13 @@ make docker # Build Docker image
 - [ ] Rollback capability
 - [ ] Update notifications in admin
 
-**PART 23: Privilege Escalation & Service**
+**PART 24: Privilege Escalation & Service**
 - [ ] Privilege escalation for protected operations
 - [ ] Clear privilege requirements documented
 - [ ] sudo/runas prompts when needed
 - [ ] Service operations require appropriate rights
 
-**PART 24: Service Support**
+**PART 25: Service Support**
 - [ ] `--service install` - Install as service
 - [ ] `--service uninstall` - Remove service
 - [ ] `--service start/stop/restart/reload`
@@ -48024,7 +59540,7 @@ make docker # Build Docker image
 - [ ] Windows: Windows Service
 - [ ] BSD: rc.d script
 
-**PART 25: Makefile**
+**PART 26: Makefile**
 - [ ] `make build` - Build binary
 - [ ] `make test` - Run tests
 - [ ] `make docker` - Build Docker image
@@ -48036,7 +59552,7 @@ make docker # Build Docker image
 
 ### Phase 9: Build & Deploy (PARTS 27-29)
 
-**PART 26: Docker**
+**PART 27: Docker**
 - [ ] Multi-stage Dockerfile
 - [ ] Alpine base image
 - [ ] tini as init process
@@ -48048,7 +59564,9 @@ make docker # Build Docker image
 - [ ] docker-compose.test.yml for testing
 - [ ] Volume mounts for config/data
 
-**PART 27: CI/CD Workflows**
+**PART 28: CI/CD Workflows**
+- [ ] `.github/workflows/ci.yml` — build, test, lint, coverage, and all security jobs
+- [ ] `.github/workflows/build-toolchain.yml` — monthly `:build` toolchain image rebuild
 - [ ] release.yml - Stable releases
 - [ ] beta.yml - Beta releases
 - [ ] daily.yml - Nightly builds
@@ -48058,7 +59576,7 @@ make docker # Build Docker image
 - [ ] Release artifacts uploaded
 - [ ] Docker images pushed to registry
 
-**PART 28: Testing & Development**
+**PART 29: Testing & Development**
 - [ ] Unit tests exist
 - [ ] Integration tests exist
 - [ ] tests/run_tests.sh - Auto-detect environment
@@ -48071,7 +59589,7 @@ make docker # Build Docker image
 
 ### Phase 10: Documentation (PARTS 30-31)
 
-**PART 29: ReadTheDocs Documentation**
+**PART 30: ReadTheDocs Documentation**
 - [ ] docs/ directory for MkDocs only
 - [ ] mkdocs.yml in project root
 - [ ] .readthedocs.yaml in project root
@@ -48090,22 +59608,22 @@ make docker # Build Docker image
 - [ ] ReadTheDocs builds successfully
 - [ ] Documentation badge in README.md
 
-**PART 30: I18N & A11Y**
+**PART 31: I18N & A11Y**
 - [ ] Internationalization framework (if applicable)
 - [ ] RTL language support (if applicable)
 - [ ] WCAG 2.1 AA compliance
 - [ ] Accessibility testing performed
 
-### Phase 11: Conditional & Project-Specific Features (PARTS 31-32)
+### Phase 11: Conditional & Project-Specific Features (PARTS 32-36)
 
-**Interpretation:** PART 31 is conditional on Tor availability, PART 32 is required for all projects.
+**Interpretation:** PART 32 is conditional on Tor availability, PART 33 is required for all projects, and PARTS 34-36 are optional per project.
 
-**PART 31: Tor Hidden Service**
+**PART 32: Tor Hidden Service**
 - [ ] Auto-enabled when tor binary found
 - [ ] Dedicated tor process (not system tor)
 - [ ] .onion address generation
 - [ ] Vanity address generation option
-- [ ] Tor status in healthz API
+- [ ] Tor status in admin panel
 - [ ] Tor config in `{config_dir}/tor/torrc`
 - [ ] Tor data in `{data_dir}/tor/`
 - [ ] Tor fields in `/api/{api_version}/server/healthz`:
@@ -48114,7 +59632,7 @@ make docker # Build Docker image
   - [ ] `features.tor.status` (healthy/error:{message})
   - [ ] `features.tor.hostname` ({onion_address})
 
-**PART 32: Client & Agent**
+**PART 33: Client & Agent**
 
 *Client (REQUIRED for all projects):*
 - [ ] Binary: `{project_name}-cli`
@@ -48139,7 +59657,26 @@ make docker # Build Docker image
 - [ ] Same version as server
 - [ ] Systemd/launchd/Windows service support
 
-*Agent (only for monitoring/remote management projects, agent-specific config):*
+**PART 34: Multi-User** (if applicable)
+- [ ] User registration flow
+- [ ] User authentication (session-based for UI)
+- [ ] API authentication (bearer token)
+- [ ] Token prefixes: `usr_` (user) with properties (name, scope, expiration)
+- [ ] Session management implemented
+- [ ] 2FA support: TOTP and WebAuthn
+- [ ] Password requirements enforced
+
+**PART 35: Organizations** (if applicable)
+- [ ] Org creation and management
+- [ ] Member roles and permissions
+- [ ] Org-level settings
+- [ ] Org API tokens
+
+**PART 36: Custom Domains** (if applicable)
+- [ ] Custom domain configuration
+- [ ] SSL for custom domains
+- [ ] DNS verification
+- [ ] Domain management in admin
 - [ ] Config: `/etc/{project_org}/{internal_name}/agent.yml`
 - [ ] Connects to central server
 - [ ] Same flags as server EXCEPT no `--port`/`--address` (agents don't serve HTTP)
@@ -48219,17 +59756,32 @@ make docker # Build Docker image
 - [ ] Data retention policies implemented
 - [ ] Secure deletion when required
 
-### Rate Limiting
+### Two-Factor Authentication (2FA)
 
-- [ ] Rate limiting enabled and configured
-- [ ] Read endpoints: 120 req/min per IP
-- [ ] Write endpoints: 10 req/min per IP
-- [ ] Health endpoints: 120 req/min per IP
-- [ ] Global burst ceiling enforced: 240 req/min per IP
-- [ ] `429 Too Many Requests` with `Retry-After` header on limit hit
-- [ ] Rate limit counters stored in `server.db`
+- [ ] TOTP support (RFC 6238)
+- [ ] WebAuthn/Passkeys support (FIDO2)
+- [ ] 2FA prompt on first login (can skip)
+- [ ] Remember device option (configurable, default 30 days)
+- [ ] Recovery codes generated on 2FA setup
+- [ ] 2FA can be disabled (requires password confirmation)
+- [ ] Trusted device management in settings
+
+### Token Security
+
+- [ ] Token prefixes enforced: `adm_` (admin), `usr_` (user), `org_` (org)
+- [ ] Agent token prefixes enforced: `adm_agt_`, `usr_agt_`, `org_agt_` (scoped to owner)
+- [ ] Setup token: 32 hex characters, no dashes
+- [ ] Tokens hashed before storage (SHA-256)
+- [ ] Token expiration enforced
+- [ ] Token revocation works immediately
+- [ ] No tokens in logs or error messages
+
+### Admin vs User Separation
+
+- [ ] Server admins in separate table (`admins`)
+- [ ] Regular users in separate table (`users`)
 - [ ] Separate session tables (`admin_sessions`, `user_sessions`)
-- [ ] Server API routes protected (`/api/{api_version}/server/*`)
+- [ ] Admin routes protected (`/server/{admin_path}/*`)
 - [ ] No privilege escalation path from user to admin
 
 ---
@@ -48291,11 +59843,11 @@ make docker # Build Docker image
 - [ ] No trailing slashes on routes
 - [ ] No verbs in routes (use HTTP methods)
 - [ ] Every API route has corresponding frontend route
-- [ ] Frontend routes match API structure (project resources)
+- [ ] Frontend routes match API structure (`/users` ↔ `/api/{api_version}/users`)
 - [ ] Frontend is fully functional (not just display)
 - [ ] All CRUD operations work from both frontend and API
 - [ ] No orphan routes (frontend-only or API-only)
-- [ ] Routes follow scope rules (`/server/`, `/api/{api_version}/*`)
+- [ ] Routes follow scope rules (`/server/`, `/server/auth/`, `/users/`, `/orgs/`, `/server/{admin_path}/`)
 
 ### REST API (`/api/{api_version}/`)
 
@@ -48388,8 +59940,9 @@ make docker # Build Docker image
 - [ ] Public pages included with appropriate priority
 - [ ] Documentation pages included
 - [ ] API docs (`/server/docs/swagger`, `/server/docs/graphql`) included
-- [ ] Project resource pages included ONLY if public/published
-- [ ] Admin/server-internal pages NEVER included in sitemap
+- [ ] User profiles included ONLY if public
+- [ ] Admin pages (`/server/{admin_path}/*`) NEVER included
+- [ ] Auth pages (`/server/auth/*`) NEVER included
 - [ ] API endpoints (`/api/*`) NEVER included
 - [ ] `lastmod` dates accurate
 - [ ] Large sites (>50k URLs) use sitemap index
@@ -48501,6 +60054,8 @@ make docker # Build Docker image
 
 ### Workflow Files
 
+- [ ] `ci.yml` — build, test, lint, coverage, and all security jobs
+- [ ] `build-toolchain.yml` — monthly `:build` toolchain image rebuild
 - [ ] `release.yml` - Stable releases (tag trigger)
 - [ ] `beta.yml` - Beta releases (branch trigger)
 - [ ] `daily.yml` - Nightly builds (cron + push)
@@ -48601,11 +60156,15 @@ make docker # Build Docker image
 - [ ] Uses shared `ColorEnabled()` and `EmojiEnabled()` functions (PART 8)
 - [ ] Plain mode: no emojis, no box drawing (╭╮╰╯│─), no ANSI colors
 
-### First-Run Config Generation
+### Setup Token (First Run)
 
-- [ ] On first run, default `server.yml` written to `{config_dir}/server.yml` if absent
-- [ ] Config file path logged to console on first run
-- [ ] Server starts normally after generating default config
+- [ ] Generated on first run if no admins exist
+- [ ] 32-character hex string (no dashes)
+- [ ] Stored as SHA-256 hash in `{config_dir}/setup_token.txt`
+- [ ] Plaintext token shown ONCE in console banner
+- [ ] File deleted after successful setup completion
+- [ ] Setup URL displayed: `{proto}://{fqdn}/server/{admin_path}/config/setup`
+- [ ] Token section only appears on first run (never again after setup)
 
 ### CLI Flag Syntax (ALL Binaries)
 
@@ -48645,6 +60204,7 @@ make docker # Build Docker image
 - [ ] `{smtp_address}` - SMTP server address (if configured)
 - [ ] `{smtp_port}` - SMTP server port
 - [ ] `{startup_datetime}` - Server start timestamp
+- [ ] `{setup_token}` - First-run setup token (shown ONCE)
 - [ ] `{PROJECT_NAME}` - Project name (uppercase for display)
 - [ ] `{projectversion}` - Current version
 
@@ -48748,7 +60308,7 @@ make docker # Build Docker image
 - [ ] Swagger/OpenAPI: endpoint descriptions translated
 - [ ] GraphQL: type/field descriptions translated
 - [ ] Startup banners: all label text translated (Mode, Server, Listening, etc.)
-- [ ] CLI setup wizard: all steps, labels, prompts translated
+- [ ] Setup wizard: all steps, labels, prompts translated
 
 ## HOST SYSTEM SAFETY CHECKLIST
 
@@ -48799,7 +60359,7 @@ make docker # Build Docker image
 
 **ALL sections marked NON-NEGOTIABLE must be implemented exactly as specified.**
 
-**When in doubt:** Re-read AI.md (HOW), IDEA.md (WHAT), TODO.AI.md, and TODO.md. Ask questions. Never assume.
+**When in doubt:** Read the specific section of AI.md (HOW) or IDEA.md (WHAT) that covers the question; check TODO.AI.md and TODO.md. Ask questions. Never assume.
 
 ---
 
@@ -49134,8 +60694,8 @@ When bootstrapping a new project from this specification:
 1. **Create src/server/server.go** - HTTP server setup
 2. **Create src/server/handler/health.go** - Health check
 3. **Add CLI flags** per PART 8 specification
-4. **Add service support** per PART 23
-5. **Create Makefile** per PART 25
+4. **Add service support** per PART 24
+5. **Create Makefile** per PART 26
 
 **Test:** Server starts and responds to `/server/healthz`
 
@@ -49159,15 +60719,15 @@ When bootstrapping a new project from this specification:
 
 **Test:** Homepage loads with working theme toggle
 
-#### Step 5: Email & Notifications (PART 17)
+#### Step 5: Admin Panel (PART 17)
 
-1. **Create src/email/email.go** - Email package
-2. **Create email templates** - HTML/text templates
-3. **Create email handlers** - Send and queue logic
-4. **Implement SMTP configuration**
-5. **Add all notification configuration pages**
+1. **Create src/admin/admin.go** - Admin package
+2. **Create admin templates** - UI pages
+3. **Create admin handlers** - Routes and logic
+4. **Implement first-run setup wizard**
+5. **Add all admin configuration pages**
 
-**Test:** Email sending works via server API at `/api/{api_version}/server/config/email`
+**Test:** Admin panel accessible at `/server/{admin_path}`
 
 #### Step 6: API Layer (PART 14)
 
@@ -49188,28 +60748,30 @@ Implement remaining required parts:
 4. **PART 12:** Server Configuration
 5. **PART 13:** Health & Versioning
 6. **PART 15:** SSL/TLS & Let's Encrypt
-7. **PART 17:** Email & Notifications
-8. **PART 18:** Scheduler
-9. **PART 19:** GeoIP
-10. **PART 20:** Metrics
-11. **PART 21:** Backup & Restore
-12. **PART 22:** Update Command
-13. **PART 23:** Privilege Escalation & Service
-14. **PART 24:** Service Support
-15. **PART 28:** Testing & Development
-16. **PART 30:** I18N & A11Y
-17. **PART 31:** Tor Hidden Service
+7. **PART 18:** Email & Notifications
+8. **PART 19:** Scheduler
+9. **PART 20:** GeoIP
+10. **PART 21:** Metrics
+11. **PART 22:** Backup & Restore
+12. **PART 23:** Update Command
+13. **PART 24:** Privilege Escalation & Service
+14. **PART 25:** Service Support
+15. **PART 29:** Testing & Development
+16. **PART 31:** I18N & A11Y
+17. **PART 32:** Tor Hidden Service
 
 **Test after each part:** Verify the feature works before moving to next
 
-#### Step 8: Client + Project-Specific Features (PART 32)
+#### Step 8: Client + Project-Specific Features (PART 33, PARTS 34-36)
 
 Implement the required client, then any project-specific optional features:
-1. **PART 32:** Client (required for all projects)
-2. **PART 32:** Agent (only if project manages or monitors external nodes)
-3. **Project-specific:** Multi-User, Organizations, Custom Domains (if defined in IDEA.md)
+1. **PART 33:** Client (required for all projects)
+2. **PART 33:** Agent (only if project manages or monitors external nodes)
+3. **PART 34:** Multi-User (if project needs Regular User accounts)
+4. **PART 35:** Organizations (requires PART 34)
+5. **PART 36:** Custom Domains (if users/orgs need branded domains)
 
-#### Step 9: Documentation (PART 29)
+#### Step 9: Documentation (PART 30)
 
 1. **Create all required docs/*.md files**
 2. **Configure mkdocs.yml**
@@ -49269,7 +60831,7 @@ Implement the required client, then any project-specific optional features:
 - [ ] Configuration loading works (file, env, flags)
 - [ ] Logging configured properly
 - [ ] Admin panel accessible
-- [ ] First-run default `server.yml` generation works
+- [ ] First-run setup wizard works
 - [ ] REST API endpoints defined
 - [ ] Swagger UI accessible at `/server/docs/swagger`; OpenAPI JSON at `/api/{api_version}/server/swagger` (with `/api/swagger` alias)
 - [ ] GraphiQL UI accessible at `/server/docs/graphql`; GraphQL POST at `/api/{api_version}/server/graphql` (with `/api/graphql` alias)
@@ -49311,8 +60873,8 @@ Implement the required client, then any project-specific optional features:
 
 | Mistake | Why It's Wrong | Correct Approach |
 |---------|----------------|------------------|
-| Starting with project-specific features | Wastes time if foundation is wrong | Build foundation first (config, server, API) |
-| Skipping settings API | Hard to configure without API access | Build settings API endpoints early |
+| Starting with project-specific features | Wastes time if foundation is wrong | Build foundation first (config, server, admin) |
+| Skipping admin panel | Hard to configure without UI | Build admin panel early |
 | Implementing all APIs at once | Easy to get out of sync | Start with REST, then add Swagger, then GraphQL |
 | Not testing incrementally | Find bugs too late | Test after each major component |
 | Hardcoding values | Makes project inflexible | Use configuration from day 1 |
@@ -49351,7 +60913,7 @@ A successfully bootstrapped project should:
 ✅ Compile to a single static binary for all 8 platforms
 ✅ Run in Docker with proper configuration
 ✅ Have working WebUI with theme support (light/dark/auto)
-✅ Have working admin API with all settings endpoints
+✅ Have working admin panel with all config options
 ✅ Expose REST, Swagger, AND GraphQL APIs (all in sync)
 ✅ Have comprehensive documentation on ReadTheDocs
 ✅ Pass all CI/CD workflows
@@ -49364,7 +60926,7 @@ A successfully bootstrapped project should:
 
 When stuck:
 
-1. **Re-read the relevant PART** in AI.md
+1. **Read the relevant PART** in AI.md that covers the current problem
 2. **Check existing projects** in apimgr for working examples
 3. **Ask specific questions** about unclear requirements
 4. **Propose solutions** for human review
