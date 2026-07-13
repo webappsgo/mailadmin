@@ -129,3 +129,20 @@ CLAUDE.local.md
 # Go
 go.sum
 vendor/
+
+# Mail server binary (built output)
+/mail
+
+# Docker volume mounts (never commit runtime data)
+volumes/
+
+# Release output directory
+release/
+
+# Pre-migration backup files (created during import path migration)
+*.preMigration.bak
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal

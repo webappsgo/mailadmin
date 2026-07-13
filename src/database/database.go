@@ -12,7 +12,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite"
 
-	"github.com/apimgr/mail/config"
+	"github.com/webappsgo/mail/src/config"
 )
 
 // DB wraps database connections per AI.md PART 10

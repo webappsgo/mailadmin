@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"runtime"
 	
-	"github.com/apimgr/mail/config"
-	"github.com/apimgr/mail/database"
-	"github.com/apimgr/mail/logger"
-	"github.com/apimgr/mail/paths"
-	"github.com/apimgr/mail/pidfile"
-	"github.com/apimgr/mail/scheduler"
-	"github.com/apimgr/mail/server"
+	"github.com/webappsgo/mail/src/config"
+	"github.com/webappsgo/mail/src/database"
+	"github.com/webappsgo/mail/src/logger"
+	"github.com/webappsgo/mail/src/paths"
+	"github.com/webappsgo/mail/src/pidfile"
+	"github.com/webappsgo/mail/src/scheduler"
+	"github.com/webappsgo/mail/src/server"
 )
 
 // Build info - set via -ldflags at build time (per AI.md PART 26)
@@ -424,8 +424,8 @@ func displayStartupBanner(cfg *config.Config) {
 // Per AI.md PART 8 Step 11: root uses /var/run/, user uses {data_dir}/
 func getPIDPath(appPaths *paths.Paths, isRoot bool) string {
 	if isRoot {
-		// Root: /var/run/apimgr/mail.pid
-		return "/var/run/apimgr/mail.pid"
+		// Root: /var/run/webappsgo/mail.pid
+		return "/var/run/webappsgo/mail.pid"
 	}
 	// User: {data_dir}/mail.pid
 	return filepath.Join(appPaths.Data, "mail.pid")

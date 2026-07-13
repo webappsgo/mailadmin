@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 	
-	"github.com/apimgr/mail/database"
-	"github.com/apimgr/mail/logger"
+	"github.com/webappsgo/mail/src/database"
+	"github.com/webappsgo/mail/src/logger"
 )
 
 // Scheduler manages background tasks per AI.md PART 19

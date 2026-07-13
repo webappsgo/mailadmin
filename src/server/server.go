@@ -14,8 +14,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/apimgr/mail/config"
-	"github.com/apimgr/mail/database"
+	"github.com/webappsgo/mail/src/config"
+	"github.com/webappsgo/mail/src/database"
 )
 
 // Server represents the HTTP server

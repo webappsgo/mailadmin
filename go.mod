@@ -1,8 +1,7 @@
-module github.com/apimgr/mail
+module github.com/webappsgo/mail
 
 go 1.24.0
 
-// Core
 require gopkg.in/yaml.v3 v3.0.1
 
 require (
