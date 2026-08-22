@@ -117,17 +117,22 @@ rootfs/
 *.swo
 
 # AI config directories (regenerated from AI.md rules, not committed)
-.claude/
-.cursor/
+# Team AI config is committed; only personal overrides, cache and locks are ignored
+.claude/settings.local.json
+.claude/*.lock
+.claude/backups/
+.claude/cache/
+.claude/history.jsonl
+.cursor/settings.json
+.windsurf/settings.json
 .aider/
 .ai/
-.windsurf/
 
 # Claude Code personal files (always gitignored)
 CLAUDE.local.md
 
 # Go
-go.sum
+# go.sum is REQUIRED in the repo per AI.md "Allowed Root Files" - never ignore it
 vendor/
 
 # Mail server binary (built output)
@@ -139,10 +144,10 @@ volumes/
 # Release output directory
 release/
 
-# Pre-migration backup files (created during import path migration)
-*.preMigration.bak
-
 # SQLite database files
 *.db
 *.db-shm
 *.db-wal
+
+# Go test coverage output
+coverage.out

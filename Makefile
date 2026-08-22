@@ -5,6 +5,9 @@
 PROJECTNAME := $(shell git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)(\.git)?$$|\1|' | sed 's/\.git$$//' || basename "$$(pwd)")
 PROJECTORG := $(shell git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)/[^/]+(\.git)?$$|\1|' || basename "$$(dirname "$$(pwd)")")
 
+# Internal name (binary/registry identity, frozen per IDEA.md Project variables - never PROJECTNAME)
+INTERNALNAME := mail
+
 # Version: env var > release.txt > default
 VERSION ?= $(shell cat release.txt 2>/dev/null || echo "0.1.0")
 
@@ -37,17 +40,19 @@ GODIR := $(HOME)/.local/share/go
 GOCACHE := $(HOME)/.local/share/go/build
 
 # Build targets
-PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64 freebsd/amd64 freebsd/arm64
+# Per SPEC.md Platform Target override: Linux and BSD only (4 platforms, no darwin/windows)
+PLATFORMS := linux/amd64 linux/arm64 freebsd/amd64 freebsd/arm64
 
 # Docker - Set REGISTRY based on your platform (ghcr.io, registry.gitlab.com, git.example.com)
-REGISTRY ?= ghcr.io/$(PROJECTORG)/$(PROJECTNAME)
+REGISTRY ?= ghcr.io/$(PROJECTORG)/$(INTERNALNAME)
 GO_DOCKER := docker run --rm \
 	-v $(PWD):/build \
 	-v $(GOCACHE):/root/.cache/go-build \
 	-v $(GODIR):/go \
 	-w /build \
 	-e CGO_ENABLED=0 \
-	golang:alpine
+	-e GOFLAGS=-buildvcs=false \
+	casjaysdev/go:latest
 
 .PHONY: build local release docker test dev clean
 
@@ -67,17 +72,16 @@ build: clean
 	# Build for local OS/ARCH
 	@echo "Building local binary..."
 	@$(GO_DOCKER) sh -c "GOOS=$$(go env GOOS) GOARCH=$$(go env GOARCH) \
-		go build -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(PROJECTNAME) ./src"
+		go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(INTERNALNAME) ./src"
 
 	# Build server for all platforms
 	@for platform in $(PLATFORMS); do \
 		OS=$${platform%/*}; \
 		ARCH=$${platform#*/}; \
-		OUTPUT=$(BINDIR)/$(PROJECTNAME)-$$OS-$$ARCH; \
-		[ "$$OS" = "windows" ] && OUTPUT=$$OUTPUT.exe; \
+		OUTPUT=$(BINDIR)/$(INTERNALNAME)-$$OS-$$ARCH; \
 		echo "Building server $$OS/$$ARCH..."; \
 		$(GO_DOCKER) sh -c "GOOS=$$OS GOARCH=$$ARCH \
-			go build -ldflags \"$(LDFLAGS)\" \
+			go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" \
 			-o $$OUTPUT ./src" || exit 1; \
 	done
 
@@ -86,11 +90,10 @@ build: clean
 		for platform in $(PLATFORMS); do \
 			OS=$${platform%/*}; \
 			ARCH=$${platform#*/}; \
-			OUTPUT=$(BINDIR)/$(PROJECTNAME)-cli-$$OS-$$ARCH; \
-			[ "$$OS" = "windows" ] && OUTPUT=$$OUTPUT.exe; \
+			OUTPUT=$(BINDIR)/$(INTERNALNAME)-cli-$$OS-$$ARCH; \
 			echo "Building CLI $$OS/$$ARCH..."; \
 			$(GO_DOCKER) sh -c "GOOS=$$OS GOARCH=$$ARCH \
-				go build -ldflags \"$(LDFLAGS)\" \
+				go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" \
 				-o $$OUTPUT ./src/client" || exit 1; \
 		done; \
 	fi
@@ -100,11 +103,10 @@ build: clean
 		for platform in $(PLATFORMS); do \
 			OS=$${platform%/*}; \
 			ARCH=$${platform#*/}; \
-			OUTPUT=$(BINDIR)/$(PROJECTNAME)-agent-$$OS-$$ARCH; \
-			[ "$$OS" = "windows" ] && OUTPUT=$$OUTPUT.exe; \
+			OUTPUT=$(BINDIR)/$(INTERNALNAME)-agent-$$OS-$$ARCH; \
 			echo "Building agent $$OS/$$ARCH..."; \
 			$(GO_DOCKER) sh -c "GOOS=$$OS GOARCH=$$ARCH \
-				go build -ldflags \"$(LDFLAGS)\" \
+				go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" \
 				-o $$OUTPUT ./src/agent" || exit 1; \
 		done; \
 	fi
@@ -125,22 +127,22 @@ local: clean
 	@$(GO_DOCKER) go mod download
 
 	# Build server binary
-	@echo "Building $(PROJECTNAME)..."
+	@echo "Building $(INTERNALNAME)..."
 	@$(GO_DOCKER) sh -c "GOOS=$$(go env GOOS) GOARCH=$$(go env GOARCH) \
-		go build -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(PROJECTNAME) ./src"
+		go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(INTERNALNAME) ./src"
 
 	# Build CLI binary (if exists)
 	@if [ -d "src/client" ]; then \
-		echo "Building $(PROJECTNAME)-cli..."; \
+		echo "Building $(INTERNALNAME)-cli..."; \
 		$(GO_DOCKER) sh -c "GOOS=$$(go env GOOS) GOARCH=$$(go env GOARCH) \
-			go build -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(PROJECTNAME)-cli ./src/client"; \
+			go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(INTERNALNAME)-cli ./src/client"; \
 	fi
 
 	# Build agent binary (if exists)
 	@if [ -d "src/agent" ]; then \
-		echo "Building $(PROJECTNAME)-agent..."; \
+		echo "Building $(INTERNALNAME)-agent..."; \
 		$(GO_DOCKER) sh -c "GOOS=$$(go env GOOS) GOARCH=$$(go env GOARCH) \
-			go build -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(PROJECTNAME)-agent ./src/agent"; \
+			go build -buildvcs=false -trimpath -ldflags \"$(LDFLAGS)\" -o $(BINDIR)/$(INTERNALNAME)-agent ./src/agent"; \
 	fi
 
 	@echo "Local build complete: $(BINDIR)/"
@@ -156,7 +158,7 @@ release: build
 	@echo "$(VERSION)" > $(RELDIR)/version.txt
 
 	# Copy binaries to releases (strip if needed)
-	@for f in $(BINDIR)/$(PROJECTNAME)-*; do \
+	@for f in $(BINDIR)/$(INTERNALNAME)-*; do \
 		[ -f "$$f" ] || continue; \
 		strip "$$f" 2>/dev/null || true; \
 		cp "$$f" $(RELDIR)/; \
@@ -242,9 +244,10 @@ dev:
 			-v $(GODIR):/go \
 			-w /build \
 			-e CGO_ENABLED=0 \
-			golang:alpine \
-			sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -o /output/$(PROJECTNAME) ." && \
-		echo "Built: $$BUILD_DIR/$(PROJECTNAME)" && \
+			-e GOFLAGS=-buildvcs=false \
+			casjaysdev/go:latest \
+			sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -buildvcs=false -o /output/$(INTERNALNAME) ." && \
+		echo "Built: $$BUILD_DIR/$(INTERNALNAME)" && \
 		if [ -d "src/client" ]; then \
 			docker run --rm \
 				-v $(PWD):/build \
@@ -253,9 +256,10 @@ dev:
 				-v $(GODIR):/go \
 				-w /build \
 				-e CGO_ENABLED=0 \
-				golang:alpine \
-				sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -o /output/$(PROJECTNAME)-cli ./src/client" && \
-			echo "Built: $$BUILD_DIR/$(PROJECTNAME)-cli"; \
+				-e GOFLAGS=-buildvcs=false \
+				casjaysdev/go:latest \
+				sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -buildvcs=false -o /output/$(INTERNALNAME)-cli ./src/client" && \
+			echo "Built: $$BUILD_DIR/$(INTERNALNAME)-cli"; \
 		fi && \
 		if [ -d "src/agent" ]; then \
 			docker run --rm \
@@ -265,11 +269,12 @@ dev:
 				-v $(GODIR):/go \
 				-w /build \
 				-e CGO_ENABLED=0 \
-				golang:alpine \
-				sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -o /output/$(PROJECTNAME)-agent ./src/agent" && \
-			echo "Built: $$BUILD_DIR/$(PROJECTNAME)-agent"; \
+				-e GOFLAGS=-buildvcs=false \
+				casjaysdev/go:latest \
+				sh -c "apk add --no-cache git > /dev/null 2>&1 && go build -buildvcs=false -o /output/$(INTERNALNAME)-agent ./src/agent" && \
+			echo "Built: $$BUILD_DIR/$(INTERNALNAME)-agent"; \
 		fi && \
-		echo "Test:  docker run --rm -v $$BUILD_DIR:/app alpine:latest /app/$(PROJECTNAME) version"
+		echo "Test:  docker run --rm -v $$BUILD_DIR:/app alpine:latest /app/$(INTERNALNAME) version"
 
 # =============================================================================
 # CLEAN - Remove build artifacts

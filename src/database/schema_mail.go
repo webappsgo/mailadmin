@@ -5,7 +5,7 @@ package database
 
 // Mail infrastructure tables for users.db
 var mailCreateStatements = []string{
-	// Mail servers - per PLAN.AI.md line 1121
+	// Mail servers - multi-server mail infrastructure inventory (see IDEA.md, Business logic)
 	`CREATE TABLE IF NOT EXISTS srv_mail_servers (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		hostname TEXT NOT NULL UNIQUE,
