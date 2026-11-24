@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Third-Party Data Attribution
+
+| Source | Data | License | Attribution |
+|--------|------|---------|-------------|
+| DB-IP | City databases | CC BY 4.0 | [IP Geolocation by DB-IP](https://db-ip.com/) |
+| iptoasn.com | ASN and country databases | PDDL | [iptoasn.com](https://iptoasn.com/) |
