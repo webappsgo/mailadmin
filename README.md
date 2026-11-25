@@ -35,7 +35,7 @@ The complete feature requirements and platform decisions are maintained in [IDEA
 
 Public pages are served at `/`, `/server/about`, `/server/help`, `/server/privacy`, and `/server/terms`. Server Admin pages use the configured `/server/{admin_path}` prefix. User self-service starts at `/users`, with organization pages under `/orgs`.
 
-The currently implemented API routes are `GET /api/v1/server/healthz`, `GET /api/v1/server/about`, `GET /api/v1/server/version`, and the first-run setup token verifier. See the [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/).
+The implemented API includes public health and metadata routes, setup-token verification, self-service Server Admin profile routes, and organization-scoped email alias CRUD. Alias endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
 
 ## Development
 
