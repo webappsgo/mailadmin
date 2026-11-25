@@ -29,13 +29,13 @@ Download the archive for the target platform from the [GitHub releases](https://
 
 mailadmin configures and monitors mail services installed on its host, including Postfix, Dovecot, spam filtering, and virus scanning. It is not a mail transfer agent, IMAP server, or webmail client. Server Admins manage the panel and server; mail users access only their own account and organization resources. Organizations own their mail domains and isolate member access.
 
-The complete feature requirements and platform decisions are maintained in [IDEA.md](IDEA.md) and [SPEC.md](SPEC.md). Operator documentation describes only the behavior currently shipped.
+The implementation requirements are maintained in [AI.md](AI.md), product behavior in [IDEA.md](IDEA.md), and project overrides in [SPEC.md](SPEC.md). Operator documentation describes only the behavior currently shipped.
 
 ## Web and API
 
-Public pages are served at `/`, `/server/about`, `/server/help`, `/server/privacy`, and `/server/terms`. Server Admin pages use the configured `/server/{admin_path}` prefix. User self-service starts at `/users`, with organization pages under `/orgs`.
+Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/server/terms`, and `/server/healthz`. The `/healthz` compatibility alias is opt-in through `server.healthz.root.enabled`. First-run setup is at `/server/{admin_path}/setup`; Server Admin pages use the configured `/server/{admin_path}` prefix. User self-service starts at `/users`, with organization pages under `/orgs`.
 
-The implemented API includes public health and metadata routes, setup-token verification, self-service Server Admin profile routes, and organization-scoped email alias CRUD. Alias endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
+The implemented API includes public health and metadata routes, setup-token verification, Server Admin settings and profile routes, mailbox management, and organization-scoped email alias CRUD. Protected endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
 
 ## Development
 
