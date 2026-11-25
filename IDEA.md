@@ -1,6 +1,6 @@
 ## Project description
 
-mailadmin is a Go-based web administration panel for managing complete mail server infrastructure. It provides a unified interface for controlling and configuring Postfix, Dovecot, SpamAssassin, ClamAV, and related services. Instead of manually editing configuration files across multiple services, administrators use a clean web UI to manage mail services, virtual users, domains, aliases, spam filtering, and TLS/DKIM security. Handles both system Unix users and database-backed virtual users. Supports multiple domains, real-time mail queue monitoring, delivery statistics, and log viewing. Binary name: `mail`. Admin panel path: `/admin`.
+mailadmin is a Go-based web administration panel for managing complete mail server infrastructure. It provides a unified interface for controlling and configuring Postfix, Dovecot, SpamAssassin, ClamAV, and related services. Instead of manually editing configuration files across multiple services, administrators use a clean web UI to manage mail services, virtual users, domains, aliases, spam filtering, and TLS/DKIM security. Handles both system Unix users and database-backed virtual users. Supports multiple domains, real-time mail queue monitoring, delivery statistics, and log viewing. Binary name: `mail`. Admin panel path: `/server/administration`.
 
 ## Project variables
 
@@ -12,7 +12,7 @@ module: github.com/webappsgo/mail
 binary: mail
 language: Go
 port: 64580
-admin_path: admin
+admin_path: administration
 license: MIT
 
 ## Business logic
