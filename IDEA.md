@@ -467,7 +467,7 @@ standard API error body defined by AI.md PART 14.
 | DELETE | `/api/{api_version}/mail/queue/{id}` | operator token | Delete a queued message; returns the operation result. |
 | POST | `/api/{api_version}/mail/queue/{id}/retries` | operator token | Retry delivery of a queued message; returns the operation result. |
 | GET | `/api/{api_version}/mail/services` | operator token | Return detected mail service states, versions, and uptime. |
-| PATCH | `/api/{api_version}/mail/services/{name}` | operator token | Set the supported service's desired state; accepts `running`, `enabled`, or `reload` action and returns the resulting service state. |
+| PATCH | `/api/{api_version}/mail/services/{name}` | operator token | Control an allowlisted installed mail service; the body contains exactly one of `{"running":true|false}`, `{"enabled":true|false}`, or `{"reload":true}` and the response returns the resulting service state. Service changes require operating-system privileges and are audited. |
 | GET | `/api/{api_version}/mail/stats?period={period}` | operator token | Return sent/received/bounced/deferred and byte totals, current Postfix queue size, and spam/virus counts. `period` is required: a positive duration (`24h`, `7d`, up to 365 days) or `all`. |
 | GET | `/api/{api_version}/mail/stats/spam?period={period}` | operator token | Return spam and virus counts for the required period (`24h`, `7d`, up to 365 days, or `all`). |
 | GET | `/api/{api_version}/mail/logs` | operator token | Return delivery-log envelope metadata (queue ID, sender, recipient, size, status, delay, DSN, and timestamp), filtered by optional `q` and paginated with `limit` (default 50, maximum 100) and `offset`. Message contents are never returned. |
