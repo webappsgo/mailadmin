@@ -43,6 +43,8 @@ Custom panel domains require TXT ownership verification. The custom-host root ro
 
 Builds and Go commands must run inside the project Docker workflow with `CGO_ENABLED=0`; do not build Go on the host. See [development documentation](https://webappsgo-mailadmin.readthedocs.io/en/latest/development/) and the project Makefile for supported commands. The platform matrix is Linux and FreeBSD on amd64 and arm64.
 
+Run the basic binary and setup-flow checks with `./tests/run_tests.sh` (Docker required). For full init-system coverage, run `./tests/incus.sh` to exercise service installation and lifecycle in Debian/systemd and Alpine/OpenRC containers; `./tests/incus.sh systemd` and `./tests/incus.sh openrc` select one environment. This suite requires Docker and Incus and removes the uniquely named test containers when it exits.
+
 ## License
 
 MIT. See [LICENSE.md](LICENSE.md).
