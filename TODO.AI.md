@@ -1,35 +1,30 @@
 # AI.md Alignment Tasks
 
-Implementation order follows dependencies: shared configuration, persistence,
-identity and authorization come before tenant-scoped APIs and pages; infrastructure
-and CI run after the source layout is stable; documentation is synchronized last.
+Implementation order follows the AI.md dependency order: finish the foundation and identity/data boundaries first, then management features and server pages, then deployment and documentation. SPEC.md narrows the release matrix to Linux/FreeBSD on amd64/arm64 and activates PARTS 34-36.
 
 ## Critical (P0)
 
-- [ ] Replace placeholder startup, configuration, path, database, logging, session, and security behavior with complete AI.md implementations.
-- [ ] Implement Server Admin setup, authentication, sessions, MFA, authorization, CSRF protection, audit logging, and safe privilege boundaries.
-- [ ] Implement Regular User identities and Organization membership with enforced `OrgID` scoping on every tenant-owned operation.
-- [ ] Implement custom panel domain ownership verification and certificate lifecycle without routing unverified domains.
-- [ ] Implement mail-management services with validated configuration writes, safe service control, and secret redaction.
+- [ ] Complete required server setup, identity, session, authorization, MFA, CSRF, rate limiting, audit/security logging, and tenant isolation across all routes and persistence methods.
+- [ ] Complete the Org-owned mail domain, virtual mailbox, alias, forward, and transport lifecycle for Server Admins and Org Owner/Member roles.
+- [ ] Implement custom panel domain ownership verification, host routing, certificate issuance/renewal, and failure handling from PART 36.
+- [ ] Remove remaining explicit unimplemented behavior, including the scheduler's SSL renewal error, and implement the associated feature rather than masking it.
 
 ## High (P1) — Required AI.md baseline and activated features
 
-- [ ] Complete the required CLI and client binary behavior, shell completion/init, status, service, maintenance, update, and color/language handling.
-- [ ] Complete database schema, migrations, pooling, backups, restore, and cluster behavior.
-- [ ] Implement API route inventory and behavior, content negotiation, OpenAPI, GraphQL, rate limits, and error responses.
-- [ ] Implement every server-rendered page and form for setup, administration, self-service, organization tenancy, and custom domains.
-- [ ] Implement TLS/ACME, built-in scheduler, GeoIP, metrics, notifications, backup/restore, update, service integration, Tor, and I2P requirements.
-- [ ] Implement i18n, accessibility, theme, SEO, static files, health, monitoring, and cache behavior.
-- [ ] Add complete unit, integration, and browser E2E coverage and resolve all test, build, lint, vulnerability, and CI errors.
-- [ ] Align Docker images, compose files, all required CI providers, security workflows, release workflows, and service packaging with AI.md and SPEC.md.
+- [ ] Complete the API inventory, authentication/scope rules, request validation, pagination, OpenAPI, GraphQL, and route integration coverage.
+- [ ] Complete all server-rendered setup, Server Admin, mail-user, Organization, security, service, domain, queue, statistics, log, and custom-domain pages and forms.
+- [ ] Implement email/notification delivery, TLS/ACME, metrics, updates, privilege boundaries, backup/restore, Tor/I2P behavior, and all required scheduler tasks.
+- [ ] Complete the required client CLI/TUI, shell completions, configuration, server API operations, and cluster discovery/failover.
+- [ ] Complete the required project layout and governance files, including test scripts, rule files, project memory, service assets, source archives, and license attribution.
+- [ ] Complete production/dev/test/AIO Docker behavior and align all GitHub, GitLab, Gitea, Forgejo, and Jenkins pipelines with identical gates and the SPEC platform matrix.
+- [ ] Raise unit coverage to at least 60%; add the required Docker/Incus/browser suites and achieve full route coverage; fix all build, lint, vulnerability, workflow, and documentation build failures.
 
 ## Medium (P2) — Structure and generated project configuration
 
-- [ ] Complete required source, docs, scripts, tests, service, locale, and AI rule-file structures.
-- [ ] Remove scaffolding artifacts, placeholder code, stale files, and any behavior prohibited by AI.md.
-- [ ] Update IDEA.md only where current product behavior changes; keep AI.md read-only and preserve SPEC.md overrides.
+- [ ] Remove prohibited scaffolding, stale files, inaccurate claims, and unsupported behavior after each feature is fully implemented.
+- [ ] Bring IDEA.md, README.md, docs, API schemas, configuration reference, and operations guidance into sync with shipped behavior.
+- [ ] Keep this checklist limited to open project implementation work; record only verified AI.md-internal contradictions in TODO.SERVER.md.
 
-## Low (P3) — User documentation
+## Low (P3) — Completion
 
-- [ ] Bring README.md and ReadTheDocs content, API schemas, and operational examples into sync with the complete application.
-- [ ] Remove or update PLAN.AI.md after all implementation and verification work is complete.
+- [ ] Re-read the relevant AI.md sections and SPEC.md overrides, complete the final compliance checklist, pass the required test/lint/build/workflow/documentation gates, and remove PLAN.AI.md when the work it describes is complete.
