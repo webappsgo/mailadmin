@@ -37,7 +37,7 @@ Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/
 
 The implemented API includes public health and metadata routes, setup-token verification, Server Admin settings and profile routes, mailbox management, organization-scoped email alias CRUD, and user/organization custom panel-domain enrollment with Server Admin controls. Protected endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
 
-Custom panel domains require TXT ownership verification. The custom-host root routes Users to `/users` and Organizations to their own `/orgs/{slug}` namespace, and other Org slugs are rejected on that host. Verified non-wildcard domains can obtain and renew certificates through HTTP-01 or TLS-ALPN-01 when the selected listener is reachable. Wildcard DNS-01 issuance and the remaining PART 36 flows are still incomplete; see the [custom-domain operations guide](docs/admin.md).
+Custom panel domains require TXT ownership verification. The custom-host root routes Users to `/users` and Organizations to their own `/orgs/{slug}` namespace, and other Org slugs are rejected on that host. Verified non-wildcard domains can obtain certificates through HTTP-01 or TLS-ALPN-01 when the selected listener is reachable. DNS-01 certificates, including wildcard certificates, use lego's registered DNS providers and encrypted provider credentials; see the [custom-domain operations guide](docs/admin.md).
 
 ## Development
 
