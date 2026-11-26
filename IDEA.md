@@ -451,57 +451,33 @@ standard API error body defined by AI.md PART 14.
 | GET, PUT, DELETE | `/api/{api_version}/mail/users/{id}` | user, org, or operator token | Read, update, or delete one mailbox in the caller's permitted tenant scope; update accepts mailbox fields and returns the credential-free mailbox. |
 | POST | `/api/{api_version}/mail/users/import` | operator token | Import mailbox rows from CSV; returns per-row results and counts. |
 | GET | `/api/{api_version}/mail/users/export` | operator token | Export credential-free mailbox data as CSV. |
-| GET, POST | `/api/{api_version}/mail/domains` | user, org, or operator token | List domains in scope or create a domain with organization, domain name, and description; returns domain data. User tokens select an organization with `org_id`; organization tokens are fixed to their organization. |
-| GET, PUT, DELETE | `/api/{api_version}/mail/domains/{id}` | user, org, or operator token | Read, update, or delete a scoped mail domain; requests include `org_id` for user/operator tokens and update accepts domain name and description. |
-| POST | `/api/{api_version}/mail/domains/{id}/dkim/generate` | operator token | Generate and persist a DKIM key for the domain; returns the public key and DNS record, never the private key. |
-| GET | `/api/{api_version}/mail/domains/{id}/dkim/dns` | org or operator token | Return the domain's DKIM DNS record. |
-| GET | `/api/{api_version}/mail/domains/{id}/dns` | org or operator token | Return required MX, SPF, DKIM, and DMARC records. |
+| GET, POST | `/api/{api_version}/mail/domains` | user, org, or operator token | List domains in scope with `limit`, `offset`, `sort` (`id` or `domain`), and `order` (`asc` or `desc`) pagination, or create a domain with organization, domain name, and description; list responses include pagination metadata. User tokens select an organization with `org_id`; organization tokens are fixed to their organization. |
+| GET, PUT, DELETE | `/api/{api_version}/mail/domains/{id}` | user, org, or operator token | Read, update, or delete a scoped mail domain; requests include `org_id` for user/operator tokens and update accepts domain name and description. Deletion returns a conflict while mailboxes, aliases, DKIM, SPF, DMARC, or transport records still refer to the domain. |
+| POST | `/api/{api_version}/mail/domains/{id}/dkim/keys` | operator token | Generate and persist a 2048-bit DKIM key for the domain selected by `org_id`; returns the selector, public key, and DNS name, never the private key. |
+| GET | `/api/{api_version}/mail/domains/{id}/dkim/dns` | user, org, or operator token | Return the active DKIM TXT record for the domain selected by `org_id`; an unconfigured key is returned as `null`. |
+| GET | `/api/{api_version}/mail/domains/{id}/dns` | user, org, or operator token | Return the domain name and active DKIM TXT record when configured. MX, SPF, and DMARC record management is not implemented yet. |
 | GET, POST | `/api/{api_version}/mail/aliases` | user, org, or operator token | List scoped aliases or create an alias with source, destinations, and owning domain; returns aliases without secret material. |
-| PUT, DELETE | `/api/{api_version}/mail/aliases/{id}` | user, org, or operator token | Update or delete a scoped alias; update accepts source and destination fields. |
-| GET, POST | `/api/{api_version}/mail/forwards` | user, org, or operator token | List scoped forwarding rules or create one with source mailbox and destination; returns forwarding rules. |
-| PUT, DELETE | `/api/{api_version}/mail/forwards/{id}` | user, org, or operator token | Update or delete a scoped forwarding rule; update accepts source and destination fields. |
+| GET, PUT, DELETE | `/api/{api_version}/mail/aliases/{id}` | user, org, or operator token | Read, update, or delete a scoped alias; update accepts source and destination fields. |
+| GET, POST | `/api/{api_version}/mail/forwards` | user, org, or operator token | List forwarding rules in the selected organization or create a rule with `org_id`, `mailbox_id`, destination addresses, local-copy preference, and enabled state. |
+| PUT, DELETE | `/api/{api_version}/mail/forwards/{id}` | user, org, or operator token | Update or delete an organization-scoped forwarding rule; update accepts the mailbox, destination addresses, local-copy preference, and enabled state. |
 | GET | `/api/{api_version}/mail/queue` | operator token | List queue entries with pagination and filters; returns envelope metadata, size, arrival time, status, and reason, never message contents. |
-| POST | `/api/{api_version}/mail/queue/flush` | operator token | Flush the mail queue; returns the operation result. |
-| POST | `/api/{api_version}/mail/queue/{id}/hold` | operator token | Hold a queued message; returns the operation result. |
-| POST | `/api/{api_version}/mail/queue/{id}/delete` | operator token | Delete a queued message; returns the operation result. |
-| POST | `/api/{api_version}/mail/queue/{id}/retry` | operator token | Retry delivery of a queued message; returns the operation result. |
+| POST | `/api/{api_version}/mail/queue/flushes` | operator token | Flush the mail queue; returns the operation result. |
+| PATCH | `/api/{api_version}/mail/queue/{id}` | operator token | Change queue status, including placing a message on hold; accepts the requested status and returns the updated entry. |
+| DELETE | `/api/{api_version}/mail/queue/{id}` | operator token | Delete a queued message; returns the operation result. |
+| POST | `/api/{api_version}/mail/queue/{id}/retries` | operator token | Retry delivery of a queued message; returns the operation result. |
 | GET | `/api/{api_version}/mail/services` | operator token | Return detected mail service states, versions, and uptime. |
-| POST | `/api/{api_version}/mail/services/{name}/start` | operator token | Start the named supported service; returns the resulting service state. |
-| POST | `/api/{api_version}/mail/services/{name}/stop` | operator token | Stop the named supported service; returns the resulting service state. |
-| POST | `/api/{api_version}/mail/services/{name}/restart` | operator token | Restart the named supported service; returns the resulting service state. |
-| POST | `/api/{api_version}/mail/services/{name}/reload` | operator token | Reload the named service configuration; returns the operation result. |
+| PATCH | `/api/{api_version}/mail/services/{name}` | operator token | Set the supported service's desired state; accepts `running`, `enabled`, or `reload` action and returns the resulting service state. |
 | GET | `/api/{api_version}/mail/stats` | operator token | Return delivery totals, queue size, and spam/virus counts for the requested period. |
 | GET | `/api/{api_version}/mail/stats/spam` | operator token | Return spam-filter statistics for the requested period. |
 | GET | `/api/{api_version}/mail/logs` | operator token | Return paginated and filtered mail log entries with envelope metadata. |
-| GET, POST | `/api/{api_version}/mail/transports` | operator token | List transport rules or create one with domain, match, and destination settings; returns transport rules. |
-| PUT, DELETE | `/api/{api_version}/mail/transports/{id}` | operator token | Update or delete a transport rule; update accepts its match and destination settings. |
-| GET, POST | `/api/{api_version}/users/domains` | user token | List the user's custom panel domains or submit a domain for verification; returns domain and verification state. |
-| GET, DELETE | `/api/{api_version}/users/domains/{domain}` | user token | Read or remove a custom panel domain owned by the user. |
-| GET | `/api/{api_version}/users/domains/{domain}/dns` | user token | Return the ownership-verification DNS record for the user's custom panel domain. |
-| GET, POST | `/api/{api_version}/users/domains/{domain}/ssl` | user token | Read TLS issuance state or request certificate issuance; private key material is never returned. |
-| POST | `/api/{api_version}/users/domains/{domain}/ssl/renew` | user token | Request certificate renewal for the owned custom panel domain. |
-| POST | `/api/{api_version}/users/domains/{domain}/verify` | user token | Verify ownership using the published DNS token; returns verification state. |
-| GET, POST | `/api/{api_version}/orgs/{slug}/domains` | organization or operator token | List the organization's custom panel domains or submit one for verification; returns domain and verification state. |
-| GET, DELETE | `/api/{api_version}/orgs/{slug}/domains/{domain}` | organization or operator token | Read or remove a custom panel domain in the organization scope. |
-| GET | `/api/{api_version}/orgs/{slug}/domains/{domain}/dns` | organization or operator token | Return the ownership-verification DNS record. |
-| GET, POST | `/api/{api_version}/orgs/{slug}/domains/{domain}/ssl` | organization or operator token | Read TLS issuance state or request certificate issuance; private key material is never returned. |
-| POST | `/api/{api_version}/orgs/{slug}/domains/{domain}/ssl/renew` | organization or operator token | Request certificate renewal for the organization's custom panel domain. |
-| POST | `/api/{api_version}/orgs/{slug}/domains/{domain}/verify` | organization or operator token | Verify ownership using the published DNS token; returns verification state. |
+| GET, POST | `/api/{api_version}/mail/transports` | operator token | List transport rules or create one with `domain`, `transport`, `next_hop`, optional username/password, and active state; responses report password presence without exposing the encrypted credential. |
+| PUT, DELETE | `/api/{api_version}/mail/transports/{id}` | operator token | Update or delete a transport rule; omitting `password` preserves it and `clear_password` explicitly removes it. |
 | GET, POST | `/api/{api_version}/orgs/{slug}/mail/domains` | organization or operator token | List or create mail domains owned by the organization; returns scoped domain data. |
+| GET, PUT, DELETE | `/api/{api_version}/orgs/{slug}/mail/domains/{id}` | organization or operator token | Read, update, or delete an owned mail domain; delete returns a conflict while dependent mail records remain. |
 | GET, POST | `/api/{api_version}/orgs/{slug}/aliases` | organization or operator token | List or create organization aliases; returns scoped alias data. |
-| GET, POST | `/api/{api_version}/orgs/{slug}/members` | organization owner or operator token | List members or add a member with an organization role; returns member identities and roles. |
+| GET, PUT, DELETE | `/api/{api_version}/orgs/{slug}/aliases/{id}` | organization or operator token | Read, update, or delete one organization alias; request bodies contain its domain, source, and destination. |
 | GET, POST | `/api/{api_version}/orgs/{slug}/mailboxes` | organization or operator token | List or create organization mailboxes; returns mailbox data without credentials. |
-| GET, PATCH | `/api/{api_version}/server/{admin_path}/settings` | operator token | Read or update server settings; request and response omit credentials and private keys. |
-| GET, PATCH | `/api/{api_version}/server/{admin_path}/ssl` | operator token | Read or update TLS and ACME settings; secrets are masked on read. |
-| POST | `/api/{api_version}/server/{admin_path}/ssl/renew` | operator token | Request renewal of the server certificate; returns renewal state. |
-| GET, PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/profile` | operator token | Read or update the named administrator's profile; returns profile fields only. |
-| POST | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/password` | operator token | Change the named administrator's password; accepts current/new password and returns operation status only. |
-| GET, POST | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/tokens` | operator token | List or create API tokens; creation returns the token once, list responses contain metadata only. |
-| GET, PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/preferences` | operator token | Read or update administrator preferences; returns saved preferences. |
-| GET, PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/notifications` | operator token | Read or update notification preferences; returns saved preferences. |
-| GET | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security` | operator token | Return security and MFA status without secrets. |
-| POST | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/totp/setup` | operator token | Begin MFA enrollment; returns a one-time enrollment secret and provisioning URI. |
-| POST | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/totp/enable` | operator token | Confirm MFA enrollment with a time-based code; returns enabled state and recovery codes once. |
+| GET, PUT, DELETE | `/api/{api_version}/orgs/{slug}/mailboxes/{id}` | organization or operator token | Read, update, or delete one organization mailbox; updates accept address, name, quota, enabled state, and optional password. |
 
 ### Setup Wizard
 

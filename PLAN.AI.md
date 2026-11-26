@@ -1,11 +1,7 @@
 # Implementation Plan
 
-**Status: scaffold — NOT fully implemented.**
+**Status: in progress — NOT fully implemented.**
 
-The Go tree under `src/` currently covers config, paths, logger, pidfile,
-scheduler, database schema, and a minimal HTTP server. Docker, CI/CD, the
-client binary, swagger/graphql, i18n, and the PART 34-36 tenancy layer are
-not built yet.
+The repository has moved beyond the initial scaffold. The current implementation includes the project build and CI structure, server-rendered setup and account pages, tenant-aware mail-domain/mailbox/alias operations, custom panel domains and TLS, a registered API route contract, generated OpenAPI output, query-only GraphQL reads, and organization forwarding plus operator transport management.
 
-See `IDEA.md` for the full project breakdown and `AUDIT.AI.md` for the
-current open compliance gaps driving the remaining work.
+These additions are partial slices of the complete specification. The remaining work is tracked in `TODO.AI.md`, including the rest of the IDEA.md mail API and pages, identity and operations requirements, client tooling, deployment behavior, CI/documentation gates, and final route and coverage verification. Do not mark this plan complete until those requirements and the final checklist pass.
