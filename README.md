@@ -35,7 +35,9 @@ The implementation requirements are maintained in [AI.md](AI.md), product behavi
 
 Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/server/terms`, and `/server/healthz`. The `/healthz` compatibility alias is opt-in through `server.healthz.root.enabled`. First-run setup is at `/server/{admin_path}/setup`; Server Admin pages use the configured `/server/{admin_path}` prefix. User self-service starts at `/users`, with organization pages under `/orgs`.
 
-The implemented API includes public health and metadata routes, setup-token verification, Server Admin settings and profile routes, mailbox management, and organization-scoped email alias CRUD. Protected endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
+The implemented API includes public health and metadata routes, setup-token verification, Server Admin settings and profile routes, mailbox management, organization-scoped email alias CRUD, and user/organization custom panel-domain enrollment with Server Admin controls. Protected endpoints require a Bearer token and enforce organization membership and token scope. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints; the full AI.md API inventory is not yet implemented.
+
+Custom panel domains require TXT ownership verification. Host lookup binds verified active domains to their owner in request context; Org-specific rendering and automatic certificate issuance/renewal are still under development, so configure TLS separately and do not treat custom-domain management as production-ready.
 
 ## Development
 
