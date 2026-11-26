@@ -455,14 +455,15 @@ standard API error body defined by AI.md PART 14.
 | GET, PUT, DELETE | `/api/{api_version}/mail/domains/{id}` | user, org, or operator token | Read, update, or delete a scoped mail domain; requests include `org_id` for user/operator tokens and update accepts domain name and description. Deletion returns a conflict while mailboxes, aliases, DKIM, SPF, DMARC, or transport records still refer to the domain. |
 | POST | `/api/{api_version}/mail/domains/{id}/dkim/keys` | operator token | Generate and persist a 2048-bit DKIM key for the domain selected by `org_id`; returns the selector, public key, and DNS name, never the private key. |
 | GET | `/api/{api_version}/mail/domains/{id}/dkim/dns` | user, org, or operator token | Return the active DKIM TXT record for the domain selected by `org_id`; an unconfigured key is returned as `null`. |
-| GET | `/api/{api_version}/mail/domains/{id}/dns` | user, org, or operator token | Return the domain name and active DKIM TXT record when configured. MX, SPF, and DMARC record management is not implemented yet. |
+| GET | `/api/{api_version}/mail/domains/{id}/dns` | user, org, or operator token | Return the domain's MX record when the server FQDN is configured, SPF and DMARC guidance (including stored policies), and the active DKIM TXT record when configured. |
+| PATCH | `/api/{api_version}/mail/domains/{id}/dns` | user, org, or operator token | Update the domain's SPF value and DMARC policy, subdomain policy, percentage, and aggregate report address; returns the refreshed DNS record list. |
 | GET, POST | `/api/{api_version}/mail/aliases` | user, org, or operator token | List scoped aliases or create an alias with source, destinations, and owning domain; returns aliases without secret material. |
 | GET, PUT, DELETE | `/api/{api_version}/mail/aliases/{id}` | user, org, or operator token | Read, update, or delete a scoped alias; update accepts source and destination fields. |
 | GET, POST | `/api/{api_version}/mail/forwards` | user, org, or operator token | List forwarding rules in the selected organization or create a rule with `org_id`, `mailbox_id`, destination addresses, local-copy preference, and enabled state. |
 | PUT, DELETE | `/api/{api_version}/mail/forwards/{id}` | user, org, or operator token | Update or delete an organization-scoped forwarding rule; update accepts the mailbox, destination addresses, local-copy preference, and enabled state. |
-| GET | `/api/{api_version}/mail/queue` | operator token | List queue entries with pagination and filters; returns envelope metadata, size, arrival time, status, and reason, never message contents. |
+| GET | `/api/{api_version}/mail/queue` | operator token | List Postfix queue entries with `limit`, `offset`, and `q` filtering; returns envelope metadata, size, arrival time, status, and reason, never message contents. |
 | POST | `/api/{api_version}/mail/queue/flushes` | operator token | Flush the mail queue; returns the operation result. |
-| PATCH | `/api/{api_version}/mail/queue/{id}` | operator token | Change queue status, including placing a message on hold; accepts the requested status and returns the updated entry. |
+| PATCH | `/api/{api_version}/mail/queue/{id}` | operator token | Hold or release a queued message; accepts `{"held":true|false}` and returns the resulting hold state. |
 | DELETE | `/api/{api_version}/mail/queue/{id}` | operator token | Delete a queued message; returns the operation result. |
 | POST | `/api/{api_version}/mail/queue/{id}/retries` | operator token | Retry delivery of a queued message; returns the operation result. |
 | GET | `/api/{api_version}/mail/services` | operator token | Return detected mail service states, versions, and uptime. |
