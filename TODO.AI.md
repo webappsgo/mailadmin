@@ -7,7 +7,7 @@ Implementation order follows the AI.md dependency order: finish the foundation a
 - [ ] Complete required server setup, identity, session, authorization, MFA, CSRF, rate limiting, audit/security logging, and tenant isolation across all routes and persistence methods.
 - [ ] Complete the Org-owned mail domain, virtual mailbox, alias, forward, and transport lifecycle for Server Admins and Org Owner/Member roles.
 - [ ] Implement custom panel domain ownership verification, host routing, certificate issuance/renewal, and failure handling from PART 36.
-- [ ] Remove remaining explicit unimplemented behavior, including the scheduler's SSL renewal error, and implement the associated feature rather than masking it.
+- [ ] Remove any remaining explicit unimplemented behavior discovered during implementation and complete its required feature rather than masking it.
 
 ## High (P1) — Required AI.md baseline and activated features
 

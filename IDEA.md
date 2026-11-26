@@ -468,9 +468,9 @@ standard API error body defined by AI.md PART 14.
 | POST | `/api/{api_version}/mail/queue/{id}/retries` | operator token | Retry delivery of a queued message; returns the operation result. |
 | GET | `/api/{api_version}/mail/services` | operator token | Return detected mail service states, versions, and uptime. |
 | PATCH | `/api/{api_version}/mail/services/{name}` | operator token | Set the supported service's desired state; accepts `running`, `enabled`, or `reload` action and returns the resulting service state. |
-| GET | `/api/{api_version}/mail/stats` | operator token | Return delivery totals, queue size, and spam/virus counts for the requested period. |
-| GET | `/api/{api_version}/mail/stats/spam` | operator token | Return spam-filter statistics for the requested period. |
-| GET | `/api/{api_version}/mail/logs` | operator token | Return paginated and filtered mail log entries with envelope metadata. |
+| GET | `/api/{api_version}/mail/stats?period={period}` | operator token | Return sent/received/bounced/deferred and byte totals, current Postfix queue size, and spam/virus counts. `period` is required: a positive duration (`24h`, `7d`, up to 365 days) or `all`. |
+| GET | `/api/{api_version}/mail/stats/spam?period={period}` | operator token | Return spam and virus counts for the required period (`24h`, `7d`, up to 365 days, or `all`). |
+| GET | `/api/{api_version}/mail/logs` | operator token | Return delivery-log envelope metadata (queue ID, sender, recipient, size, status, delay, DSN, and timestamp), filtered by optional `q` and paginated with `limit` (default 50, maximum 100) and `offset`. Message contents are never returned. |
 | GET, POST | `/api/{api_version}/mail/transports` | operator token | List transport rules or create one with `domain`, `transport`, `next_hop`, optional username/password, and active state; responses report password presence without exposing the encrypted credential. |
 | PUT, DELETE | `/api/{api_version}/mail/transports/{id}` | operator token | Update or delete a transport rule; omitting `password` preserves it and `clear_password` explicitly removes it. |
 | GET, POST | `/api/{api_version}/orgs/{slug}/mail/domains` | organization or operator token | List or create mail domains owned by the organization; returns scoped domain data. |
