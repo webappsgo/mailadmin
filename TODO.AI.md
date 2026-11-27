@@ -13,7 +13,9 @@ Implementation order follows the AI.md dependency order: finish the foundation a
 
 - [ ] Complete the API inventory, authentication/scope rules, request validation, pagination, OpenAPI, GraphQL, and route integration coverage.
 - [ ] Complete all server-rendered setup, Server Admin, mail-user, Organization, security, service, domain, queue, statistics, log, and custom-domain pages and forms.
-- [ ] Implement email/notification delivery, TLS/ACME, metrics, updates, privilege boundaries, backup/restore, Tor/I2P behavior, and all required scheduler tasks.
+- [ ] Finish PART 18 email delivery: wire every required event dispatcher, account email flows, user/admin email preference overrides, and translations; add required runtime variables and account-template validation; verify SMTP UI behavior when delivery is unavailable.
+- [ ] Complete remaining TLS/ACME, metrics, updates, privilege boundaries, backup/restore, Tor/I2P behavior, and all required scheduler tasks.
+- [ ] Finish PART 5 maintenance recovery: reconnect and initialize unavailable databases, detect database writes and file read/write failures, remediate disk pressure under configured retention, expose full diagnostics and error-specific guidance, honor retry/max-attempt/cleanup/notification settings, and notify on recovery.
 - [ ] Complete the required client CLI/TUI, shell completions, configuration, server API operations, and cluster discovery/failover.
 - [ ] Complete the required project layout and governance files, including test scripts, rule files, project memory, service assets, source archives, and license attribution.
 - [ ] Complete production/dev/test/AIO Docker behavior and align all GitHub, GitLab, Gitea, Forgejo, and Jenkins pipelines with identical gates and the SPEC platform matrix.
