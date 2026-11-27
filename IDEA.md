@@ -66,6 +66,15 @@ multi-tenancy.
   credentials (Argon2id) are unrelated to a mail user's Dovecot auth
   credential, even when the same person holds both.
 
+### Server Admin route groups
+
+The project adds the fixed `/server/{admin_path}/mail/*` management group for
+mail infrastructure operations. Its sections cover domains and DNS/DKIM,
+aliases, transports, queue, logs, statistics, and service control. These pages
+remain Server Admin-only and use the shared Server Admin layout and session
+authentication. They do not create a separate direct child outside the `mail`
+group.
+
 ### Data model & sensitivity
 
 - **Credentials** (highest sensitivity): panel admin password hashes

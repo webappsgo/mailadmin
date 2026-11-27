@@ -19,6 +19,7 @@ rules.
 - Inspect the Postfix queue, delivery statistics, and mail logs.
 - Manage Server Admin accounts, API tokens, MFA, preferences, and scheduled
   tasks.
+- Configure site branding, SEO metadata, and outbound notification email.
 - Verify custom panel domains and request TLS certificates.
 - Use tenant-scoped Organization and mail-user pages.
 - Operate through a server-rendered browser panel, versioned API, and companion
