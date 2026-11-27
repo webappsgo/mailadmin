@@ -16,6 +16,9 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | GET | `/api/v1/server/help` | Public | Help Markdown source, format, and public help page index |
 | GET | `/api/v1/server/about` | Public | Application description and features |
 | GET | `/api/v1/server/auth/check` | Bearer token | Token kind (`operator`, `owner`, or `user`); does not return or persist the token |
+| POST | `/api/v1/server/auth/login` | Public | Return a 24-hour `adm_` or `usr_` Bearer token, or a 5-minute MFA partial token; does not set a cookie |
+| POST | `/api/v1/server/auth/2fa` | Public partial token | Consume the partial token and authenticator code; return a full Bearer token |
+| POST | `/api/v1/server/auth/recovery/use` | Public partial token | Consume a recovery key and partial token; return a Bearer token and remaining key count |
 | POST | `/api/v1/server/auth/register` | Public, when multi-user open registration is enabled | Create a regular user account and send email verification when SMTP delivery is available |
 | POST | `/api/v1/server/auth/verify` | Public verification token | Verify and activate a regular user account; token is single-use |
 | GET | `/api/v1/server/version` | Public | Version, commit, build date, Go version, platform |
