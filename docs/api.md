@@ -74,7 +74,7 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | PATCH | `/api/v1/server/{admin_path}/branding` | Admin Bearer token | Update supported branding, SEO, and UI theme settings in `yaml.d/branding.yml` |
 | GET | `/api/v1/server/{admin_path}/email` | Admin Bearer token | Read SMTP readiness, host, port, username, TLS mode, sender, and whether a password is configured |
 | PATCH | `/api/v1/server/{admin_path}/email` | Admin Bearer token | Update SMTP settings and any of the 16 AI.md email event preferences; an omitted password preserves the saved secret and an empty password clears it |
-| POST | `/api/v1/server/{admin_path}/email/test` | Admin Bearer token | Send a test message to `{"to":"recipient@example.net"}` using the saved SMTP settings |
+| POST | `/api/v1/server/{admin_path}/email/test` | Admin Bearer token | Send a test message to the address supplied in the `to` field, using the saved SMTP settings |
 | GET | `/api/v1/server/{admin_path}/email/templates` | Admin Bearer token | List embedded defaults and active customized email templates |
 | GET | `/api/v1/server/{admin_path}/email/templates/{name}` | Admin Bearer token | Read one email template |
 | PUT | `/api/v1/server/{admin_path}/email/templates/{name}` | Admin Bearer token | Save a template using `{"subject":"...","body":"..."}`; variables use `{variable}` syntax |

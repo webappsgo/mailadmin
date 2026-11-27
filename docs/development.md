@@ -4,9 +4,9 @@ Read `AI.md`, `IDEA.md`, and `SPEC.md` before changing behavior. `SPEC.md` narro
 
 ## Build environment
 
-Go build and test commands run inside the project Docker workflows, with `CGO_ENABLED=0`. Use the supported Make targets (`make dev`, `make local`, `make build`, and `make test`) rather than invoking Go directly on the host. Keep generated binaries and test artifacts out of source directories.
+Go build and test commands run inside the project Docker workflows, with `CGO_ENABLED=0`. The Makefile has six targets: `build`, `test`, `release`, `docker`, `clean`, and `help`. Use `make build` for debug binaries across the Linux and FreeBSD amd64 and arm64 matrix, and `make test` for vet, static analysis, vulnerability scanning, unit coverage, and binary checks. Keep generated binaries and test artifacts out of source directories.
 
-`make dev` builds the server and client into a temporary project-scoped directory. `make local` builds for the current platform, `make build` builds the Linux/FreeBSD amd64/arm64 release matrix, and `make test` runs vet, vulnerability checks, tests, and the coverage gate in Docker. `make beta` is a maintainer operation: it requires a clean `main` branch and pushes a UTC timestamp beta tag so CI can build and publish it. Do not run it from a working tree with pending changes.
+`make release` produces stripped production binaries, a source archive, and checksums without tagging or publishing. `make docker` builds the host-platform image locally without pushing it. CI owns release tagging and publishing.
 
 ## Integration suites
 

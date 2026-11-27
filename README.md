@@ -57,7 +57,7 @@ for first-run setup and service installation.
 The `mailadmin-cli` companion provides API commands and an interactive TUI.
 
 ```sh
-mailadmin-cli --server https://mail.example.net status
+mailadmin-cli --server "$MAILADMIN_URL" status
 mailadmin-cli login
 ```
 
@@ -90,9 +90,10 @@ are in [AI.md](AI.md), and project-specific overrides are in [SPEC.md](SPEC.md).
 
 ## Development
 
-Go builds and checks run through Docker with `CGO_ENABLED=0`. Use `make dev`,
-`make local`, `make build`, and `make test`; supported release targets are
-Linux and FreeBSD on amd64 and arm64. See the
+Go builds and checks run through Docker with `CGO_ENABLED=0`. Use `make build`
+to produce debug binaries for the supported Linux and FreeBSD amd64 and arm64
+targets, and `make test` to run the lint, vulnerability, test, coverage, and
+binary checks. See the
 [development guide](https://webappsgo-mailadmin.readthedocs.io/en/latest/development/)
 for test suites and contribution workflow.
 

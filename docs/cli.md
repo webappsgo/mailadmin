@@ -10,11 +10,12 @@ started without a command in an interactive terminal. The TUI adapts at 80,
 Start the TUI with `mailadmin-cli`, or configure a server directly:
 
 ```sh
-mailadmin-cli --server https://mail.example.net status
+mailadmin-cli --server "$MAILADMIN_URL" status
 mailadmin-cli login
 ```
 
 The login flow checks the bearer token against the server before saving it.
+Set `MAILADMIN_URL` to the panel URL before using the command above.
 The config file is `~/.config/webappsgo/mail/cli.yml` on Unix and is created
 with mode `0600`; the client refuses config or token files that are readable
 by group or other users. Tokens can also come from `--token`, `--token-file`,
