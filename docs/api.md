@@ -33,6 +33,9 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/{api_version}/users/security/passkeys` | User Bearer token with write scope | Start registration with `password`; complete it with `ceremony_id`, `name`, and `credential`. The first passkey returns one-time recovery keys and remains pending until acknowledgment. |
 | PATCH | `/api/{api_version}/users/security/passkeys/{passkey_id}` | User Bearer token with write scope | Rename one passkey owned by the current user |
 | DELETE | `/api/{api_version}/users/security/passkeys/{passkey_id}` | User Bearer token with write scope | Revoke one passkey owned by the current user |
+| GET | `/api/{api_version}/users/settings/email` | User Bearer token | Read account and notification email values and verification state |
+| PATCH | `/api/{api_version}/users/settings/email` | User Bearer token with write scope | Update the notification email, or request an account email change with `operation`, `email`, `current_password`, and an enrolled MFA proof when required |
+| POST | `/api/{api_version}/users/settings/email/passkey/challenge` | User Bearer token with write scope | Begin passkey reauthentication for an account email change |
 | POST | `/api/v1/server/auth/register` | Public, when multi-user open registration is enabled | Create a regular user account and send email verification when SMTP delivery is available |
 | POST | `/api/v1/server/auth/verify` | Public verification token | Verify and activate a regular user account; token is single-use |
 | GET | `/api/v1/server/version` | Public | Version, commit, build date, Go version, platform |
@@ -52,6 +55,9 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/tokens` | Admin Bearer token, matching username | Regenerate token; the new value is returned once |
 | GET | `/api/v1/server/{admin_path}/{admin_username}/preferences` | Admin Bearer token, matching username | Admin preferences |
 | PATCH | `/api/v1/server/{admin_path}/{admin_username}/preferences` | Admin Bearer token, matching username | Update admin preferences |
+| GET | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/email` | Admin Bearer token, matching username | Read account and notification email values and verification state |
+| PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/email` | Admin Bearer token, matching username, write scope | Update the notification email, or request an account email change with `operation`, `email`, `current_password`, and an enrolled MFA proof when required |
+| POST | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/email/passkey/challenge` | Admin Bearer token, matching username, write scope | Begin passkey reauthentication for an account email change |
 | GET | `/api/v1/server/{admin_path}/{admin_username}/notifications` | Admin Bearer token, matching username | Per-event WebUI and email preferences (`data.webui` and `data.email` maps) |
 | PATCH | `/api/v1/server/{admin_path}/{admin_username}/notifications` | Admin Bearer token, matching username | Replace event preference maps; required security events remain enabled |
 | GET | `/api/v1/server/{admin_path}/{admin_username}/profile/security` | Admin Bearer token, matching username | TOTP and passkey status |
@@ -59,6 +65,7 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/totp/enable` | Admin Bearer token, matching username | Verify TOTP and return one-time recovery keys while enrollment remains pending |
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/passkey/setup` | Admin Bearer token, matching username | Reauthenticate with the current password and return WebAuthn registration options |
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/passkey/register` | Admin Bearer token, matching username | Verify attestation; return one-time recovery keys for the first passkey |
+| GET | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/passkeys` | Admin Bearer token, matching username | List the authenticated admin's active passkeys |
 | PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/passkey/{passkey_id}` | Admin Bearer token, matching username | Rename one owned passkey |
 | DELETE | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/passkey/{passkey_id}` | Admin Bearer token, matching username | Revoke one owned passkey |
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/recovery-keys/ack` | Admin Bearer token, matching username | Acknowledge saved keys and activate pending TOTP or passkeys |
