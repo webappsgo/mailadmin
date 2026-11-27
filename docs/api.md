@@ -19,6 +19,20 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/v1/server/auth/login` | Public | Return a 24-hour `adm_` or `usr_` Bearer token, or a 5-minute MFA partial token; does not set a cookie |
 | POST | `/api/v1/server/auth/2fa` | Public partial token | Consume the partial token and authenticator code; return a full Bearer token |
 | POST | `/api/v1/server/auth/recovery/use` | Public partial token | Consume a recovery key and partial token; return a Bearer token and remaining key count |
+| POST | `/api/{api_version}/server/auth/passkey/challenge` | Public; account identifier or partial token | Begin primary passkey sign-in or passkey MFA and return WebAuthn request options with a one-time ceremony ID |
+| POST | `/api/{api_version}/server/auth/passkey/verify` | Public; ceremony ID | Verify an assertion; issue a 24-hour Bearer token or complete the partial-token MFA flow |
+| GET | `/api/v1/users/security/sessions` | User Bearer token | List only the current user's active sessions |
+| DELETE | `/api/v1/users/security/sessions/{session_id}` | User Bearer token with write scope | Revoke one of the current user's sessions |
+| GET | `/api/v1/users/security/2fa` | User Bearer token | Read authenticator and pending-enrollment status |
+| POST | `/api/v1/users/security/2fa/enable` | User Bearer token with write scope | Verify setup and return one-time recovery keys; enrollment remains pending |
+| POST | `/api/v1/users/security/recovery-keys/ack` | User Bearer token with write scope | Acknowledge saved keys and activate pending TOTP or passkeys |
+| POST | `/api/v1/users/security/2fa/disable` | User Bearer token with write scope | Disable TOTP after factor verification |
+| GET | `/api/v1/users/security/recovery` | User Bearer token | Read recovery-key count and low-key warning without returning key values |
+| POST | `/api/v1/users/security/recovery/regenerate` | User Bearer token with write scope | Replace recovery keys after authenticator verification |
+| GET | `/api/{api_version}/users/security/passkeys` | User Bearer token | List only the current user's active passkeys |
+| POST | `/api/{api_version}/users/security/passkeys` | User Bearer token with write scope | Start registration with `password`; complete it with `ceremony_id`, `name`, and `credential`. The first passkey returns one-time recovery keys and remains pending until acknowledgment. |
+| PATCH | `/api/{api_version}/users/security/passkeys/{passkey_id}` | User Bearer token with write scope | Rename one passkey owned by the current user |
+| DELETE | `/api/{api_version}/users/security/passkeys/{passkey_id}` | User Bearer token with write scope | Revoke one passkey owned by the current user |
 | POST | `/api/v1/server/auth/register` | Public, when multi-user open registration is enabled | Create a regular user account and send email verification when SMTP delivery is available |
 | POST | `/api/v1/server/auth/verify` | Public verification token | Verify and activate a regular user account; token is single-use |
 | GET | `/api/v1/server/version` | Public | Version, commit, build date, Go version, platform |
@@ -42,7 +56,12 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | PATCH | `/api/v1/server/{admin_path}/{admin_username}/notifications` | Admin Bearer token, matching username | Replace event preference maps; required security events remain enabled |
 | GET | `/api/v1/server/{admin_path}/{admin_username}/profile/security` | Admin Bearer token, matching username | TOTP and passkey status |
 | POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/totp/setup` | Admin Bearer token, matching username | Begin TOTP enrollment after password verification |
-| POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/totp/enable` | Admin Bearer token, matching username | Verify and enable pending TOTP enrollment |
+| POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/totp/enable` | Admin Bearer token, matching username | Verify TOTP and return one-time recovery keys while enrollment remains pending |
+| POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/passkey/setup` | Admin Bearer token, matching username | Reauthenticate with the current password and return WebAuthn registration options |
+| POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/passkey/register` | Admin Bearer token, matching username | Verify attestation; return one-time recovery keys for the first passkey |
+| PATCH | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/passkey/{passkey_id}` | Admin Bearer token, matching username | Rename one owned passkey |
+| DELETE | `/api/{api_version}/server/{admin_path}/{admin_username}/profile/security/passkey/{passkey_id}` | Admin Bearer token, matching username | Revoke one owned passkey |
+| POST | `/api/v1/server/{admin_path}/{admin_username}/profile/security/recovery-keys/ack` | Admin Bearer token, matching username | Acknowledge saved keys and activate pending TOTP or passkeys |
 | GET | `/api/v1/server/{admin_path}/settings` | Admin Bearer token | Read general server settings and pending-restart status |
 | GET | `/api/v1/server/{admin_path}/branding` | Admin Bearer token | Read branding, SEO, and UI theme settings |
 | PATCH | `/api/v1/server/{admin_path}/branding` | Admin Bearer token | Update supported branding, SEO, and UI theme settings in `yaml.d/branding.yml` |
