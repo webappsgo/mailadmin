@@ -20,4 +20,4 @@ Never log passwords, session credentials, setup tokens, API tokens, private keys
 
 ## Reporting
 
-Report a suspected vulnerability privately to the repository maintainers. Include the affected version, impact, and a safe reproduction without sharing real credentials or customer data.
+Report repository vulnerabilities through the private vulnerability reporting URL in `web.security.report_url`. Deployed-instance reports use `/server/security` and the one-time contact link in `/.well-known/security.txt`. The report body is encrypted with the project OpenPGP key when one is active; otherwise it uses AES-256-GCM with `server.security.encryption_key`. Public key material is served at `/.well-known/pgp-key.asc` only while an active key exists. The Server Admin keypair page is `/server/{admin_path}/security/keypair`; sensitive actions require password re-entry, private-key export requires a reason and is limited to one download per admin per hour, and keyserver submissions retry on the scheduler. Include affected version, impact, and a safe reproduction without sharing real credentials or customer data.
