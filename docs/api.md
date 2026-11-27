@@ -99,8 +99,8 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | PATCH | `/api/v1/mail/queue/{id}` | Server Admin Bearer token | Hold or release a queue item using `{"held":true}` or `{"held":false}` |
 | DELETE | `/api/v1/mail/queue/{id}` | Server Admin Bearer token | Delete one queue item; the action is recorded in the audit log |
 | POST | `/api/v1/mail/queue/{id}/retries` | Server Admin Bearer token | Retry one queue item; the action is recorded in the audit log |
-| GET | `/api/v1/mail/stats?period={period}` | Server Admin Bearer token | Return delivery totals, Postfix queue size, and spam/virus counts for `24h`, `7d`, or `30d`; the default period is `24h` |
-| GET | `/api/v1/mail/stats/spam?period={period}` | Server Admin Bearer token | Return spam and virus totals for `24h`, `7d`, or `30d`; the default period is `24h` |
+| GET | `/api/v1/mail/stats?period={period}` | Server Admin Bearer token | Return `sent_count`, `received_count`, `bounced_count`, `deferred_count`, `spam_count`, `virus_count`, and `total_size_bytes` from hourly statistics, plus live `queue_size`; accepts `24h`, `7d`, or `30d`, default `24h` |
+| GET | `/api/v1/mail/stats/spam?period={period}` | Server Admin Bearer token | Return `spam_count` and `virus_count` from hourly statistics for `24h`, `7d`, or `30d`; default period is `24h` |
 | GET | `/api/v1/mail/services` | Server Admin Bearer token | Return detected mail service state, enabled state, version, and uptime |
 | PATCH | `/api/v1/mail/services/{name}` | Server Admin Bearer token | Set `running` or `enabled` to a boolean, or set `reload` to `true`; only supported installed services may be controlled, and control requires operating-system privileges |
 | GET | `/api/v1/mail/logs` | Server Admin Bearer token | Read mail delivery log envelope metadata with optional `q` search, `limit` (default 50, max 100), and `offset`; message contents are never returned |
