@@ -1,49 +1,115 @@
 # mailadmin
 
-mailadmin is a Go web panel for administering an existing mail stack, with separate Server Admin and tenant-scoped mailbox user accounts.
-
 [![Build](https://img.shields.io/github/actions/workflow/status/webappsgo/mailadmin/ci.yml?branch=main)](https://github.com/webappsgo/mailadmin/actions)
 [![Release](https://img.shields.io/github/v/release/webappsgo/mailadmin)](https://github.com/webappsgo/mailadmin/releases)
 [![Documentation](https://readthedocs.org/projects/webappsgo-mailadmin/badge/?version=latest)](https://webappsgo-mailadmin.readthedocs.io/en/latest/)
 [![License](https://img.shields.io/github/license/webappsgo/mailadmin)](LICENSE.md)
 
-## Install
+## About
+
+mailadmin is a web administration panel for configuring and monitoring an
+existing mail stack. Server Admins manage the host and service settings;
+Organizations manage their own mail domains, mailboxes, aliases, and forwarding
+rules.
+
+## Features
+
+- Manage mail domains, DKIM records, mailboxes, aliases, forwarding rules, and
+  transport rules.
+- Inspect the Postfix queue, delivery statistics, and mail logs.
+- Manage Server Admin accounts, API tokens, MFA, preferences, and scheduled
+  tasks.
+- Verify custom panel domains and request TLS certificates.
+- Use tenant-scoped Organization and mail-user pages.
+- Operate through a server-rendered browser panel, versioned API, and companion
+  CLI/TUI.
+
+mailadmin configures mail services on its host. Message reading and composition
+are outside the product's scope.
+
+## Production
 
 ### Docker Compose
 
-The provided compose file binds the web panel to `172.17.0.1:64580` and persists configuration and data under `docker/volumes/`.
+The compose file binds the panel to `172.17.0.1:64580` and persists
+configuration and data under `docker/volumes/`.
 
 ```sh
 cd docker
 docker compose up -d
 ```
 
-Review and edit the port binding and mounted directories in `docker/docker-compose.yml` before deployment. Put a TLS reverse proxy in front of the panel for remote access. First-run setup instructions and the one-time setup token are printed by the binary; complete setup at `/server/{admin_path}/setup`.
+Review the port binding and mounted directories before deployment. Put a TLS
+reverse proxy in front of the panel before exposing it outside a trusted
+network. Complete first-run setup using the one-time token printed by the
+server.
 
-### Binary
+### Binary and system service
 
-Release builds target `linux/amd64`, `linux/arm64`, `freebsd/amd64`, and `freebsd/arm64`.
-Download the archive for the target platform from the [GitHub releases](https://github.com/webappsgo/mailadmin/releases) and follow [installation documentation](https://webappsgo-mailadmin.readthedocs.io/en/latest/installation/).
+Release archives target Linux and FreeBSD on amd64 and arm64. Download the
+archive for the target platform from [GitHub Releases](https://github.com/webappsgo/mailadmin/releases).
+See the [installation guide](https://webappsgo-mailadmin.readthedocs.io/en/latest/installation/)
+for first-run setup and service installation.
 
-## Product scope
+## Client
 
-mailadmin configures and monitors mail services installed on its host, including Postfix, Dovecot, spam filtering, and virus scanning. It is not a mail transfer agent, IMAP server, or webmail client. Server Admins manage the panel and server; mail users access only their own account and organization resources. Organizations own their mail domains and isolate member access.
+The `mailadmin-cli` companion provides API commands and an interactive TUI.
 
-The implementation requirements are maintained in [AI.md](AI.md), product behavior in [IDEA.md](IDEA.md), and project overrides in [SPEC.md](SPEC.md). Operator documentation describes only the behavior currently shipped.
+```sh
+mailadmin-cli --server https://mail.example.net status
+mailadmin-cli login
+```
 
-## Web and API
+See the [CLI and TUI guide](https://webappsgo-mailadmin.readthedocs.io/en/latest/cli/)
+for authentication, commands, output formats, and cluster failover.
 
-Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/server/terms`, and `/server/healthz`. The `/healthz` compatibility alias is opt-in through `server.healthz.root.enabled`. First-run setup is at `/server/{admin_path}/setup`; Server Admin pages use the configured `/server/{admin_path}` prefix. User self-service starts at `/users`, with organization pages under `/orgs`.
+## Configuration
 
-API explorers are available at `/server/docs/swagger` and `/server/docs/graphql`; their JSON/query endpoints are versioned under `/api/{api_version}/server/`, with current-version aliases at `/api/swagger` and `/api/graphql`. The [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/) lists the available endpoints. The remaining API inventory and some project-defined features are still in progress.
+The server reads `server.yml`, ordered `yaml.d/*.yml` and `yaml.d/*.yaml`
+drop-ins, and `secrets.yml`. The main server settings configure listeners,
+database access, sessions, TLS, and request limits. Environment references in
+YAML values use `${VARIABLE}` syntax. See the
+[configuration reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/configuration/)
+for file permissions, merge order, setting defaults, and secret handling.
 
-Custom panel domains require TXT ownership verification. The custom-host root routes Users to `/users` and Organizations to their own `/orgs/{slug}` namespace, and other Org slugs are rejected on that host. Verified non-wildcard domains can obtain certificates through HTTP-01 or TLS-ALPN-01 when the selected listener is reachable. DNS-01 certificates, including wildcard certificates, use lego's registered DNS providers and encrypted provider credentials; see the [custom-domain operations guide](docs/admin.md).
+## API
+
+The versioned API covers server status and information, Server Admin settings,
+mail resources, Organizations, user self-service, and custom panel domains.
+OpenAPI and GraphQL explorers are available at `/server/docs/swagger` and
+`/server/docs/graphql`. See the [API reference](https://webappsgo-mailadmin.readthedocs.io/en/latest/api/)
+for routes, authentication, and response formats.
+
+## Other
+
+mailadmin manages infrastructure and mail-account metadata; mail storage,
+delivery, and mailbox protocols are provided by the installed mail stack.
+Product requirements are in [IDEA.md](IDEA.md), implementation requirements
+are in [AI.md](AI.md), and project-specific overrides are in [SPEC.md](SPEC.md).
 
 ## Development
 
-Builds and Go commands must run inside the project Docker workflow with `CGO_ENABLED=0`; do not build Go on the host. See [development documentation](https://webappsgo-mailadmin.readthedocs.io/en/latest/development/) and the project Makefile for supported commands. The platform matrix is Linux and FreeBSD on amd64 and arm64.
+Go builds and checks run through Docker with `CGO_ENABLED=0`. Use `make dev`,
+`make local`, `make build`, and `make test`; supported release targets are
+Linux and FreeBSD on amd64 and arm64. See the
+[development guide](https://webappsgo-mailadmin.readthedocs.io/en/latest/development/)
+for test suites and contribution workflow.
 
-Run the basic binary and setup-flow checks with `./tests/run_tests.sh` (Docker required). For browser coverage, run `./tests/e2e.sh` to check server-rendered pages, setup without JavaScript, and browser login, theme, and responsive behavior. For full init-system coverage, run `./tests/incus.sh` to exercise service installation and lifecycle in Debian/systemd and Alpine/OpenRC containers; `./tests/incus.sh systemd` and `./tests/incus.sh openrc` select one environment. These suites require Docker; Incus testing also requires Incus. They remove the uniquely named test containers when they exit. Use `./tests/e2e.sh --keep-artifacts` to preserve browser failure artifacts for inspection.
+## Disclaimer
+
+This software is provided "as is" without warranty of any kind. Use it only
+after evaluating its behavior and security for your environment.
+
+- **No warranty:** The maintainers are not responsible for damages, data loss,
+  or operational problems arising from use of the software.
+- **Third-party services:** External mail, DNS, certificate, and hosting
+  services have their own terms and availability.
+- **Security:** The project follows security practices, but no software can be
+  guaranteed free of vulnerabilities.
+- **Production use:** Review configuration, access controls, backups, and
+  recovery procedures before deployment.
+
+By using this software, you acknowledge this disclaimer.
 
 ## License
 
