@@ -23,6 +23,10 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/{api_version}/server/auth/passkey/verify` | Public; ceremony ID | Verify an assertion; issue a 24-hour Bearer token or complete the partial-token MFA flow |
 | GET | `/api/v1/users/security/sessions` | User Bearer token | List only the current user's active sessions |
 | DELETE | `/api/v1/users/security/sessions/{session_id}` | User Bearer token with write scope | Revoke one of the current user's sessions |
+| GET | `/api/{api_version}/users/tokens` | User Bearer token | List the authenticated user's API tokens with name, scope, expiry, creation time, last use, and redacted prefix |
+| POST | `/api/{api_version}/users/tokens` | User Bearer token with write scope | Create a token using `name`, `scope` (`global`, `read-write`, or `read`), and `expiration` (`never`, `7d`, `1m`, `6m`, `1y`, or `custom:YYYY-MM-DD`); returns the raw token once |
+| GET | `/api/{api_version}/users/tokens/{token_id}` | User Bearer token | Read details for one token owned by the authenticated user |
+| DELETE | `/api/{api_version}/users/tokens/{token_id}` | User Bearer token with write scope | Revoke one token owned by the authenticated user |
 | GET | `/api/v1/users/security/2fa` | User Bearer token | Read authenticator and pending-enrollment status |
 | POST | `/api/v1/users/security/2fa/enable` | User Bearer token with write scope | Verify setup and return one-time recovery keys; enrollment remains pending |
 | POST | `/api/v1/users/security/recovery-keys/ack` | User Bearer token with write scope | Acknowledge saved keys and activate pending TOTP or passkeys |

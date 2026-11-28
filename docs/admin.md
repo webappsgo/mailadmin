@@ -1,6 +1,6 @@
 # Browser administration
 
-The application uses server-rendered HTML and progressive enhancement. Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/server/terms`, `/server/healthz`, `/robots.txt`, `/sitemap.xml`, and `/manifest.webmanifest`. Static assets use `/static/`, locale catalogs use `/locales/{lang}.json`, and the offline fallback is `/offline.html`. The configurable `/server/{admin_path}` prefix hosts the Server Admin panel.
+The application uses server-rendered HTML and progressive enhancement. Public pages include `/`, `/server/about`, `/server/help`, `/server/privacy`, `/server/terms`, and `/server/healthz`. The PWA manifest and service worker are served at `/manifest.json` and `/sw.js`; static assets use `/static/`, and locale catalogs use `/locales/{lang}.json`. Public pages eligible for offline use are cached by the service worker only when the response carries `X-Offline-Cache: public`. If no cached public page is available, the worker synthesizes an offline page using translated strings from the visited page; there is no static `/offline.html` route. The configurable `/server/{admin_path}` prefix hosts the Server Admin panel.
 
 When `server.users.enabled` is true and `server.users.registration.mode` is `open`, `/server/auth/register` provides a server-rendered regular-user registration form. It checks configured email-domain restrictions and applies the registration rate limit. If email verification is required and SMTP delivery succeeds, the new account stays disabled until the one-time link at `/server/auth/verify/{token}` is used; the welcome email is sent after verification. If email delivery is unavailable, the account is activated without verification as specified by the registration configuration, and the welcome email is attempted only when SMTP is enabled.
 
@@ -62,7 +62,7 @@ Admin usernames cannot match a fixed Server Admin section name such as `settings
 
 ## Preferences and public pages
 
-`/server/preferences` provides the supported language preference. Theme preference and essential-cookie acknowledgment are stored in same-site cookies. Static assets are served under `/static/`; the offline page is `/offline.html`.
+`/server/preferences` provides the supported language preference. Theme preference and essential-cookie acknowledgment are stored in same-site cookies. Handwritten CSS is served under `/static/css/`; the runtime stylesheet is generated from notification-toast settings, and the configured accent stylesheet is generated from the validated UI accent color. Stamped static asset URLs use long-lived immutable caching, while unstamped assets are revalidated.
 
 The JSON response from `/server/healthz` includes the latest discovered public IPv4 and IPv6 addresses and their check time. IPv4 uses an external lookup; IPv6 uses the first active interface address that is globally routable. Discovery runs at startup and every 12 hours.
 
