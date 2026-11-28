@@ -16,6 +16,8 @@ The Server Admin mail queue page is `/server/{admin_path}/mail/queue`. It shows 
 
 The Server Admin information page is `/server/{admin_path}/info`. It reports the build version, commit and date, Go runtime, OS/architecture, database driver availability, configured FQDN, and admin path without exposing secrets.
 
+Rate-limit controls are available at `/server/{admin_path}/security/ratelimit`. The page updates the configured read, write, health, strict-action, authentication-failure, login, password-reset, registration, and global-burst thresholds while keeping rate limiting enabled. Changes are atomically saved to `yaml.d/security.yml` and take effect in the running server. The bearer API provides GET and PATCH at `/api/{api_version}/server/{admin_path}/security/ratelimit`.
+
 The Server Admin statistics page is `/server/{admin_path}/stats`. It reports persisted aggregate HTTP request totals, the rolling 24-hour request count, and current in-flight requests.
 
 The Server Admin help editor is `/server/{admin_path}/pages/help`; it saves Markdown to `yaml.d/pages.yml`. The public `/server/help` page renders this content through the shared sanitizer, and `/api/{api_version}/server/help` returns its Markdown source with the help page index. The Server Admin API supports GET and PATCH at `/api/{api_version}/server/{admin_path}/pages/help`.
@@ -25,6 +27,8 @@ The Server Admin maintenance page is `/server/{admin_path}/maintenance`. It repo
 The Server Admin mail delivery log page is `/server/{admin_path}/mail/logs`. It supports bounded search and pagination over delivery envelope metadata, never message contents.
 
 The Server Admin mail statistics page is `/server/{admin_path}/mail/stats`. It defaults to the last 24 hours and supports `24h`, `7d`, or `30d`. It shows sent, received, bounced, deferred, spam, and virus counts, total message bytes from hourly statistics, and the current Postfix queue size. Delivery totals come from stored hourly statistics; queue size is read live from Postfix.
+
+Backup management is available at `/server/{admin_path}/backup`; it creates and verifies archives, stores the encryption password outside API responses, and tests a selected archive without restoring it. The test uses a private temporary directory, verifies the manifest and checksums, extracts the contents, verifies the backed-up OpenPGP keypair against the included `installation_secret`, and removes the temporary data afterward. Incremental archives are checked with their full base. Restore is at `/server/{admin_path}/backup/restore`; it verifies the selected archive before applying it, requires the typed confirmation `RESTORE`, enters maintenance mode, and restarts the server when the restore completes. `/server/{admin_path}/backup/retention` configures daily backup enablement and cron schedule, hourly incremental backups, and daily, weekly, monthly, yearly, and total-size retention. Those controls update the built-in `backup_daily` and `backup_hourly` scheduler tasks immediately. The scheduler page remains the general task history and control surface.
 
 The branding editor is `/server/{admin_path}/branding`. It stores branding, SEO, and UI theme settings in `yaml.d/branding.yml`; HTTPS URLs, data URIs, and uploaded images are accepted. Uploads are limited to 2 MiB per image and stored as mode `0600` files under the private `assets/` directory. The editor also provides OpenGraph and Twitter metadata, canonical origin, extra meta tags, and a site-wide noindex setting.
 

@@ -84,6 +84,8 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | PUT | `/api/v1/server/{admin_path}/email/templates/{name}` | Admin Bearer token | Save a template using `{"subject":"...","body":"..."}`; variables use `{variable}` syntax |
 | POST | `/api/v1/server/{admin_path}/email/templates/{name}/preview` | Admin Bearer token | Render a candidate template using optional `values` overrides without saving |
 | POST | `/api/v1/server/{admin_path}/email/templates/{name}/reset` | Admin Bearer token | Delete the custom template and restore the embedded default |
+| GET | `/api/v1/server/{admin_path}/security/ratelimit` | Admin Bearer token | Read the active request thresholds and windows |
+| PATCH | `/api/v1/server/{admin_path}/security/ratelimit` | Admin Bearer token | Partially update validated request thresholds and windows; rate limiting remains enabled |
 | GET | `/api/v1/server/{admin_path}/stats` | Admin Bearer token | Read aggregate request totals, rolling 24-hour requests, and active connections |
 | GET | `/api/v1/server/{admin_path}/pages/help` | Admin Bearer token | Read the editable public help Markdown |
 | PATCH | `/api/v1/server/{admin_path}/pages/help` | Admin Bearer token | Update the public help Markdown |
@@ -98,6 +100,15 @@ Canonical API paths use `/api/{api_version}`. The default `server.api_version` i
 | POST | `/api/v1/server/{admin_path}/scheduler/{id}/run` | Admin Bearer token | Queue an immediate task run |
 | POST | `/api/v1/server/{admin_path}/scheduler/{id}/enable` | Admin Bearer token | Enable a scheduled task |
 | POST | `/api/v1/server/{admin_path}/scheduler/{id}/disable` | Admin Bearer token | Disable a scheduled task |
+| GET | `/api/{api_version}/server/{admin_path}/backup?limit={limit}&offset={offset}` | Admin Bearer token | List backup metadata with pagination (limit defaults to 50; maximum 100) |
+| POST | `/api/{api_version}/server/{admin_path}/backup` | Admin Bearer token | Create and verify a backup; optional JSON fields are `password`, `filename`, `include_ssl`, and `include_data` |
+| GET | `/api/{api_version}/server/{admin_path}/backup/{id}` | Admin Bearer token | Read metadata for one backup |
+| DELETE | `/api/{api_version}/server/{admin_path}/backup/{id}` | Admin Bearer token | Delete a backup; a full backup referenced by an incremental cannot be deleted |
+| GET | `/api/{api_version}/server/{admin_path}/backup/{id}/download` | Admin Bearer token | Download an archive as a private, no-store response |
+| POST | `/api/{api_version}/server/{admin_path}/backup/test` | Admin Bearer token | Verify and extract an archive into temporary storage without restoring it; accepts `backup_file` and `password` when encrypted, and checks the backed-up OpenPGP keypair |
+| POST | `/api/{api_version}/server/{admin_path}/backup/restore` | Admin Bearer token | Start verified restore; requires `backup_file`, `confirm: "RESTORE"`, and `password` when encrypted |
+| GET | `/api/{api_version}/server/{admin_path}/backup/settings` | Admin Bearer token | Read daily schedule, enabled state, hourly backup toggle, and retention settings |
+| PATCH | `/api/{api_version}/server/{admin_path}/backup/settings` | Admin Bearer token | Update one or more backup schedule, enabled, hourly, and retention settings |
 | GET | `/api/v1/mail/users?org_id={id}` | Admin, user, or organization Bearer token | List safe mailbox metadata in the authorized organization |
 | POST | `/api/v1/mail/users/import` | Operator Bearer token | Import `text/csv` with `org_id,domain_id,email,password,name,quota_mb,enabled` columns; returns per-row success or error codes and aggregate counts. The upload is limited to 1 MiB and 5,000 rows; passwords are never echoed. |
 | GET | `/api/v1/mail/users/export` | Operator Bearer token | Download credential-free mailbox metadata as CSV; spreadsheet formula-leading values are neutralized. |
